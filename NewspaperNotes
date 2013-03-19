@@ -1,15 +1,12 @@
 /*
- ****************************************************************
- * NewspaperNotes.ahk                                           *
- *                                                              *
- * Description: tool for digital newspaper metadata data entry  *
- ****************************************************************
+ * NewspaperNotes.ahk
+ *
+ * Description: tool for digital newspaper metadata data entry
  */
 
 #NoEnv
 #persistent
 
-; ===============================================
 ; =====================================VARIABLES
 ; STANDARD notes
 Ctrl1 = Incorrect date printed on front page: .
@@ -47,14 +44,12 @@ score8 = 0
 score9 = 0
 score10 = 0
 ; =====================================VARIABLES
-; ===============================================
 
 
 Gui, Color, d0d0d0, 912206
 Gui, Show, h0 w0, Newspaper Notes
 
 
-; =================================================
 ; ===========================================MENUS
 ; see MENU FUNCTIONS at end of file
 
@@ -83,14 +78,12 @@ Menu, MyMenuBar, Add, &Help, :HelpMenu
 ; create menu bar
 Gui, Menu, MyMenuBar
 ; ===========================================MENUS
-; =================================================
 
 
-; ==================================================
 ; ===========================================LABELS
 Gui, Font,, Arial
 
-; scoreboard labels - Last Hotkey name: Static 4
+; scoreboard labels - Last Hotkey: Static 4
 Gui, Add, Text, x18  y10 w100 h20, HotKeys
 Gui, Add, Text, x90  y10 w100 h20, Keystrokes
 Gui, Add, Text, x190 y10 w100 h20, Last HotKey
@@ -110,10 +103,8 @@ Gui, Add, Text, x155 y130 w100 h20, Ctrl + 8
 Gui, Add, Text, x225 y130 w100 h20, Ctrl + 9
 Gui, Add, Text, x295 y130 w100 h20, Ctrl + 0
 ; ===========================================LABELS
-; ==================================================
 
 
-; ================================================
 ; ===========================================DATA
 Gui, Font, s15,
 
@@ -138,10 +129,8 @@ Gui, Add, Text, x160 y145 w50 h25, 0
 Gui, Add, Text, x230 y145 w50 h25, 0
 Gui, Add, Text, x300 y145 w50 h25, 0
 ; ===========================================DATA
-; ================================================
 
 
-; =================================================
 ; ===========================================BOXES
 ; totals section
 Gui, Add, GroupBox, x10 y-5 w275 h70,       
@@ -166,7 +155,6 @@ Gui, Add, GroupBox, x150 y115 w65 h60,
 Gui, Add, GroupBox, x220 y115 w65 h60, 
 Gui, Add, GroupBox, x290 y115 w65 h60, 
 ; ===========================================BOXES
-; =================================================
 
 
 WinGetPos, winX, winY, winWidth, winHeight, Newspaper Notes
@@ -175,7 +163,6 @@ Gui, Show, x%winX% y%winY% h180 w365, Newspaper Notes
 winactivate, Newspaper Notes
 
 
-; ================================================
 ; ========================================SCRIPTS
 ; ==================SAVE
 ; Save and Close Notepad document (Ctrl + . )
@@ -372,10 +359,8 @@ Return
 Return
 ; ==================USER-DEFINED
 ; ========================================SCRIPTS
-; ================================================
 
 
-; ===================================================
 ; ====================================MENU FUNCTIONS
 ; =================FILE
 ; display user-defined variable values
@@ -504,7 +489,6 @@ NewspaperNotes:
 Return
 ; =================HELP
 ; ====================================MENU FUNCTIONS
-; ===================================================
 
 GuiClose:
 ExitApp
