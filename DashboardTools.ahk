@@ -94,7 +94,7 @@ Gui, Add, Text, x255 y10 w70 h15, DigiLib Search
 Gui, Add, Text, x15  y70 w80 h15, Edit ( z )
 Gui, Add, Text, x95  y70 w80 h15, Display ( q )
 Gui, Add, Text, x175 y70 w80 h15, Linky ( k )
-Gui, Add, Text, x255 y70 w80 h15, Selenium ( j )
+Gui, Add, Text, x255 y70 w80 h15, Selenium ( , )
 ; =====================================LABELS
 
 ; =====================================DATA
@@ -545,17 +545,24 @@ return
 ; activates test suite loaded in Selenium IDE sidebar
 
 ; HotKey = Alt + j
-!j::
-
+^,::
+	Sleep, 500
+	
 	; bring focus to Selenium sidebar
 	Send, {ShiftDown}{Tab}
 	Sleep, 200
 	Send, {ShiftUp}
 	Sleep, 200
 	Send, {Tab}
-	Sleep, 200
-	Send, {Tab 4}
-	Sleep, 200
+	Sleep, 100
+	Send, {Tab}
+	Sleep, 100
+	Send, {Tab}
+	Sleep, 100
+	Send, {Tab}
+	Sleep, 100
+	Send, {Tab}
+	Sleep, 100
 
 	; play entire test suite
 	Send, {AltDown}a{AltUp}
