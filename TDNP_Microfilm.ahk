@@ -412,7 +412,7 @@ Return
 ; =================HELP
 ; open the TDNP_Microfilm wiki page
 Documentation:
-	Run, http://digitalprojects.library.unt.edu/projects/index.php/TDNP_Microfilm.ahk
+	Run, https://github.com/drewhop/AutoHotkey/wiki/TDNP_Microfilm
 Return
 
 ; open US Newspaper Directory
@@ -422,7 +422,7 @@ Return
 
 ; display version info
 About:
-MsgBox TDNP_Microfilm.ahk`nVersion 1.0
+MsgBox TDNP_Microfilm.ahk`nVersion 1.0`nAndrew.Weidner@unt.edu
 Return
 ; =================HELP
 ; ===================================MENU FUNCTIONS
