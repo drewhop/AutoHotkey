@@ -475,12 +475,12 @@ Return
 ; =================HELP
 ; display version info
 About:
-MsgBox NewspaperNotes.ahk`nVersion 1.5
+MsgBox NewspaperNotes.ahk`nVersion 1.5`nAndrew.Weidner@unt.edu
 Return
 
 ; open NewspaperNotes.ahk wiki page
 Documentation:
-	Run, http://digitalprojects.library.unt.edu/projects/index.php/NewspaperNotes.ahk
+	Run, https://github.com/drewhop/AutoHotkey/wiki/NewspaperNotes
 Return
 
 ; open Newspaper Notes input standard wiki page
