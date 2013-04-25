@@ -2231,7 +2231,7 @@ Return
 ; edit the file path variable in line 26 for your system
 OpenBatch:
 	; create dialog to select the batch folder
-	FileSelectFolder, batchpath, E:\, 0, Select a folder:
+	FileSelectFolder, batchpath, %batchdrive%, 0, Select a folder:
 	If ErrorLevel
 		Return
 	Else
@@ -2241,7 +2241,7 @@ Return
 ; validate a batch with the command line
 ; NDNP_QR.AHK or .EXE must reside in the DVV folder
 DVVvalidate:
-	FileSelectFolder, batchpath, E:\, 0, `nSelect the batch to VALIDATE:
+	FileSelectFolder, batchpath, %batchdrive%, 0, `nSelect the batch to VALIDATE:
 	if ErrorLevel
 		Return
 	else
@@ -2251,7 +2251,7 @@ Return
 ; verify a batch with the command line
 ; NDNP_QR.AHK or .EXE must reside in the DVV folder
 DVVverify:
-	FileSelectFolder, batchpath, E:\, 0, `nSelect the batch to VERIFY:
+	FileSelectFolder, batchpath, %batchdrive%, 0, `nSelect the batch to VERIFY:
 	if ErrorLevel
 		Return
 	else
@@ -3137,7 +3137,7 @@ BatchReport:
 	reportcount = 0
 	totalpages = 0
 
-	; create dialog to select a reel folder
+	; create dialog to select a batch folder
 	FileSelectFolder, folderpath, %batchdrive%, 0, BATCH REPORT`n`nSelect a BATCH folder:
 	if ErrorLevel
 		Return
@@ -4558,7 +4558,7 @@ Return
 
 ; open NDNP_QR wiki page
 Documentation:
-  Run, http://digitalprojects.library.unt.edu/projects/index.php/NDNP_QR.ahk
+  Run, https://github.com/drewhop/AutoHotkey/wiki/NDNP_QR
 Return
 ; =================HELP
 ; =========================================MENU FUNCTIONS
