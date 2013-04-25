@@ -13,7 +13,7 @@ scannedpath = Q:\scanned_for_tdnp
 collationpath = Q:\TDNP\Collation Sheets
 
 ; help
-docURL = http://digitalprojects.library.unt.edu/projects/index.php/TDNP_Metadata2.ahk
+docURL = https://github.com/drewhop/AutoHotkey/wiki/TDNP_Metadata
 
 ; edit
 titlefolderpath = _
