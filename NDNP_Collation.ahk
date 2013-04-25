@@ -391,7 +391,7 @@ Return
 ; =================HELP
 ; open the NDNP_Collation wiki page
 Documentation:
-	Run, http://digitalprojects.library.unt.edu/projects/index.php/NDNP_Collation.ahk
+	Run, https://github.com/drewhop/AutoHotkey/wiki/NDNP_Collation
 Return
 
 ; open NDNP Awardee wiki
