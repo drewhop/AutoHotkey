@@ -9,10 +9,15 @@
 #persistent
 
 ; ===========================================VARIABLES
+; EDIT THIS VARIABLE (if necessary)
+; for the path to the Mozilla Firefox folder
 firefoxpath = C:\Program Files (x86)\Mozilla Firefox
+
+; search
 input =
 searchstring = Do not use quotes.
 
+; scoreboard
 hotkeys = 0
 portalscore = 0
 digilibscore = 0
@@ -748,12 +753,12 @@ Return
 ; =================HELP
 ; display version info
 About:
-MsgBox DashboardTools.ahk`nVersion 1.3
+MsgBox DashboardTools.ahk`nVersion 1.3`nAndrew.Weidner@unt.edu
 Return
 
 ; open DashboardTools.ahk wiki page
 Documentation:
-Run, "%firefoxpath%\firefox.exe" http://digitalprojects.library.unt.edu/projects/index.php/DashboardTools.ahk
+Run, "%firefoxpath%\firefox.exe" https://github.com/drewhop/AutoHotkey/wiki/DashboardTools
 Return
 ; =================HELP
 ; =====================================MENU FUNCTIONS
