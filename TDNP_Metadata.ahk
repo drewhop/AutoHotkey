@@ -76,7 +76,7 @@ Menu, EditMenu, Add
 Menu, EditMenu, Add, &Display Current Values, DisplayValues
 
 ; Issue Separation menu
-Menu, IssuesMenu, Add, &Enter Issue Folders, EnterIssueFolders
+Menu, IssuesMenu, Add, &Enter Folder Names, EnterFolderNames
 Menu, IssuesMenu, Add, &Create Issue Folders, CreateIssueFolders
 Menu, IssuesMenu, Add
 Menu, IssuesMenu, Add, &Paste Images, PasteImages
@@ -164,7 +164,7 @@ Gui, 1:Add, GroupBox, x255 y75 w75 h45,
 ; returns to title folder with titlefolderpath variable
 ; Hotkey: Alt + b
 !b::
-  ; if titlefolderpath variable is empty
+	; if titlefolderpath variable is empty
 	if titlefolderpath = _
 	{
 		; create dialog to select the title folder
@@ -172,16 +172,6 @@ Gui, 1:Add, GroupBox, x255 y75 w75 h45,
 		if ErrorLevel
 			Return
 	}
-
-;		; create an input box to enter the title folder path		
-;		InputBox, input, Back To Title Folder, Enter Title Folder Path:,, 650, 125,,,,,%titlefolderpath%
-;			if ErrorLevel
-;				Return
-;			else
-;			{
-;				titlefolderpath = %input%
-;			}
-;	}
 
 	; activate issue folder
 	SetTitleMatchMode RegEx
@@ -498,15 +488,6 @@ Return
 			if ErrorLevel
 				Return
 		}
-;			; create an input box to enter the title folder path
-;			InputBox, input, Back To Title Folder, Enter Title Folder Path:,, 650, 125,,,,,%titlefolderpath%
-;				if ErrorLevel
-;					Return
-;				else
-;				{
-;					titlefolderpath = %input%
-;				}
-;		}
 
 		; activate issue folder
 		SetTitleMatchMode RegEx
@@ -645,16 +626,6 @@ Return
 			if ErrorLevel
 				Return
 		}
-
-;			; create an input box to enter the title folder name
-;			InputBox, input, Back To Title Folder, Enter Title Folder Path:,, 650, 125,,,,,%titlefolderpath%
-;				if ErrorLevel
-;					Return
-;				else
-;				{
-;					titlefolderpath = %input%
-;				}
-;		}
 
 		; activate issue folder
 		SetTitleMatchMode RegEx
@@ -812,7 +783,7 @@ Return
 	Return
 	}
 
-	; if there is not metadata.txt file in the folder
+	; if there is no metadata.txt file in the folder
 	else
 	{
 		; print an error message
@@ -874,19 +845,12 @@ IssueCheckPY:
 	; set scoreboard hotkey
 	ControlSetText, Static7, REPORT, TDNP_Metadata
 	
-;	; create input box for title folder path
-;	InputBox, input, Create Report, Enter Title Folder Path:,, 650, 125,,,,,%titlefolderpath%
-;		if ErrorLevel
-;			Return
-
 	; create dialog to select the title folder
 	FileSelectFolder, titlefolderpath, %scannedpath%, 0, Create Report`n`nSelect the TITLE folder:
 		if ErrorLevel
 			Return
 		else
 		{
-;			titlefolderpath = %input%
-			
 			; create input box for report date, auto-populate with today's date
 			InputBox, input, Create Report, Enter report date:,, 150, 125,,,,,%A_YYYY%-%A_MM%-%A_DD%
 			if ErrorLevel
@@ -902,8 +866,8 @@ IssueCheckPY:
 						today = %input%
 						
 						; run the issueCheck.py script in the standard Windows terminal
-						Run, %WINDIR%\System32\cmd.exe /k C:\Python27\python.exe C:\Python27\issueCheck.py "%titlefolderpath%" > "%titlefolderpath%\report-%today%.txt"
-						Sleep, 2000
+						Run, C:\Windows\System32\cmd.exe /k C:\Python27\python.exe C:\Python27\issueCheck.py "%titlefolderpath%" > "%titlefolderpath%\report-%today%.txt"
+						Sleep, 1000
 						
 						; end the loop
 						Break
@@ -924,10 +888,10 @@ IssueCheckPY:
 				
 				; activate terminal window
 				SetTitleMatchMode 2
-				WinWait, System32, , , ,
-				IfWinNotActive, System32, , , ,
-				WinActivate, System32, , , ,
-				WinWaitActive, System32, , , ,
+				WinWait, cmd.exe, , , ,
+				IfWinNotActive, cmd.exe, , , ,
+				WinActivate, cmd.exe, , , ,
+				WinWaitActive, cmd.exe, , , ,
 				Sleep, 100
 
 				; close the terminal
@@ -970,12 +934,6 @@ TitleFolderPath:
 FileSelectFolder, titlefolderpath, %scannedpath%, 0, Edit Title Folder`n`nSelect the TITLE folder:
 	if ErrorLevel
 		Return
-
-; InputBox, input, Title Folder Path,,, 650, 100,,,,,%titlefolderpath%
-;	if ErrorLevel
-;		Return
-;	else
-;		titlefolderpath = %input%
 Return
 
 ; reelfolderpath variable input
@@ -983,12 +941,6 @@ ReelFolderPath:
 FileSelectFolder, reelfolderpath, %scannedpath%, 0, Edit Reel Folder`n`nSelect the REEL folder:
 	if ErrorLevel
 		Return
-
-; InputBox, input, Reel Folder Path,,, 650, 100,,,,,%reelfolderpath%
-;	if ErrorLevel
-;		Return
-;	else
-;		reelfolderpath = %input%
 Return
 
 DisplayValues:
@@ -1010,7 +962,7 @@ Return
 ; =================EDIT
 
 ; =================ISSUE SEPARATION
-EnterIssueFolders:
+EnterFolderNames:
 	; initialize variables
 	issuefile =
 	previous =
@@ -1029,7 +981,7 @@ EnterIssueFolders:
 	{
 		; set the input box display variable
 		previous := input
-		InputBox, input, Issue Folders, Enter Issue %count%,, 150, 125,,,,,%previous%
+		InputBox, input, Folder Names, Enter Issue %count%,, 150, 125,,,,,%previous%
 		if ErrorLevel
 			Return
 		else
@@ -1064,7 +1016,7 @@ EnterIssueFolders:
 					MsgBox Please enter the issue date in the format: YYYYMMDDEE`n`nExample: 1885013101
 					
 					; create another issue folder name input box and re-enter loop
-					InputBox, input, Issue Folders, Enter issue number %count%,, 150, 125,,,,,%previous%
+					InputBox, input, Folder Names, Enter issue number %count%,, 150, 125,,,,,%previous%
 					if ErrorLevel
 						Return
 				}
@@ -1103,57 +1055,57 @@ CreateIssueFolders:
 Return
 
 PasteImages:
-	; set last hotkey value
-	ControlSetText, Static7, IMAGES, TDNP_Metadata
-
-	; initialize micro-counter
-	currentimagescore = 0
-	ControlSetText, Static4, %currentimagescore%, TDNP_Metadata
-
-	; select title folder
-	FileSelectFolder, titlefolderpath, %scannedpath%, 0, PASTE IMAGES`n`nSelect the TITLE folder:
-	if ErrorLevel
+	; abort script if issuefile is empty
+	if issuefile =
+	{
+		MsgBox, There are no issues to paste.`n`nChoose "File > Enter Folder Names" to enter issues. 
 		Return
+	}
 	else
 	{
-		; loop executes paste (Ctrl + v) in the folders stored in issuefile
-		Loop, parse, issuefile, `n
+		; set last hotkey value
+		ControlSetText, Static7, IMAGES, TDNP_Metadata
+
+		; initialize micro-counter
+		currentimagescore = 0
+		ControlSetText, Static4, %currentimagescore%, TDNP_Metadata
+
+		; select title folder
+		FileSelectFolder, titlefolderpath, %scannedpath%, 0, PASTE IMAGES`n`nSelect the TITLE folder:
+		if ErrorLevel
+			Return
+		else
 		{
-			; exit script if issuefile is empty
-			if A_LoopField =
-				Return
-			else
+			; loop pastes clipboard contents to folders stored in issuefile
+			Loop, parse, issuefile, `n
 			{
-				; create a confirm dialog for each paste operation, No cancels the script
-				MsgBox, 4,, %titlefolderpath%`n`nPaste into %A_LoopField%`n`nYes to Continue`nNo to Exit
-				IfMsgBox, No, Return
+				; exit script if no more issues
+				if A_LoopField =
+				{
+					Return
+				}
 				else
 				{
-					; open the issue folder
-					Run, %titlefolderpath%\%A_LoopField%
-						
-					; activate issue folder
-					SetTitleMatchMode RegEx
-					WinWait, ^[1-2][0-9]{9}$, , , ,
-					IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-					WinActivate, ^[1-2][0-9]{9}$, , , ,
-					WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-					Sleep, 200
+					; create a confirm dialog for each paste operation, No cancels the script
+					MsgBox, 4,, %titlefolderpath%`n`nPaste into %A_LoopField%`n`nYes to Continue`nNo to Exit
+					IfMsgBox, No, Return
+					else
+					{
+						; set the path to paste the clipboard contents
+						pastepath = %titlefolderpath%\%A_LoopField%
+				
+						; loop to parse and paste the clipboard
+						Loop, parse, clipboard, `n, `r
+						{
+							FileMove, %A_LoopField%, %pastepath%
+						}
 
-					; paste
-					Send, {CtrlDown}v{CtrlUp}
-					Sleep, 1500
-
-					; close the issue folder
-					Send, {AltDown}f{AltUp}
-					Sleep, 100
-					Send, c
-							
-					; update scoreboard
-					imagescore++
-					currentimagescore++
-					ControlSetText, Static4, %currentimagescore%, TDNP_Metadata
-					ControlSetText, Static13, %imagescore%, TDNP_Metadata
+						; update scoreboard
+						imagescore++
+						currentimagescore++
+						ControlSetText, Static4, %currentimagescore%, TDNP_Metadata
+						ControlSetText, Static13, %imagescore%, TDNP_Metadata
+					}
 				}
 			}
 		}
@@ -1221,7 +1173,7 @@ Return
 
 ; display version info
 About:
-MsgBox TDNP_Metadata.ahk`nVersion 2.3`nAndrew.Weidner@unt.edu
+MsgBox TDNP_Metadata.ahk`nVersion 2.4`nAndrew.Weidner@unt.edu
 Return
 ; =================HELP
 ; ===========================================MENU FUNCTIONS
