@@ -18,8 +18,6 @@ docURL = https://github.com/drewhop/AutoHotkey/wiki/TDNP_Metadata
 ; edit
 titlefolderpath = _
 titlefoldername = _
-reelfolderpath = _
-reelfoldername = _
 
 ; issue separation
 issue =
@@ -48,6 +46,7 @@ backscore = 0
 gotoscore = 0
 ; ===========================================VARIABLES
 
+; initiate GUI
 Gui, 1:Color, d0d0d0, 912206
 Gui, 1:Show, h0 w0, TDNP_Metadata
 
@@ -64,14 +63,9 @@ Menu, FileMenu, Add
 Menu, FileMenu, Add, Reloa&d, Reload
 Menu, FileMenu, Add, E&xit, Exit
 
-; Edit menu, Folder Name & Folder Path submenus
-Menu, FolderNameMenu, Add, &Title Folder Name, TitleFolderName
-Menu, FolderNameMenu, Add, &Reel Folder Name, ReelFolderName
-Menu, EditMenu, Add, Folder &Name, :FolderNameMenu
-Menu, EditMenu, Add
-Menu, FolderPathMenu, Add, &Title Folder Path, TitleFolderPath
-Menu, FolderPathMenu, Add, &Reel Folder Path, ReelFolderPath
-Menu, EditMenu, Add, Folder &Path, :FolderPathMenu
+; Edit menu
+Menu, EditMenu, Add, &Title Folder Name, TitleFolderName
+Menu, EditMenu, Add, &Title Folder Path, TitleFolderPath
 Menu, EditMenu, Add
 Menu, EditMenu, Add, &Display Current Values, DisplayValues
 
@@ -161,7 +155,7 @@ Gui, 1:Add, GroupBox, x255 y75 w75 h45,
 ; ===========================================SCRIPTS
 ; ==============================
 ; BACK
-; returns to title folder with titlefolderpath variable
+; opens the title folder with titlefolderpath variable
 ; Hotkey: Alt + b
 !b::
 	; if titlefolderpath variable is empty
@@ -173,23 +167,20 @@ Gui, 1:Add, GroupBox, x255 y75 w75 h45,
 			Return
 	}
 
-	; activate issue folder
+	; loop to close any issue folders
 	SetTitleMatchMode RegEx
-	WinWait, ^[1-2][0-9]{9}$, , , ,
-	IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-	WinActivate, ^[1-2][0-9]{9}$, , , ,
-	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-	Sleep, 200
+	Loop
+	{
+		IfWinExist, ^[1-2][0-9]{9}$, , , ,
+		{
+			WinClose, ^[1-2][0-9]{9}$, , , ,
+			Sleep, 200
+		}
+		else Break
+	}
 
-	; enter the title folder path
-	; in the address bar
-	Send, {F4}
-	Sleep, 200
-	Send, {End}
-	Sleep, 200
-	Send, %titlefolderpath%
-	Sleep, 200
-	Send, {Enter}
+	; open the title folder
+	Run, %titlefolderpath%
 
 	; update scoreboard
 	backscore++
@@ -215,6 +206,15 @@ Return
 			}
 	}
 	
+	; if titlefolderpath variable is empty
+	if titlefolderpath = _
+	{
+		; create dialog to select the title folder
+		FileSelectFolder, titlefolderpath, %scannedpath%, 0, Back`n`nSelect the TITLE folder:
+		if ErrorLevel
+			Return
+	}
+
 	; create input box to enter the folder name to go to
 	InputBox, input, GoTo Issue, Issue Folder Name:,, 150, 125,,,,,%issue%
 		if ErrorLevel
@@ -236,27 +236,20 @@ Return
 					SetTitleMatchMode RegEx
 					IfWinExist, ^[1-2][0-9]{9}$
 					{
-						; activate issue folder
-						WinWait, ^[1-2][0-9]{9}$, , , ,
-						IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-						WinActivate, ^[1-2][0-9]{9}$, , , ,
-						WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-						Sleep, 100
+						; loop to close any issue folders
+						SetTitleMatchMode RegEx
+						Loop
+						{
+							IfWinExist, ^[1-2][0-9]{9}$, , , ,
+							{
+								WinClose, ^[1-2][0-9]{9}$, , , ,
+								Sleep, 200
+							}
+							else Break
+						}
 
-						; enter the issue folder name
-						; in the address bar
-						Send, {F4}
-						Sleep, 100
-						Send, {CtrlDown}a{CtrlUp}
-						Sleep, 200
-						Send, {Right}
-						Sleep, 100
-						Send, {Backspace 10}
-						Sleep, 100
-						Send, %issue%
-						Sleep, 100
-						Send, {Enter}
-						Sleep, 100
+						; open the issue folder
+						Run, %titlefolderpath%\%issue%
 						
 						; wait for issue folder to load
 						WinWaitActive, ^[1-2][0-9]{9}$, , , ,
@@ -279,7 +272,7 @@ Return
 						gotoscore++
 						ControlSetText, Static7, GoTo: %gotoscore%, TDNP_Metadata
 						
-						; end the loop
+						; end the title folder name check loop
 						Break
 					}
 					
@@ -295,18 +288,12 @@ Return
 						WinWaitActive, %titlefoldername%, , , ,
 						Sleep, 100
 
-						; enter the issue folder name
-						; in the address bar
-						Send, {F4}
-						Sleep, 100
-						Send, {CtrlDown}a{CtrlUp}
-						Sleep, 100
-						Send, {Right}
-						Sleep, 100
-						Send, \%issue%
+						; open the issue
+						SetKeyDelay, 150
+						Send, %issue%
+						SetKeyDelay, 10
 						Sleep, 100
 						Send, {Enter}
-						Sleep, 100
 						
 						; wait for issue folder to load
 						SetTitleMatchMode RegEx
@@ -324,7 +311,7 @@ Return
 						gotoscore++
 						ControlSetText, Static7, GoTo: %gotoscore%, TDNP_Metadata						
 						
-						; end the loop
+						; end the title folder name check loop
 						Break
 					}
 				}
@@ -489,22 +476,20 @@ Return
 				Return
 		}
 
-		; activate issue folder
+		; loop to close any issue folders
 		SetTitleMatchMode RegEx
-		WinWait, ^[1-2][0-9]{9}$, , , ,
-		IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-		WinActivate, ^[1-2][0-9]{9}$, , , ,
-		WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-		Sleep, 100
+		Loop
+		{
+			IfWinExist, ^[1-2][0-9]{9}$, , , ,
+			{
+				WinClose, ^[1-2][0-9]{9}$, , , ,
+				Sleep, 200
+			}
+			else Break
+		}
 
-		; enter the title folder path in the address bar
-		Send, {F4}
-		Sleep, 100
-		Send, {End}
-		Sleep, 100
-		Send, %titlefolderpath%
-		Sleep, 100
-		Send, {Enter}
+		; open the title folder
+		Run, %titlefolderpath%		
 
 		; activate title folder
 		SetTitleMatchMode 2
@@ -627,24 +612,22 @@ Return
 				Return
 		}
 
-		; activate issue folder
+		; loop to close any issue folders
 		SetTitleMatchMode RegEx
-		WinWait, ^[1-2][0-9]{9}$, , , ,
-		IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-		WinActivate, ^[1-2][0-9]{9}$, , , ,
-		WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-		Sleep, 100
+		Loop
+		{
+			IfWinExist, ^[1-2][0-9]{9}$, , , ,
+			{
+				WinClose, ^[1-2][0-9]{9}$, , , ,
+				Sleep, 200
+			}
+			else Break
+		}
 
-		; enter the title folder path in the address bar
-		Send, {F4}
-		Sleep, 100
-		Send, {End}
-		Sleep, 100
-		Send, %titlefolderpath%
-		Sleep, 100
-		Send, {Enter}
-
-		; activate issue folder
+		; open the title folder
+		Run, %titlefolderpath%		
+		
+		; activate title folder
 		SetTitleMatchMode 2
 		WinWaitActive, %titlefoldername%, , , ,
 		Sleep, 100
@@ -920,25 +903,9 @@ InputBox, input, Title Folder Name,,, 250, 100,,,,,%titlefoldername%
 		titlefoldername = %input%
 Return
 
-; reelfoldername variable input
-ReelFolderName:
-InputBox, input, Reel Folder Name,,, 250, 100,,,,,%reelfoldername%
-	if ErrorLevel
-		Return
-	else
-		reelfoldername = %input%
-Return
-
 ; titlefolderpath variable input
 TitleFolderPath:
 FileSelectFolder, titlefolderpath, %scannedpath%, 0, Edit Title Folder`n`nSelect the TITLE folder:
-	if ErrorLevel
-		Return
-Return
-
-; reelfolderpath variable input
-ReelFolderPath:
-FileSelectFolder, reelfolderpath, %scannedpath%, 0, Edit Reel Folder`n`nSelect the REEL folder:
 	if ErrorLevel
 		Return
 Return
@@ -950,13 +917,6 @@ Title Folder Name:  %titlefoldername%
 
 Title Folder Path
 %titlefolderpath%
-
-----------------
-
-Reel Folder Name:  %reelfoldername%
-
-Reel Folder Path
-%reelfolderpath%
 )
 Return
 ; =================EDIT
