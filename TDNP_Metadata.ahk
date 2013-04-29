@@ -46,7 +46,6 @@ backscore = 0
 gotoscore = 0
 ; ===========================================VARIABLES
 
-; initiate GUI
 Gui, 1:Color, d0d0d0, 912206
 Gui, 1:Show, h0 w0, TDNP_Metadata
 
@@ -64,8 +63,8 @@ Menu, FileMenu, Add, Reloa&d, Reload
 Menu, FileMenu, Add, E&xit, Exit
 
 ; Edit menu
-Menu, EditMenu, Add, &Title Folder Name, TitleFolderName
-Menu, EditMenu, Add, &Title Folder Path, TitleFolderPath
+Menu, EditMenu, Add, Title Folder &Name, TitleFolderName
+Menu, EditMenu, Add, Title Folder &Path, TitleFolderPath
 Menu, EditMenu, Add
 Menu, EditMenu, Add, &Display Current Values, DisplayValues
 
@@ -221,8 +220,6 @@ Return
 			Return
     	else
 		{
-			; set the GoTo indicator to TRUE (1)
-			activegoto = 1
 			; loop checks for valid title folder name
 			Loop
 			{
@@ -268,6 +265,9 @@ Return
 						Sleep, 100
 						Send, {Enter}
 
+						; set the GoTo indicator to TRUE (1)
+						activegoto = 1
+
 						; update scoreboard
 						gotoscore++
 						ControlSetText, Static7, GoTo: %gotoscore%, TDNP_Metadata
@@ -306,6 +306,9 @@ Return
 						Send, {Up}
 						Sleep, 100
 						Send, {Enter}
+
+						; set the GoTo indicator to TRUE (1)
+						activegoto = 1
 
 						; update scoreboard
 						gotoscore++
