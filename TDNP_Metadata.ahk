@@ -13,7 +13,7 @@ scannedpath = Q:\scanned_for_tdnp
 collationpath = Q:\TDNP\Collation Sheets
 
 ; help
-docURL = https://github.com/drewhop/AutoHotkey/wiki/TDNP_Metadata
+docURL = http://digitalprojects.library.unt.edu/projects/index.php/TDNP_Metadata2.ahk
 
 ; edit
 titlefolderpath = _
@@ -23,7 +23,21 @@ titlefoldername = _
 issue =
 temp =
 count =
+
+; metadata display
+metacount =
 issuenum =
+volumenum =
+note =
+displaynote =
+volumespecial = Incorrect volume number
+issuespecial = Incorrect issue number
+volumeissuespecial = Incorrect volume and
+metaopenscore = 0
+metanextscore = 0
+metaprevscore = 0
+metagotoscore = 0
+metadisplayscore = 0
 
 ; navigation
 activegoto = 0
@@ -209,7 +223,7 @@ Return
 	if titlefolderpath = _
 	{
 		; create dialog to select the title folder
-		FileSelectFolder, titlefolderpath, %scannedpath%, 0, Back`n`nSelect the TITLE folder:
+		FileSelectFolder, titlefolderpath, %scannedpath%, 0, GoTo`n`nSelect the TITLE folder:
 		if ErrorLevel
 			Return
 	}
@@ -268,10 +282,6 @@ Return
 						; set the GoTo indicator to TRUE (1)
 						activegoto = 1
 
-						; update scoreboard
-						gotoscore++
-						ControlSetText, Static7, GoTo: %gotoscore%, TDNP_Metadata
-						
 						; end the title folder name check loop
 						Break
 					}
@@ -309,10 +319,6 @@ Return
 
 						; set the GoTo indicator to TRUE (1)
 						activegoto = 1
-
-						; update scoreboard
-						gotoscore++
-						ControlSetText, Static7, GoTo: %gotoscore%, TDNP_Metadata						
 						
 						; end the title folder name check loop
 						Break
@@ -329,6 +335,159 @@ Return
 							Return
 				}
 			}
+			
+			; update scoreboard
+			gotoscore++
+			ControlSetText, Static7, GoTo: %gotoscore%, TDNP_Metadata									
+		}	
+Return
+; ==============================
+
+; ==============================
+; GoTo+
+; opens a specific issue folder and first TIFF file
+; and displays issue metadata in moveable windows
+; Hotkey: Win + Alt + g
+#!g::	
+	; if titlefoldername variable is empty
+	if titlefoldername = _
+	{
+		; create input box to enter the title folder name
+		InputBox, input, GoTo Issue, Enter Title Folder Name:,, 225, 125,,,,,
+			if ErrorLevel
+				Return
+			else
+			{
+				titlefoldername = %input%
+			}
+	}
+	
+	; if titlefolderpath variable is empty
+	if titlefolderpath = _
+	{
+		; create dialog to select the title folder
+		FileSelectFolder, titlefolderpath, %scannedpath%, 0, GoTo`n`nSelect the TITLE folder:
+		if ErrorLevel
+			Return
+	}
+
+	; create input box to enter the folder name to go to
+	InputBox, input, GoTo Issue, Issue Folder Name:,, 150, 125,,,,,%issue%
+		if ErrorLevel
+			Return
+    	else
+		{
+			; loop checks for valid title folder name
+			Loop
+			{
+				; if title folder name is valid (10 digit number)
+				if RegExMatch(input, "\d\d\d\d\d\d\d\d\d\d")
+				{
+					; accept the input
+					issue = %input%
+
+					; case for active issue folder
+					SetTitleMatchMode RegEx
+					IfWinExist, ^[1-2][0-9]{9}$
+					{
+						; loop to close any issue folders
+						SetTitleMatchMode RegEx
+						Loop
+						{
+							IfWinExist, ^[1-2][0-9]{9}$, , , ,
+							{
+								WinClose, ^[1-2][0-9]{9}$, , , ,
+								Sleep, 200
+							}
+							else Break
+						}
+
+						; open the issue folder
+						Run, %titlefolderpath%\%issue%
+						
+						; wait for issue folder to load
+						WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+						; if the folder does not exist
+						IfWinActive, , Windows can't find, , , ,
+						{
+							; exit the script
+							Return
+						}
+						Sleep, 100
+
+						; open the first TIFF file
+						Send, {Down}
+						Sleep, 100
+						Send, {Up}
+						Sleep, 100
+						Send, {Enter}
+						Sleep, 500
+
+						; set the GoTo indicator to TRUE (1)
+						activegoto = 1
+
+						; end the title folder name check loop
+						Break
+					}
+					
+					; case for active title folder
+					IfWinNotExist, ^[1-2][0-9]{9}$
+					SetTitleMatchMode 2
+					IfWinExist, %titlefoldername%
+					{
+						; activate title folder
+						WinWait, %titlefoldername%, , , ,
+						IfWinNotActive, %titlefoldername%, , , ,
+						WinActivate, %titlefoldername%, , , ,
+						WinWaitActive, %titlefoldername%, , , ,
+						Sleep, 100
+
+						; open the issue
+						SetKeyDelay, 150
+						Send, %issue%
+						SetKeyDelay, 10
+						Sleep, 100
+						Send, {Enter}
+						
+						; wait for issue folder to load
+						SetTitleMatchMode RegEx
+						WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+						Sleep, 100
+
+						; open the first TIFF file
+						Send, {Down}
+						Sleep, 100
+						Send, {Up}
+						Sleep, 100
+						Send, {Enter}
+						Sleep, 500
+
+						; set the GoTo indicator to TRUE (1)
+						activegoto = 1
+												
+						; end the title folder name check loop
+						Break
+					}
+				}
+				
+				; if the issue folder name entered is not valid
+				; print error message and re-enter loop
+				else
+				{
+					MsgBox, Please enter a folder name in the format: YYYYMMDDEE`n`nExample: 1942061901
+					InputBox, input, GoTo Issue, Issue Folder Name:,, 150, 125,,,,,
+						if ErrorLevel
+							Return
+				}
+			}
+
+			; metadata harvest subroutine
+			Gosub, MetaHarvest
+			
+			; update scoreboard
+			gotoscore++
+			metagotoscore++
+			ControlSetText, Static7, GoTo: %gotoscore%, TDNP_Metadata									
 		}	
 Return
 ; ==============================
@@ -445,6 +604,39 @@ Return
 	; update the scoreboard
 	openscore++
 	ControlSetText, Static7, OPEN, TDNP_Metadata
+	ControlSetText, Static15, %openscore%, TDNP_Metadata
+Return
+; ==============================
+
+; ==============================
+; OPEN+
+; opens selected issue folder and first TIFF file
+; and displays issue metadata in moveable windows
+; Hotkey: Win + Alt + i
+#!i::
+	; open selected directory
+	Send, {Enter}
+
+	; wait for the TDNP issue folder to load
+	SetTitleMatchMode RegEx
+	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+	Sleep, 100
+  
+	; open the first TIFF file
+	Send, {Down}
+	Sleep, 100
+	Send, {Up}
+	Sleep, 100
+	Send, {Enter}
+	Sleep, 500
+
+	; metadata harvest subroutine
+	Gosub, MetaHarvest
+
+	; update the scoreboard
+	openscore++
+	metaopenscore++
+	ControlSetText, Static7, OPEN+, TDNP_Metadata
 	ControlSetText, Static15, %openscore%, TDNP_Metadata
 Return
 ; ==============================
@@ -586,6 +778,146 @@ Return
 ; ==============================
 
 ; ==============================
+; NEXT+
+; opens first TIFF file in next issue
+; and displays issue metadata in moveable windows
+; Hotkey: Win + Alt + o
+#!o::
+	; if the titlefoldername variable is empty
+	if titlefoldername = _
+	{
+		; create an input box to enter the title folder name
+		InputBox, input, Next Issue, Enter Title Folder Name:,, 225, 125,,,,,
+			if ErrorLevel
+				Return
+			else
+			{
+				titlefoldername = %input%
+			}  
+	}
+
+	; case for TRUE (1) GoTo indicator
+	if activegoto = 1
+	{
+		; if the titlefolderpath variable is empty
+		if titlefolderpath = _
+		{
+			; create dialog to select the title folder
+			FileSelectFolder, titlefolderpath, %scannedpath%, 0, Next Issue`n`nSelect the TITLE folder:
+			if ErrorLevel
+				Return
+		}
+
+		; loop to close any issue folders
+		SetTitleMatchMode RegEx
+		Loop
+		{
+			IfWinExist, ^[1-2][0-9]{9}$, , , ,
+			{
+				WinClose, ^[1-2][0-9]{9}$, , , ,
+				Sleep, 200
+			}
+			else Break
+		}
+
+		; open the title folder
+		Run, %titlefolderpath%		
+
+		; activate title folder
+		SetTitleMatchMode 2
+		WinWaitActive, %titlefoldername%, , , ,
+		Sleep, 100
+
+		; open the next issue
+		SetKeyDelay, 150
+		Send, %issue%
+		SetKeyDelay, 10
+		Sleep, 100
+		Send, {Down}
+		Sleep, 100
+		Send, {Enter}
+	
+		; activate issue folder
+		SetTitleMatchMode RegEx
+		WinWait, ^[1-2][0-9]{9}$, , , ,
+		IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
+		WinActivate, ^[1-2][0-9]{9}$, , , ,
+		WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+		Sleep, 100
+	
+		; open first page
+		Send, {Down}
+		Sleep, 100
+		Send, {Up}
+		Sleep, 100
+		Send, {Enter}
+		Sleep, 100
+
+		; set the GoTo indicator to FALSE (0)
+		activegoto = 0
+	}
+
+	else
+	{
+		; activate the current TDNP issue folder
+		SetTitleMatchMode RegEx
+		WinWait, ^[1-2][0-9]{9}$, , , ,
+		IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
+		WinActivate, ^[1-2][0-9]{9}$, , , ,
+		WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+		Sleep, 100
+		Send, {Tab 5}
+
+		; up one directory
+		Send, {AltDown}v{AltUp}
+		Sleep, 100
+		Send, g
+		Sleep, 100
+		Send, b
+		Sleep, 100
+
+		; activate the title folder
+		SetTitleMatchMode 1
+		WinWait, %titlefoldername%, , , ,
+		IfWinNotActive, %titlefoldername%, , , ,
+		WinActivate, %titlefoldername%, , , ,
+		WinWaitActive, %titlefoldername%, , , ,
+		Sleep, 100
+
+		; open the next folder
+		Send, {Down}
+		Sleep, 100
+		Send, {Enter}
+
+		; reactivate the issue folder
+		SetTitleMatchMode RegEx
+		WinWait, ^[1-2][0-9]{9}$, , , ,
+		IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
+		WinActivate, ^[1-2][0-9]{9}$, , , ,
+		WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+		Sleep, 100
+  
+		; open the first TIFF file
+		Send, {Down}
+		Sleep, 100
+		Send, {Up}
+		Sleep, 100
+		Send, {Enter}
+		Sleep, 500
+	}
+
+	; metadata harvest subroutine
+	Gosub, MetaHarvest
+	
+	; update the scoreboard
+	nextscore++
+	metanextscore++
+	ControlSetText, Static7, NEXT+, TDNP_Metadata
+	ControlSetText, Static16, %nextscore%, TDNP_Metadata
+Return
+; ==============================
+
+; ==============================
 ; PREVIOUS
 ; opens first TIFF file in previous issue
 ; Hotkey: Alt + p
@@ -715,8 +1047,371 @@ Return
 
 	; update the scoreboard
 	prevscore++
-	ControlSetText, Static7, PREVIOUS, TDNP_Metadata
+	ControlSetText, Static7, PREV, TDNP_Metadata
 	ControlSetText, Static17, %prevscore%, TDNP_Metadata
+Return
+; ==============================
+
+; ==============================
+; PREVIOUS+
+; opens first TIFF file in previous issue
+; and displays issue metadata in moveable windows
+; Hotkey: Win + Alt + p
+#!p::
+	; if the titlefoldername variable is empty
+	if titlefoldername = _
+	{
+		; create an input box to enter the title folder name
+		InputBox, input, Previous Issue, Enter Title Folder Name:,, 225, 125,,,,,
+			if ErrorLevel
+				Return
+			else
+			{
+				titlefoldername = %input%
+			}  
+	}
+
+	; case for TRUE (1) GoTo indicator
+	if activegoto = 1
+	{
+		; if the titlefolderpath variable is empty
+		if titlefolderpath = _
+		{
+			; create dialog to select the title folder
+			FileSelectFolder, titlefolderpath, %scannedpath%, 0, Previous Issue`n`nSelect the TITLE folder:
+			if ErrorLevel
+				Return
+		}
+
+		; loop to close any issue folders
+		SetTitleMatchMode RegEx
+		Loop
+		{
+			IfWinExist, ^[1-2][0-9]{9}$, , , ,
+			{
+				WinClose, ^[1-2][0-9]{9}$, , , ,
+				Sleep, 200
+			}
+			else Break
+		}
+
+		; open the title folder
+		Run, %titlefolderpath%		
+		
+		; activate title folder
+		SetTitleMatchMode 2
+		WinWaitActive, %titlefoldername%, , , ,
+		Sleep, 100
+
+		; open the previous issue
+		SetKeyDelay, 150
+		Send, %issue%
+		SetKeyDelay, 10
+		Sleep, 100
+		Send, {Up}
+		Sleep, 100
+		Send, {Enter}
+	
+		; activate issue folder
+		SetTitleMatchMode RegEx
+		WinWait, ^[1-2][0-9]{9}$, , , ,
+		IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
+		WinActivate, ^[1-2][0-9]{9}$, , , ,
+		WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+		Sleep, 100
+	
+		; open first page
+		Send, {Down}
+		Sleep, 100
+		Send, {Up}
+		Sleep, 100
+		Send, {Enter}
+		Sleep, 100
+
+		; set the GoTo indicator to FALSE (0)
+		activegoto = 0
+	}
+
+	else
+	{
+		; activate the current TDNP issue folder
+		SetTitleMatchMode RegEx
+		WinWait, ^[1-2][0-9]{9}$, , , ,
+		IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
+		WinActivate, ^[1-2][0-9]{9}$, , , ,
+		WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+		Sleep, 100
+
+		; up one directory
+		Send, {AltDown}v{AltUp}
+		Sleep, 100
+		Send, g
+		Sleep, 100
+		Send, b
+		Sleep, 100
+
+		; activate the title folder
+		SetTitleMatchMode 1
+		WinWait, %titlefoldername%, , , ,
+		IfWinNotActive, %titlefoldername%, , , ,
+		WinActivate, %titlefoldername%, , , ,
+		WinWaitActive, %titlefoldername%, , , ,
+		Sleep, 100
+  
+		; open the previous folder
+		Send, {Up}
+		Sleep, 100
+		Send, {Enter}
+
+		; activate the next issue folder
+		SetTitleMatchMode RegEx
+		WinWait, ^[1-2][0-9]{9}$, , , ,
+		IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
+		WinActivate, ^[1-2][0-9]{9}$, , , ,
+		WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+		Sleep, 100
+
+		; open the first TIFF file
+		Send, {Down}
+		Sleep, 100
+		Send, {Up}
+		Sleep, 100
+		Send, {Enter}
+		Sleep, 500
+	}
+	
+	; metadata harvest subroutine
+	Gosub, MetaHarvest
+	
+	; update the scoreboard
+	prevscore++
+	metaprevscore++
+	ControlSetText, Static7, PREV+, TDNP_Metadata
+	ControlSetText, Static17, %prevscore%, TDNP_Metadata
+Return
+; ==============================
+
+; ==============================
+; Display Meta
+; display the issue metadata
+; Hotkey: Alt + 0
+!0::
+	; save clipboard contents
+	temp = %clipboard%
+
+	; reactivate the issue folder
+	SetTitleMatchMode RegEx
+	WinWait, ^[1-2][0-9]{9}$, , , ,
+	IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
+	WinActivate, ^[1-2][0-9]{9}$, , , ,
+	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+	Sleep, 100
+
+	; copy issue folder path to clipboard
+	Send, {F4}
+	Sleep, 100
+	Send, {CtrlDown}a{CtrlUp}
+	Sleep, 100
+	Send, {CtrlDown}c{CtrlUp}
+	Sleep, 100
+	Send, {Enter}
+	Sleep, 100
+
+	; grab the issue date from the file path
+	StringRight, date, clipboard, 10
+	
+	; create display date variables
+	month := SubStr(date, 5, 2)
+	if (month == 01) {
+		monthname = Jan.
+	}
+	else if (month == 02) {
+		monthname = Feb.
+	}
+	else if (month == 03) {
+		monthname = Mar.
+	}
+	else if (month == 04) {
+		monthname = Apr.
+	}
+	else if (month == 05) {
+		monthname = May
+	}
+	else if (month == 06) {
+		monthname = June
+	}
+	else if (month == 07) {
+		monthname = July
+	}
+	else if (month == 08) {
+		monthname = Aug.
+	}
+	else if (month == 09) {
+		monthname = Sept.
+	}
+	else if (month == 10) {
+		monthname = Oct.
+	}
+	else if (month == 11) {
+		monthname = Nov.
+	}
+	else if (month == 12) {
+		monthname = Dec.
+	}
+	day := SubStr(date, 7, 2)
+	if (SubStr(day, 1, 1) == 0)
+	{
+		day := SubStr(day, 2)
+	}
+	year := SubStr(date, 1, 4)
+
+	; initialize the loop counter
+	metacount = 0
+	; initialize the note variable
+	note =
+	; initialize the displaynote variable
+	displaynote =
+	
+	; if there is a metadata.txt file in the folder
+	IfExist, %clipboard%\metadata.txt
+	{
+		; read in the metadata.txt document
+		Loop, read , %clipboard%\metadata.txt
+		{
+			; increment the counter
+			metacount++
+				
+			; case for volume number
+			if (metacount == 1)
+			{
+				StringTrimLeft, volumenum, A_LoopReadLine, 8
+			}
+				
+			; case for issue number
+			else if (metacount == 2)
+			{
+				StringTrimLeft, issuenum, A_LoopReadLine, 7
+			}
+				
+			; case for the note
+			else
+			{
+				StringTrimLeft, note, A_LoopReadLine, 6
+			}
+		}
+		
+		if (note == "")
+			displaynote = `n`n`n`t`t`t       <<< BLANK >>>
+
+		else
+		{
+			; loop to parse the note
+			Loop, Parse, note, ., %A_Space%
+			{
+				displaynote .= A_LoopField
+				
+				StringGetPos, volumepos, A_LoopField, %volumespecial%, L
+				StringGetPos, issuepos, A_LoopField, %issuespecial%, L
+				StringGetPos, volumeissuepos, A_LoopField, %volumeissuespecial%, L
+				StringLen, notelength, A_LoopField
+				
+				if (notelength <= 8)
+				{
+					if A_LoopField is integer
+					{
+						displaynote .= .`n`n
+					}
+					else
+					{
+						displaynote .= "."
+						displaynote .= A_Space
+						continue
+					}
+				}
+				else if ((volumepos == 0) || (issuepos == 0) || (volumeissuepos == 0))
+				{
+					displaynote .= "."
+					displaynote .= A_Space
+					continue
+				}
+				else displaynote .= .`n`n
+			}
+		}
+
+		; create display windows if first metadata display run
+		if ((metaopenscore == 0) && (metanextscore == 0) && (metaprevscore == 0) && (metagotoscore == 0) && (metadisplayscore == 0))
+		{
+			WinGetPos, winX, winY, winWidth, winHeight, Metadata
+			winY+=%winHeight%
+
+			; create VolumeNum GUI
+			Gui, 2:+AlwaysOnTop
+			Gui, 2:+ToolWindow
+			Gui, 2:Font, cRed s15 bold, Arial
+			Gui, 2:Font, cRed s25 bold, Arial
+			Gui, 2:Add, GroupBox, x0 y-18 w100 h74,       
+			Gui, 2:Add, Text, x15 y8 w70 h35, %volumenum%
+			Gui, 2:Show, x%winX% y%winY% h55 w100, Volume
+
+			; create IssueNum GUI
+			Gui, 3:+AlwaysOnTop
+			Gui, 3:+ToolWindow
+			Gui, 3:Font, cRed s25 bold, Arial
+			Gui, 3:Add, GroupBox, x0 y-18 w100 h74,       
+			Gui, 3:Add, Text, x15 y8 w70 h35, %issuenum%
+			Gui, 3:Show, x%winX% y%winY% h55 w100, Issue
+
+			; create Note GUI
+			Gui, 4:+AlwaysOnTop
+			Gui, 4:+ToolWindow
+			Gui, 4:Add, Text, x15 y15 w380 h115, %displaynote%
+			Gui, 4:Show, x%winX% y%winY% h125 w400, Note
+			
+			; create Date GUI
+			Gui, 5:+AlwaysOnTop
+			Gui, 5:+ToolWindow
+			Gui, 5:Font, cRed s15 bold, Arial
+			Gui, 5:Add, Text, x35 y15 w160 h25, %monthname% %day%, %year%
+			Gui, 5:Font, cRed s10 bold, Arial
+			Gui, 5:Add, GroupBox, x0 y-7 w200 h63,       
+			Gui, 5:Show, x%winX% y%winY% h55 w200, Date
+
+		}
+
+		; update the metadata display windows
+		else
+		{
+			ControlSetText, Static1, %volumenum%, Volume
+			ControlSetText, Static1, %issuenum%, Issue
+			ControlSetText, Static1, %displaynote%, Note
+			ControlSetText, Static1, %monthname% %day%`, %year%, Date
+		}
+
+		; get ACDSee window ID
+		SetTitleMatchMode 2
+		WinGet, acdseeid, ID, ACDSee
+		
+		; activate ACDSee
+		SetTitleMatchMode 1
+		IfWinNotActive, ahk_id %acdseeid%
+		WinActivate, ahk_id %acdseeid%
+		WinWaitActive, ahk_id %acdseeid%
+		Sleep, 200			
+	}
+
+	; if there is no metadata.txt file in the folder
+	else
+	{
+		; print an error message
+		MsgBox, There is no metadata.txt file in this folder.`n`n%clipboard%`n`nUse New Meta (Alt + n) to create a new file.
+	}
+
+	; restore clipboard contents
+	clipboard = %temp%		
+
+	; update the scoreboard
+	metadisplayscore++
+	ControlSetText, Static7, REFRESH, TDNP_Metadata
 Return
 ; ==============================
 
@@ -810,6 +1505,223 @@ Return
 Return
 ; ==============================
 ; ===========================================SCRIPTS
+
+; ===========================================SUBROUTINES
+MetaHarvest:
+	; save clipboard contents
+	temp = %clipboard%
+
+	; reactivate the issue folder
+	SetTitleMatchMode RegEx
+	WinWait, ^[1-2][0-9]{9}$, , , ,
+	IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
+	WinActivate, ^[1-2][0-9]{9}$, , , ,
+	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+	Sleep, 100
+
+	; copy issue folder path to clipboard
+	Send, {F4}
+	Sleep, 100
+	Send, {CtrlDown}a{CtrlUp}
+	Sleep, 100
+	Send, {CtrlDown}c{CtrlUp}
+	Sleep, 100
+	Send, {Enter}
+	Sleep, 100
+
+	; grab the issue date from the file path
+	StringRight, date, clipboard, 10
+	
+	; create display date variables
+	month := SubStr(date, 5, 2)
+	if (month == 01) {
+		monthname = Jan.
+	}
+	else if (month == 02) {
+		monthname = Feb.
+	}
+	else if (month == 03) {
+		monthname = Mar.
+	}
+	else if (month == 04) {
+		monthname = Apr.
+	}
+	else if (month == 05) {
+		monthname = May
+	}
+	else if (month == 06) {
+		monthname = June
+	}
+	else if (month == 07) {
+		monthname = July
+	}
+	else if (month == 08) {
+		monthname = Aug.
+	}
+	else if (month == 09) {
+		monthname = Sept.
+	}
+	else if (month == 10) {
+		monthname = Oct.
+	}
+	else if (month == 11) {
+		monthname = Nov.
+	}
+	else if (month == 12) {
+		monthname = Dec.
+	}
+	day := SubStr(date, 7, 2)
+	if (SubStr(day, 1, 1) == 0)
+	{
+		day := SubStr(day, 2)
+	}
+	year := SubStr(date, 1, 4)
+
+	; initialize the loop counter
+	metacount = 0
+	; initialize the note variable
+	note =
+	; initialize the displaynote variable
+	displaynote =
+	
+	; if there is a metadata.txt file in the folder
+	IfExist, %clipboard%\metadata.txt
+	{
+		; read in the metadata.txt document
+		Loop, read , %clipboard%\metadata.txt
+		{
+			; increment the counter
+			metacount++
+				
+			; case for volume number
+			if (metacount == 1)
+			{
+				StringTrimLeft, volumenum, A_LoopReadLine, 8
+			}
+				
+			; case for issue number
+			else if (metacount == 2)
+			{
+				StringTrimLeft, issuenum, A_LoopReadLine, 7
+			}
+				
+			; case for the note
+			else
+			{
+				StringTrimLeft, note, A_LoopReadLine, 6
+			}
+		}
+		
+		if (note == "")
+			displaynote = `n`n`n`t`t`t       <<< BLANK >>>
+
+		else
+		{
+			; loop to parse the note
+			Loop, Parse, note, ., %A_Space%
+			{
+				displaynote .= A_LoopField
+				
+				StringGetPos, volumepos, A_LoopField, %volumespecial%, L
+				StringGetPos, issuepos, A_LoopField, %issuespecial%, L
+				StringGetPos, volumeissuepos, A_LoopField, %volumeissuespecial%, L
+				StringLen, notelength, A_LoopField
+				
+				if (notelength <= 8)
+				{
+					if A_LoopField is integer
+					{
+						displaynote .= .`n`n
+					}
+					else
+					{
+						displaynote .= "."
+						displaynote .= A_Space
+						continue
+					}
+				}
+				else if ((volumepos == 0) || (issuepos == 0) || (volumeissuepos == 0))
+				{
+					displaynote .= "."
+					displaynote .= A_Space
+					continue
+				}
+				else displaynote .= .`n`n
+			}
+		}
+
+		; create display windows if first metadata display run
+		if ((metaopenscore == 0) && (metanextscore == 0) && (metaprevscore == 0) && (metagotoscore == 0) && (metadisplayscore == 0))
+		{
+			WinGetPos, winX, winY, winWidth, winHeight, Metadata
+			winY+=%winHeight%
+
+			; create VolumeNum GUI
+			Gui, 2:+AlwaysOnTop
+			Gui, 2:+ToolWindow
+			Gui, 2:Font, cRed s15 bold, Arial
+			Gui, 2:Font, cRed s25 bold, Arial
+			Gui, 2:Add, GroupBox, x0 y-18 w100 h74,       
+			Gui, 2:Add, Text, x15 y8 w70 h40, %volumenum%
+			Gui, 2:Show, x%winX% y%winY% h55 w100, Volume
+
+			; create IssueNum GUI
+			Gui, 3:+AlwaysOnTop
+			Gui, 3:+ToolWindow
+			Gui, 3:Font, cRed s25 bold, Arial
+			Gui, 3:Add, GroupBox, x0 y-18 w100 h74,       
+			Gui, 3:Add, Text, x15 y8 w70 h40, %issuenum%
+			Gui, 3:Show, x%winX% y%winY% h55 w100, Issue
+
+			; create Note GUI
+			Gui, 4:+AlwaysOnTop
+			Gui, 4:+ToolWindow
+			Gui, 4:Add, Text, x15 y15 w380 h115, %displaynote%
+			Gui, 4:Show, x%winX% y%winY% h125 w400, Note
+			
+			; create Date GUI
+			Gui, 5:+AlwaysOnTop
+			Gui, 5:+ToolWindow
+			Gui, 5:Font, cRed s15 bold, Arial
+			Gui, 5:Add, Text, x35 y15 w160 h25, %monthname% %day%, %year%
+			Gui, 5:Font, cRed s10 bold, Arial
+			Gui, 5:Add, GroupBox, x0 y-7 w200 h63,       
+			Gui, 5:Show, x%winX% y%winY% h55 w200, Date
+
+		}
+
+		; update the metadata display windows
+		else
+		{
+			ControlSetText, Static1, %volumenum%, Volume
+			ControlSetText, Static1, %issuenum%, Issue
+			ControlSetText, Static1, %displaynote%, Note
+			ControlSetText, Static1, %monthname% %day%`, %year%, Date
+		}
+
+		; get ACDSee window ID
+		SetTitleMatchMode 2
+		WinGet, acdseeid, ID, ACDSee
+		
+		; activate ACDSee
+		SetTitleMatchMode 1
+		IfWinNotActive, ahk_id %acdseeid%
+		WinActivate, ahk_id %acdseeid%
+		WinWaitActive, ahk_id %acdseeid%
+		Sleep, 200			
+	}
+
+	; if there is no metadata.txt file in the folder
+	else
+	{
+		; print an error message
+		MsgBox, There is no metadata.txt file in this folder.`n`n%clipboard%`n`nUse New Meta (Alt + n) to create a new file.
+	}
+
+	; restore clipboard contents
+	clipboard = %temp%		
+Return
+; ===========================================SUBROUTINES
 
 ; ===========================================MENU FUNCTIONS
 ; =================FILE
@@ -1001,8 +1913,13 @@ CreateIssueFolders:
 		; make the title folder the working directory
 		SetWorkingDir %titlefolderpath%
 		
+		; create display variables for title folder path
+		StringGetPos, titlefolderpos, titlefolderpath, \, R2
+		StringLeft, titlefolder1, titlefolderpath, titlefolderpos
+		StringTrimLeft, titlefolder2, titlefolderpath, titlefolderpos		
+		
 		; confirm number of folders and directory
-		MsgBox, 4,, %A_WorkingDir%`n`nCreate %currentissuenum% folders?`n`nYes to Continue`nNo to Exit
+		MsgBox, 4, Create Issue Folders, %titlefolder1%`n%titlefolder2%`n`n`t`tCreate %currentissuenum% folders?`n`nYes to Continue`nNo to Exit
 		IfMsgBox, No, Return
 		
 		; loop creates issue folders stored in issuefile
@@ -1039,6 +1956,11 @@ PasteImages:
 			Return
 		else
 		{
+			; create display variables for title folder path
+			StringGetPos, titlefolderpos, titlefolderpath, \, R2
+			StringLeft, titlefolder1, titlefolderpath, titlefolderpos
+			StringTrimLeft, titlefolder2, titlefolderpath, titlefolderpos
+		
 			; loop pastes clipboard contents to folders stored in issuefile
 			Loop, parse, issuefile, `n
 			{
@@ -1049,8 +1971,53 @@ PasteImages:
 				}
 				else
 				{
+					; create display date variables
+					month := SubStr(A_LoopField, 5, 2)
+					if (month == 01) {
+						monthname = Jan.
+					}
+					else if (month == 02) {
+						monthname = Feb.
+					}
+					else if (month == 03) {
+						monthname = Mar.
+					}
+					else if (month == 04) {
+						monthname = Apr.
+					}
+					else if (month == 05) {
+						monthname = May
+					}
+					else if (month == 06) {
+						monthname = June
+					}
+					else if (month == 07) {
+						monthname = July
+					}
+					else if (month == 08) {
+						monthname = Aug.
+					}
+					else if (month == 09) {
+						monthname = Sept.
+					}
+					else if (month == 10) {
+						monthname = Oct.
+					}
+					else if (month == 11) {
+						monthname = Nov.
+					}
+					else if (month == 12) {
+						monthname = Dec.
+					}
+					day := SubStr(A_LoopField, 7, 2)
+					if (SubStr(day, 1, 1) == 0)
+					{
+						day := SubStr(day, 2)
+					}
+					year := SubStr(A_LoopField, 1, 4)
+
 					; create a confirm dialog for each paste operation, No cancels the script
-					MsgBox, 4,, %titlefolderpath%`n`nPaste into %A_LoopField%`n`nYes to Continue`nNo to Exit
+					MsgBox, 4, Paste Images, %titlefolder1%`n%titlefolder2%`n`n`t`t%monthname% %day%`, %year%`n`n`t`t%A_LoopField%`n`nYes to Continue`nNo to Exit
 					IfMsgBox, No, Return
 					else
 					{
@@ -1136,7 +2103,7 @@ Return
 
 ; display version info
 About:
-MsgBox TDNP_Metadata.ahk`nVersion 2.4`nAndrew.Weidner@unt.edu
+MsgBox TDNP_Metadata.ahk`nVersion 2.5`nAndrew.Weidner@unt.edu
 Return
 ; =================HELP
 ; ===========================================MENU FUNCTIONS
