@@ -634,74 +634,8 @@ IssueFolderPath:
 Return
 
 MetaHarvest:
-	; save clipboard contents
-	temp = %clipboard%
-
-	; reactivate the issue folder
-	SetTitleMatchMode RegEx
-	WinWait, ^[1-2][0-9]{9}$, , , ,
-	IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-	WinActivate, ^[1-2][0-9]{9}$, , , ,
-	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-	Sleep, 100
-
-	; copy issue folder path to clipboard
-	Send, {F4}
-	Sleep, 100
-	Send, {CtrlDown}a{CtrlUp}
-	Sleep, 100
-	Send, {CtrlDown}c{CtrlUp}
-	Sleep, 100
-	Send, {Enter}
-	Sleep, 100
-	
-	; grab the issue date from the file path
-	StringRight, date, clipboard, 10
-	
-	; loop checks for correctly copied folder path
-	; up to 5 times, aborts script if unsuccessful
-	Loop 5
-	{
-		; continue the script if the path copied to clipboard
-		if RegExMatch(date, "\d\d\d\d\d\d\d\d\d\d")
-			Break
-		else
-		{
-			; wait one second
-			Sleep, 1000
-			
-			; reactivate the issue folder
-			SetTitleMatchMode RegEx
-			WinWait, ^[1-2][0-9]{9}$, , , ,
-			IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-			WinActivate, ^[1-2][0-9]{9}$, , , ,
-			WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-			Sleep, 100
-
-			; copy issue folder path to clipboard
-			Send, {F4}
-			Sleep, 100
-			Send, {CtrlDown}a{CtrlUp}
-			Sleep, 100
-			Send, {CtrlDown}c{CtrlUp}
-			Sleep, 100
-			Send, {Enter}
-			Sleep, 100
-			
-			; grab the issue date from the file path
-			StringRight, date, clipboard, 10
-			
-			; next loop iteration
-			Continue
-		}
-		
-		; restore clipboard contents
-		clipboard = %temp%		
-
-		; abort metadata display if unable to copy path after 5 attempts
-		MsgBox, 0, Error, Unable to copy file path.`n`nMetadata display aborted.
-		Exit
-	}
+	; harvest the issue folder path
+	Gosub, IssueFolderPath
 	
 	; create display date variables
 	month := SubStr(date, 5, 2)
@@ -756,10 +690,10 @@ MetaHarvest:
 	displaynote =
 	
 	; if there is a metadata.txt file in the folder
-	IfExist, %clipboard%\metadata.txt
+	IfExist, %issuefolderpath%\metadata.txt
 	{
 		; read in the metadata.txt document
-		Loop, read , %clipboard%\metadata.txt
+		Loop, read , %issuefolderpath%\metadata.txt
 		{
 			; increment the counter
 			metacount++
@@ -783,6 +717,7 @@ MetaHarvest:
 			}
 		}
 		
+		; if the note field is blank
 		if (note == "")
 			displaynote = `n`n`n`t`t`t       <<< BLANK >>>
 
@@ -793,17 +728,21 @@ MetaHarvest:
 			{
 				displaynote .= A_LoopField
 				
+				; special handling variables for notes with periods
 				StringGetPos, volumepos, A_LoopField, %volumespecial%, L
 				StringGetPos, issuepos, A_LoopField, %issuespecial%, L
 				StringGetPos, volumeissuepos, A_LoopField, %volumeissuespecial%, L
 				StringLen, notelength, A_LoopField
 				
+				; if the parsed note is short
 				if (notelength <= 8)
 				{
+					; end the note if it is a number
 					if A_LoopField is integer
 					{
 						displaynote .= .`n`n
 					}
+					; otherwise continue the note
 					else
 					{
 						displaynote .= "."
@@ -811,12 +750,16 @@ MetaHarvest:
 						continue
 					}
 				}
+				
+				; continue the note if it is the first part of a special case
 				else if ((volumepos == 0) || (issuepos == 0) || (volumeissuepos == 0))
 				{
 					displaynote .= "."
 					displaynote .= A_Space
 					continue
 				}
+				
+				; end normal notes with a period
 				else displaynote .= .`n`n
 			}
 		}
@@ -891,16 +834,13 @@ MetaHarvest:
 	else
 	{
 		; create display variables for issue folder path
-		StringGetPos, issuefolderpos, clipboard, \, R3
-		StringLeft, issuefolder1, clipboard, issuefolderpos
-		StringTrimLeft, issuefolder2, clipboard, issuefolderpos		
+		StringGetPos, issuefolderpos, issuefolderpath, \, R3
+		StringLeft, issuefolder1, issuefolderpath, issuefolderpos
+		StringTrimLeft, issuefolder2, issuefolderpath, issuefolderpos		
 
 		; print an error message
 		MsgBox, 0, Error, There is no metadata.txt file in this folder.`n`n%issuefolder1%`n%issuefolder2%`n`nUse New Meta (Alt + n) to create a new file.
 	}
-
-	; restore clipboard contents
-	clipboard = %temp%		
 Return
 ; =================METADATA
 
