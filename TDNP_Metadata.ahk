@@ -32,9 +32,6 @@ volumespecial = Incorrect volume number
 issuespecial = Incorrect issue number
 volumeissuespecial = Incorrect volume and
 
-; navigation
-activegoto = 0
-
 ; report
 today =
 
@@ -73,10 +70,9 @@ Menu, FileMenu, Add, Reloa&d, Reload
 Menu, FileMenu, Add, E&xit, Exit
 
 ; Edit menu
-Menu, EditMenu, Add, Title Folder &Name, TitleFolderName
 Menu, EditMenu, Add, Title Folder &Path, TitleFolderPath
 Menu, EditMenu, Add
-Menu, EditMenu, Add, &Display Current Values, DisplayValues
+Menu, EditMenu, Add, &Display Current Folder, DisplayValues
 
 ; Issue Separation menu
 Menu, IssuesMenu, Add, &Enter Folder Names, EnterFolderNames
@@ -184,38 +180,14 @@ Gui, 1:Add, GroupBox, x255 y135 w75 h45,
 ; creates new metadata.txt file in currently active issue folder
 ; Hotkey: Alt + n
 !n::
-	; in case issue folder is already active
-	; TAB five times so the script works
-	SetTitleMatchMode RegEx
-	IfWinActive, ^[1-2][0-9]{9}$, , , ,
-	Send, {Tab 5}
-
-	; activate issue folder
-	SetTitleMatchMode RegEx
-	WinWait, ^[1-2][0-9]{9}$, , , ,
-	IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-	WinActivate, ^[1-2][0-9]{9}$, , , ,
-	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-	Sleep, 100
-
-	; save clipboard contents
-	temp = %clipboard%
-
-	; copy issue folder path to clipboard
-	Send, {F4}
-	Sleep, 100
-	Send, {CtrlDown}a{CtrlUp}
-	Sleep, 100
-	Send, {CtrlDown}c{CtrlUp}
-	Sleep, 100
-	Send, {Enter}
-	Sleep, 100
+	; harvest the issue folder path
+	Gosub, IssueFolderPath
 
 	; if there is no metadata.txt file in the folder
-	IfNotExist, %clipboard%\metadata.txt
+	IfNotExist, %issuefolderpath%\metadata.txt
 	{
 		; create new text document
-		FileAppend, volume:`nissue:`nnote:, %clipboard%\metadata.txt
+		FileAppend, volume:`nissue:`nnote:, %issuefolderpath%\metadata.txt
 
 		; wait two seconds
 		Sleep, 2000
@@ -224,7 +196,7 @@ Gui, 1:Add, GroupBox, x255 y135 w75 h45,
 		Loop
 		{
 			; if the file does not yet exist
-			IfNotExist, %clipboard%\metadata.txt
+			IfNotExist, %issuefolderpath%\metadata.txt
 				; wait another second
 				Sleep, 1000
 			else
@@ -232,7 +204,7 @@ Gui, 1:Add, GroupBox, x255 y135 w75 h45,
 		}
 
 		; open the metadata.txt file
-		Run, metadata.txt, %clipboard%
+		Run, metadata.txt, %issuefolderpath%
 
 		; prepare metadata.txt for data entry
 		SetTitleMatchMode 1
@@ -243,9 +215,6 @@ Gui, 1:Add, GroupBox, x255 y135 w75 h45,
 		Sleep, 100
 		Send, {Down}{Left}
   
-		; restore clipboard contents
-		clipboard = %temp%
-
 		; update the scoreboard
 		hotkeys++
 		metadatascore++
@@ -254,18 +223,27 @@ Gui, 1:Add, GroupBox, x255 y135 w75 h45,
 		ControlSetText, Static26, %hotkeys%, TDNP_Metadata
 	Return
 	}
-  
+
 	; if there is already a metadata.txt file in the folder
 	else
 	{
+		; create display variables for issue folder path
+		StringGetPos, issuefolderpos, issuefolderpath, \, R3
+		StringLeft, issuefolder1, issuefolderpath, issuefolderpos
+		StringTrimLeft, issuefolder2, issuefolderpath, issuefolderpos		
+
 		; print a message
-		MsgBox, There is already a metadata.txt file in this folder.`n`n%clipboard%`n`nOpening existing file.
+		MsgBox, 0, New Meta, There is already a metadata.txt file in this folder.`n`n%issuefolder1%`n%issuefolder2%`n`nOpening existing file.
 
 		; open the existing metadata.txt document
-		Run, metadata.txt, %clipboard%
+		Run, metadata.txt, %issuefolderpath%
 
-		; restore clipboard contents
-		clipboard = %temp%
+		; update the scoreboard
+		hotkeys++
+		editmetascore++
+		ControlSetText, Static7, EDITMETA, TDNP_Metadata
+		ControlSetText, Static19, %metadatascore%, TDNP_Metadata
+		ControlSetText, Static26, %hotkeys%, TDNP_Metadata
 	}
 Return
 ; ==============================
@@ -321,17 +299,15 @@ Return
 	Send, {Enter}
 	Sleep, 500
 
-	; metadata harvest subroutine
-	Gosub, MetaHarvest
-
 	; update the scoreboard
-	hotkeys+=2
+	hotkeys++
 	openscore++
-	displaymetascore++
 	ControlSetText, Static7, OPEN+, TDNP_Metadata
 	ControlSetText, Static19, %openscore%, TDNP_Metadata
-	ControlSetText, Static23, %displaymetascore%, TDNP_Metadata
 	ControlSetText, Static26, %hotkeys%, TDNP_Metadata
+
+	; metadata harvest subroutine
+	Gosub, MetaHarvest
 Return
 ; ==============================
   
@@ -340,131 +316,8 @@ Return
 ; opens first TIFF file in next issue
 ; Hotkey: Alt + o
 !o::
-	; if the titlefoldername variable is empty
-	if titlefoldername = _
-	{
-		; create an input box to enter the title folder name
-		InputBox, input, Next Issue, Enter Title Folder Name:,, 225, 125,,,,,
-			if ErrorLevel
-				Return
-			else
-			{
-				titlefoldername = %input%
-			}  
-	}
-
-	; case for TRUE (1) GoTo indicator
-	if (activegoto == 1)
-	{
-		; if the titlefolderpath variable is empty
-		if titlefolderpath = _
-		{
-			; create dialog to select the title folder
-			FileSelectFolder, titlefolderpath, %scannedpath%, 0, Next Issue`n`nSelect the TITLE folder:
-			if ErrorLevel
-				Return
-		}
-
-		; loop to close any issue folders
-		SetTitleMatchMode RegEx
-		Loop
-		{
-			IfWinExist, ^[1-2][0-9]{9}$, , , ,
-			{
-				WinClose, ^[1-2][0-9]{9}$, , , ,
-				Sleep, 200
-			}
-			else Break
-		}
-
-		; open the title folder
-		Run, %titlefolderpath%		
-
-		; activate title folder
-		SetTitleMatchMode 2
-		WinWaitActive, %titlefoldername%, , , ,
-		Sleep, 100
-
-		; open the next issue
-		SetKeyDelay, 150
-		Send, %issue%
-		SetKeyDelay, 10
-		Sleep, 100
-		Send, {Down}
-		Sleep, 100
-		Send, {Enter}
-	
-		; activate issue folder
-		SetTitleMatchMode RegEx
-		WinWait, ^[1-2][0-9]{9}$, , , ,
-		IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-		WinActivate, ^[1-2][0-9]{9}$, , , ,
-		WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-		Sleep, 100
-	
-		; open first page
-		Send, {Down}
-		Sleep, 100
-		Send, {Up}
-		Sleep, 100
-		Send, {Enter}
-
-		; update the scoreboard
-		hotkeys++
-		nextscore++
-		ControlSetText, Static7, NEXT, TDNP_Metadata
-		ControlSetText, Static20, %nextscore%, TDNP_Metadata
-		ControlSetText, Static26, %hotkeys%, TDNP_Metadata
-
-		; set the GoTo indicator to FALSE (0)
-		activegoto = 0
-	Return
-	}
-
-	; activate the current TDNP issue folder
-	SetTitleMatchMode RegEx
-	WinWait, ^[1-2][0-9]{9}$, , , ,
-	IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-	WinActivate, ^[1-2][0-9]{9}$, , , ,
-	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-	Sleep, 100
-	Send, {Tab 5}
-
-	; up one directory
-	Send, {AltDown}v{AltUp}
-	Sleep, 100
-	Send, g
-	Sleep, 100
-	Send, b
-	Sleep, 100
-
-	; activate the title folder
-	SetTitleMatchMode 1
-	WinWait, %titlefoldername%, , , ,
-	IfWinNotActive, %titlefoldername%, , , ,
-	WinActivate, %titlefoldername%, , , ,
-	WinWaitActive, %titlefoldername%, , , ,
-	Sleep, 100
-
-	; open the next folder
-	Send, {Down}
-	Sleep, 100
-	Send, {Enter}
-
-	; reactivate the issue folder
-	SetTitleMatchMode RegEx
-	WinWait, ^[1-2][0-9]{9}$, , , ,
-	IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-	WinActivate, ^[1-2][0-9]{9}$, , , ,
-	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-	Sleep, 100
-  
-	; open the first TIFF file
-	Send, {Down}
-	Sleep, 100
-	Send, {Up}
-	Sleep, 100
-	Send, {Enter}
+	; navigation subroutine
+	Gosub, NextIssue
 
 	; update the scoreboard
 	hotkeys++
@@ -481,140 +334,19 @@ Return
 ; and displays issue metadata in moveable windows
 ; Hotkey: Win + Alt + o
 #!o::
-	; if the titlefoldername variable is empty
-	if titlefoldername = _
-	{
-		; create an input box to enter the title folder name
-		InputBox, input, Next Issue, Enter Title Folder Name:,, 225, 125,,,,,
-			if ErrorLevel
-				Return
-			else
-			{
-				titlefoldername = %input%
-			}  
-	}
+	; navigation subroutine
+	Gosub, NextIssue
+	Sleep, 500
 
-	; case for TRUE (1) GoTo indicator
-	if (activegoto == 1)
-	{
-		; if the titlefolderpath variable is empty
-		if titlefolderpath = _
-		{
-			; create dialog to select the title folder
-			FileSelectFolder, titlefolderpath, %scannedpath%, 0, Next Issue`n`nSelect the TITLE folder:
-			if ErrorLevel
-				Return
-		}
-
-		; loop to close any issue folders
-		SetTitleMatchMode RegEx
-		Loop
-		{
-			IfWinExist, ^[1-2][0-9]{9}$, , , ,
-			{
-				WinClose, ^[1-2][0-9]{9}$, , , ,
-				Sleep, 200
-			}
-			else Break
-		}
-
-		; open the title folder
-		Run, %titlefolderpath%		
-
-		; activate title folder
-		SetTitleMatchMode 2
-		WinWaitActive, %titlefoldername%, , , ,
-		Sleep, 100
-
-		; open the next issue
-		SetKeyDelay, 150
-		Send, %issue%
-		SetKeyDelay, 10
-		Sleep, 100
-		Send, {Down}
-		Sleep, 100
-		Send, {Enter}
-	
-		; activate issue folder
-		SetTitleMatchMode RegEx
-		WinWait, ^[1-2][0-9]{9}$, , , ,
-		IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-		WinActivate, ^[1-2][0-9]{9}$, , , ,
-		WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-		Sleep, 100
-	
-		; open first page
-		Send, {Down}
-		Sleep, 100
-		Send, {Up}
-		Sleep, 100
-		Send, {Enter}
-		Sleep, 100
-
-		; set the GoTo indicator to FALSE (0)
-		activegoto = 0
-	}
-
-	else
-	{
-		; activate the current TDNP issue folder
-		SetTitleMatchMode RegEx
-		WinWait, ^[1-2][0-9]{9}$, , , ,
-		IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-		WinActivate, ^[1-2][0-9]{9}$, , , ,
-		WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-		Sleep, 100
-		Send, {Tab 5}
-
-		; up one directory
-		Send, {AltDown}v{AltUp}
-		Sleep, 100
-		Send, g
-		Sleep, 100
-		Send, b
-		Sleep, 100
-
-		; activate the title folder
-		SetTitleMatchMode 1
-		WinWait, %titlefoldername%, , , ,
-		IfWinNotActive, %titlefoldername%, , , ,
-		WinActivate, %titlefoldername%, , , ,
-		WinWaitActive, %titlefoldername%, , , ,
-		Sleep, 100
-
-		; open the next folder
-		Send, {Down}
-		Sleep, 100
-		Send, {Enter}
-
-		; reactivate the issue folder
-		SetTitleMatchMode RegEx
-		WinWait, ^[1-2][0-9]{9}$, , , ,
-		IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-		WinActivate, ^[1-2][0-9]{9}$, , , ,
-		WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-		Sleep, 100
-  
-		; open the first TIFF file
-		Send, {Down}
-		Sleep, 100
-		Send, {Up}
-		Sleep, 100
-		Send, {Enter}
-		Sleep, 500
-	}
+	; update the scoreboard
+	hotkeys++
+	nextscore++
+	ControlSetText, Static7, NEXT+, TDNP_Metadata
+	ControlSetText, Static20, %nextscore%, TDNP_Metadata
+	ControlSetText, Static26, %hotkeys%, TDNP_Metadata
 
 	; metadata harvest subroutine
 	Gosub, MetaHarvest
-	
-	; update the scoreboard
-	hotkeys+=2
-	nextscore++
-	displaymetascore++
-	ControlSetText, Static7, NEXT+, TDNP_Metadata
-	ControlSetText, Static20, %nextscore%, TDNP_Metadata
-	ControlSetText, Static23, %displaymetascore%, TDNP_Metadata
-	ControlSetText, Static26, %hotkeys%, TDNP_Metadata
 Return
 ; ==============================
 
@@ -623,85 +355,21 @@ Return
 ; opens first TIFF file in previous issue
 ; Hotkey: Alt + p
 !p::
-	; if the titlefoldername variable is empty
-	if titlefoldername = _
+	; navigation subroutine
+	Gosub, PreviousIssue
+/*
+	; if the titlefolderpath variable is empty
+	if titlefolderpath = _
 	{
-		; create an input box to enter the title folder name
-		InputBox, input, Previous Issue, Enter Title Folder Name:,, 225, 125,,,,,
-			if ErrorLevel
-				Return
-			else
-			{
-				titlefoldername = %input%
-			}  
-	}
+		; create dialog to select the title folder
+		FileSelectFolder, titlefolderpath, %scannedpath%, 0, Previous Issue`n`nSelect the TITLE folder:
+		if ErrorLevel
+			Return
 
-	; case for TRUE (1) GoTo indicator
-	if (activegoto == 1)
-	{
-		; if the titlefolderpath variable is empty
-		if titlefolderpath = _
-		{
-			; create dialog to select the title folder
-			FileSelectFolder, titlefolderpath, %scannedpath%, 0, Previous Issue`n`nSelect the TITLE folder:
-			if ErrorLevel
-				Return
-		}
-
-		; loop to close any issue folders
-		SetTitleMatchMode RegEx
-		Loop
-		{
-			IfWinExist, ^[1-2][0-9]{9}$, , , ,
-			{
-				WinClose, ^[1-2][0-9]{9}$, , , ,
-				Sleep, 200
-			}
-			else Break
-		}
-
-		; open the title folder
-		Run, %titlefolderpath%		
-		
-		; activate title folder
-		SetTitleMatchMode 2
-		WinWaitActive, %titlefoldername%, , , ,
-		Sleep, 100
-
-		; open the previous issue
-		SetKeyDelay, 150
-		Send, %issue%
-		SetKeyDelay, 10
-		Sleep, 100
-		Send, {Up}
-		Sleep, 100
-		Send, {Enter}
-	
-		; activate issue folder
-		SetTitleMatchMode RegEx
-		WinWait, ^[1-2][0-9]{9}$, , , ,
-		IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-		WinActivate, ^[1-2][0-9]{9}$, , , ,
-		WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-		Sleep, 100
-	
-		; open first page
-		Send, {Down}
-		Sleep, 100
-		Send, {Up}
-		Sleep, 100
-		Send, {Enter}
-
-		; update the scoreboard
-		hotkeys++
-		prevscore++
-		ControlSetText, Static7, PREVIOUS, TDNP_Metadata
-		ControlSetText, Static21, %prevscore%, TDNP_Metadata
-		ControlSetText, Static26, %hotkeys%, TDNP_Metadata
-
-		; set the GoTo indicator to FALSE (0)
-		activegoto = 0
-	Return
+		; extract title folder name from path
+		StringGetPos, foldernamepos, titlefolderpath, \, R1
+		foldernamepos++
+		StringTrimLeft, titlefoldername, titlefolderpath, foldernamepos
 	}
 
 	; activate the current TDNP issue folder
@@ -717,7 +385,7 @@ Return
 	Sleep, 100
 	Send, g
 	Sleep, 100
-	Send, b
+	Send, u
 	Sleep, 100
 
 	; activate the title folder
@@ -747,6 +415,7 @@ Return
 	Send, {Up}
 	Sleep, 100
 	Send, {Enter}
+*/
 
 	; update the scoreboard
 	hotkeys++
@@ -763,139 +432,19 @@ Return
 ; and displays issue metadata in moveable windows
 ; Hotkey: Win + Alt + p
 #!p::
-	; if the titlefoldername variable is empty
-	if titlefoldername = _
-	{
-		; create an input box to enter the title folder name
-		InputBox, input, Previous Issue, Enter Title Folder Name:,, 225, 125,,,,,
-			if ErrorLevel
-				Return
-			else
-			{
-				titlefoldername = %input%
-			}  
-	}
-
-	; case for TRUE (1) GoTo indicator
-	if (activegoto == 1)
-	{
-		; if the titlefolderpath variable is empty
-		if titlefolderpath = _
-		{
-			; create dialog to select the title folder
-			FileSelectFolder, titlefolderpath, %scannedpath%, 0, Previous Issue`n`nSelect the TITLE folder:
-			if ErrorLevel
-				Return
-		}
-
-		; loop to close any issue folders
-		SetTitleMatchMode RegEx
-		Loop
-		{
-			IfWinExist, ^[1-2][0-9]{9}$, , , ,
-			{
-				WinClose, ^[1-2][0-9]{9}$, , , ,
-				Sleep, 200
-			}
-			else Break
-		}
-
-		; open the title folder
-		Run, %titlefolderpath%		
-		
-		; activate title folder
-		SetTitleMatchMode 2
-		WinWaitActive, %titlefoldername%, , , ,
-		Sleep, 100
-
-		; open the previous issue
-		SetKeyDelay, 150
-		Send, %issue%
-		SetKeyDelay, 10
-		Sleep, 100
-		Send, {Up}
-		Sleep, 100
-		Send, {Enter}
-	
-		; activate issue folder
-		SetTitleMatchMode RegEx
-		WinWait, ^[1-2][0-9]{9}$, , , ,
-		IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-		WinActivate, ^[1-2][0-9]{9}$, , , ,
-		WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-		Sleep, 100
-	
-		; open first page
-		Send, {Down}
-		Sleep, 100
-		Send, {Up}
-		Sleep, 100
-		Send, {Enter}
-		Sleep, 100
-
-		; set the GoTo indicator to FALSE (0)
-		activegoto = 0
-	}
-
-	else
-	{
-		; activate the current TDNP issue folder
-		SetTitleMatchMode RegEx
-		WinWait, ^[1-2][0-9]{9}$, , , ,
-		IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-		WinActivate, ^[1-2][0-9]{9}$, , , ,
-		WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-		Sleep, 100
-
-		; up one directory
-		Send, {AltDown}v{AltUp}
-		Sleep, 100
-		Send, g
-		Sleep, 100
-		Send, b
-		Sleep, 100
-
-		; activate the title folder
-		SetTitleMatchMode 1
-		WinWait, %titlefoldername%, , , ,
-		IfWinNotActive, %titlefoldername%, , , ,
-		WinActivate, %titlefoldername%, , , ,
-		WinWaitActive, %titlefoldername%, , , ,
-		Sleep, 100
-  
-		; open the previous folder
-		Send, {Up}
-		Sleep, 100
-		Send, {Enter}
-
-		; activate the next issue folder
-		SetTitleMatchMode RegEx
-		WinWait, ^[1-2][0-9]{9}$, , , ,
-		IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-		WinActivate, ^[1-2][0-9]{9}$, , , ,
-		WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-		Sleep, 100
-
-		; open the first TIFF file
-		Send, {Down}
-		Sleep, 100
-		Send, {Up}
-		Sleep, 100
-		Send, {Enter}
-		Sleep, 500
-	}
-	
-	; metadata harvest subroutine
-	Gosub, MetaHarvest
+	; navigation subroutine
+	Gosub, PreviousIssue
+	Sleep, 500
 	
 	; update the scoreboard
-	hotkeys+=2
+	hotkeys++
 	prevscore++
-	displaymetascore++
 	ControlSetText, Static7, PREV+, TDNP_Metadata
 	ControlSetText, Static21, %prevscore%, TDNP_Metadata
-	ControlSetText, Static23, %displaymetascore%, TDNP_Metadata
 	ControlSetText, Static26, %hotkeys%, TDNP_Metadata
+
+	; metadata harvest subroutine
+	Gosub, MetaHarvest	
 Return
 ; ==============================
 
@@ -903,144 +452,16 @@ Return
 ; GoTo
 ; opens a specific issue folder and first TIFF file
 ; Hotkey: Alt + g
-!g::	
-	; if titlefoldername variable is empty
-	if titlefoldername = _
-	{
-		; create input box to enter the title folder name
-		InputBox, input, GoTo Issue, Enter Title Folder Name:,, 225, 125,,,,,
-			if ErrorLevel
-				Return
-			else
-			{
-				titlefoldername = %input%
-			}
-	}
-	
-	; if titlefolderpath variable is empty
-	if titlefolderpath = _
-	{
-		; create dialog to select the title folder
-		FileSelectFolder, titlefolderpath, %scannedpath%, 0, GoTo`n`nSelect the TITLE folder:
-		if ErrorLevel
-			Return
-	}
+!g::
+	; navigation subroutine
+	Gosub, GoToIssue
 
-	; create input box to enter the folder name to go to
-	InputBox, input, GoTo Issue, Issue Folder Name:,, 150, 125,,,,,%issue%
-		if ErrorLevel
-			Return
-    	else
-		{
-			; loop checks for valid title folder name
-			Loop
-			{
-				; if title folder name is valid (10 digit number)
-				if RegExMatch(input, "\d\d\d\d\d\d\d\d\d\d")
-				{
-					; accept the input
-					issue = %input%
-
-					; case for active issue folder
-					SetTitleMatchMode RegEx
-					IfWinExist, ^[1-2][0-9]{9}$
-					{
-						; loop to close any issue folders
-						SetTitleMatchMode RegEx
-						Loop
-						{
-							IfWinExist, ^[1-2][0-9]{9}$, , , ,
-							{
-								WinClose, ^[1-2][0-9]{9}$, , , ,
-								Sleep, 200
-							}
-							else Break
-						}
-
-						; open the issue folder
-						Run, %titlefolderpath%\%issue%
-						
-						; wait for issue folder to load
-						WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-						; if the folder does not exist
-						IfWinActive, , Windows can't find, , , ,
-						{
-							; exit the script
-							Return
-						}
-						Sleep, 100
-
-						; open the first TIFF file
-						Send, {Down}
-						Sleep, 100
-						Send, {Up}
-						Sleep, 100
-						Send, {Enter}
-
-						; set the GoTo indicator to TRUE (1)
-						activegoto = 1
-
-						; end the title folder name check loop
-						Break
-					}
-					
-					; case for active title folder
-					IfWinNotExist, ^[1-2][0-9]{9}$
-					SetTitleMatchMode 2
-					IfWinExist, %titlefoldername%
-					{
-						; activate title folder
-						WinWait, %titlefoldername%, , , ,
-						IfWinNotActive, %titlefoldername%, , , ,
-						WinActivate, %titlefoldername%, , , ,
-						WinWaitActive, %titlefoldername%, , , ,
-						Sleep, 100
-
-						; open the issue
-						SetKeyDelay, 150
-						Send, %issue%
-						SetKeyDelay, 10
-						Sleep, 100
-						Send, {Enter}
-						
-						; wait for issue folder to load
-						SetTitleMatchMode RegEx
-						WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-						Sleep, 100
-
-						; open the first TIFF file
-						Send, {Down}
-						Sleep, 100
-						Send, {Up}
-						Sleep, 100
-						Send, {Enter}
-
-						; set the GoTo indicator to TRUE (1)
-						activegoto = 1
-						
-						; end the title folder name check loop
-						Break
-					}
-				}
-				
-				; if the issue folder name entered is not valid
-				; print error message and re-enter loop
-				else
-				{
-					MsgBox, Please enter a folder name in the format: YYYYMMDDEE`n`nExample: 1942061901
-					InputBox, input, GoTo Issue, Issue Folder Name:,, 150, 125,,,,,
-						if ErrorLevel
-							Return
-				}
-			}
-			
-			; update scoreboard
-			hotkeys++
-			gotoscore++
-			ControlSetText, Static7, GOTO, TDNP_Metadata									
-			ControlSetText, Static22, %gotoscore%, TDNP_Metadata									
-			ControlSetText, Static26, %hotkeys%, TDNP_Metadata									
-		}	
+	; update scoreboard
+	hotkeys++
+	gotoscore++
+	ControlSetText, Static7, GOTO, TDNP_Metadata									
+	ControlSetText, Static22, %gotoscore%, TDNP_Metadata									
+	ControlSetText, Static26, %hotkeys%, TDNP_Metadata									
 Return
 ; ==============================
 
@@ -1049,151 +470,19 @@ Return
 ; opens a specific issue folder and first TIFF file
 ; and displays issue metadata in moveable windows
 ; Hotkey: Win + Alt + g
-#!g::	
-	; if titlefoldername variable is empty
-	if titlefoldername = _
-	{
-		; create input box to enter the title folder name
-		InputBox, input, GoTo Issue, Enter Title Folder Name:,, 225, 125,,,,,
-			if ErrorLevel
-				Return
-			else
-			{
-				titlefoldername = %input%
-			}
-	}
-	
-	; if titlefolderpath variable is empty
-	if titlefolderpath = _
-	{
-		; create dialog to select the title folder
-		FileSelectFolder, titlefolderpath, %scannedpath%, 0, GoTo`n`nSelect the TITLE folder:
-		if ErrorLevel
-			Return
-	}
-
-	; create input box to enter the folder name to go to
-	InputBox, input, GoTo Issue, Issue Folder Name:,, 150, 125,,,,,%issue%
-		if ErrorLevel
-			Return
-    	else
-		{
-			; loop checks for valid title folder name
-			Loop
-			{
-				; if title folder name is valid (10 digit number)
-				if RegExMatch(input, "\d\d\d\d\d\d\d\d\d\d")
-				{
-					; accept the input
-					issue = %input%
-
-					; case for active issue folder
-					SetTitleMatchMode RegEx
-					IfWinExist, ^[1-2][0-9]{9}$
-					{
-						; loop to close any issue folders
-						SetTitleMatchMode RegEx
-						Loop
-						{
-							IfWinExist, ^[1-2][0-9]{9}$, , , ,
-							{
-								WinClose, ^[1-2][0-9]{9}$, , , ,
-								Sleep, 200
-							}
-							else Break
-						}
-
-						; open the issue folder
-						Run, %titlefolderpath%\%issue%
-						
-						; wait for issue folder to load
-						WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-						; if the folder does not exist
-						IfWinActive, , Windows can't find, , , ,
-						{
-							; exit the script
-							Return
-						}
-						Sleep, 100
-
-						; open the first TIFF file
-						Send, {Down}
-						Sleep, 100
-						Send, {Up}
-						Sleep, 100
-						Send, {Enter}
-						Sleep, 500
-
-						; set the GoTo indicator to TRUE (1)
-						activegoto = 1
-
-						; end the title folder name check loop
-						Break
-					}
-					
-					; case for active title folder
-					IfWinNotExist, ^[1-2][0-9]{9}$
-					SetTitleMatchMode 2
-					IfWinExist, %titlefoldername%
-					{
-						; activate title folder
-						WinWait, %titlefoldername%, , , ,
-						IfWinNotActive, %titlefoldername%, , , ,
-						WinActivate, %titlefoldername%, , , ,
-						WinWaitActive, %titlefoldername%, , , ,
-						Sleep, 100
-
-						; open the issue
-						SetKeyDelay, 150
-						Send, %issue%
-						SetKeyDelay, 10
-						Sleep, 100
-						Send, {Enter}
-						
-						; wait for issue folder to load
-						SetTitleMatchMode RegEx
-						WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-						Sleep, 100
-
-						; open the first TIFF file
-						Send, {Down}
-						Sleep, 100
-						Send, {Up}
-						Sleep, 100
-						Send, {Enter}
-						Sleep, 500
-
-						; set the GoTo indicator to TRUE (1)
-						activegoto = 1
-												
-						; end the title folder name check loop
-						Break
-					}
-				}
-				
-				; if the issue folder name entered is not valid
-				; print error message and re-enter loop
-				else
-				{
-					MsgBox, Please enter a folder name in the format: YYYYMMDDEE`n`nExample: 1942061901
-					InputBox, input, GoTo Issue, Issue Folder Name:,, 150, 125,,,,,
-						if ErrorLevel
-							Return
-				}
-			}
-
-			; metadata harvest subroutine
-			Gosub, MetaHarvest
+#!g::
+	; navigation subroutine
+	Gosub, GoToIssue
 			
-			; update scoreboard
-			hotkeys+=2
-			gotoscore++
-			displaymetascore++
-			ControlSetText, Static7, GOTO+, TDNP_Metadata									
-			ControlSetText, Static22, %gotoscore%, TDNP_Metadata									
-			ControlSetText, Static23, %displaymetascore%, TDNP_Metadata									
-			ControlSetText, Static26, %hotkeys%, TDNP_Metadata									
-		}	
+	; update scoreboard
+	hotkeys++
+	gotoscore++
+	ControlSetText, Static7, GOTO+, TDNP_Metadata									
+	ControlSetText, Static22, %gotoscore%, TDNP_Metadata									
+	ControlSetText, Static26, %hotkeys%, TDNP_Metadata									
+
+	; metadata harvest subroutine
+	Gosub, MetaHarvest
 Return
 ; ==============================
 
@@ -1206,11 +495,7 @@ Return
 	Gosub, MetaHarvest
 
 	; update the scoreboard
-	hotkeys++
-	displaymetascore++
 	ControlSetText, Static7, DISPMETA, TDNP_Metadata
-	ControlSetText, Static23, %displaymetascore%, TDNP_Metadata
-	ControlSetText, Static26, %hotkeys%, TDNP_Metadata
 Return
 ; ==============================
 
@@ -1219,43 +504,15 @@ Return
 ; opens the metadata.txt file for editing
 ; Hotkey: Alt + m
 !m::
-	; if the issue folder is active
-	; TAB 5 times so the script works
-	SetTitleMatchMode RegEx
-	IfWinActive, ^[1-2][0-9]{9}$, , , ,
-		Send, {Tab 5}
-
-	; activate the current TDNP issue folder
-	SetTitleMatchMode RegEx
-	WinWait, ^[1-2][0-9]{9}$, , , ,
-	IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-	WinActivate, ^[1-2][0-9]{9}$, , , ,
-	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-	Sleep, 100
-	Send, {Tab 5}
-
-	; save clipboard contents
-	temp = %clipboard%
-
-	; copy issue folder path to clipboard
-	Send, {F4}
-	Sleep, 100
-	Send, {CtrlDown}a{CtrlUp}
-	Sleep, 100
-	Send, {CtrlDown}c{CtrlUp}
-	Sleep, 100
-	Send, {Enter}
-	Sleep, 100
-
+	; harvest the issue folder path
+	Gosub, IssueFolderPath
+	
 	; if there is a metadata.txt file in the folder
-	IfExist, %clipboard%\metadata.txt
+	IfExist, %issuefolderpath%\metadata.txt
 	{
 		; open the metadata.txt document
-		Run, metadata.txt, %clipboard%
+		Run, metadata.txt, %issuefolderpath%
 
-		; restore clipboard contents
-		clipboard = %temp%
-  
 		; update the scoreboard
 		hotkeys++
 		editmetascore++
@@ -1268,12 +525,14 @@ Return
 	; if there is no metadata.txt file in the folder
 	else
 	{
-		; print an error message
-		MsgBox, There is no metadata.txt file in this folder.`n`n%clipboard%`n`nUse New Meta (Alt + n) to create a new file.
-	}
+		; create display variables for issue folder path
+		StringGetPos, issuefolderpos, issuefolderpath, \, R3
+		StringLeft, issuefolder1, issuefolderpath, issuefolderpos
+		StringTrimLeft, issuefolder2, issuefolderpath, issuefolderpos		
 
- 	; restore clipboard contents
-    clipboard = %temp%
+		; print an error message
+		MsgBox, 0, Edit Meta, There is no metadata.txt file in this folder.`n`n%issuefolder1%`n%issuefolder2%`n`nUse New Meta (Alt + n) to create a new file.
+	}
 Return
 ; ==============================
 
@@ -1282,13 +541,18 @@ Return
 ; opens the title folder with titlefolderpath variable
 ; Hotkey: Alt + b
 !b::
-	; if titlefolderpath variable is empty
+	; if the titlefolderpath variable is empty
 	if titlefolderpath = _
 	{
 		; create dialog to select the title folder
-		FileSelectFolder, titlefolderpath, %scannedpath%, 0, Back`n`nSelect the TITLE folder:
+		FileSelectFolder, titlefolderpath, %scannedpath%, 0, BACK`n`nSelect the TITLE folder:
 		if ErrorLevel
 			Return
+
+		; extract title folder name from path
+		StringGetPos, foldernamepos, titlefolderpath, \, R1
+		foldernamepos++
+		StringTrimLeft, titlefoldername, titlefolderpath, foldernamepos
 	}
 
 	; loop to close any issue folders
@@ -1326,7 +590,7 @@ Return
 	Sleep, 100
 	Send, g
 	Sleep, 100
-	Send, b
+	Send, u
 	Sleep, 400
 	Send, {Enter}
 	Sleep, 400
@@ -1346,6 +610,87 @@ Return
 ; ===========================================SCRIPTS
 
 ; ===========================================SUBROUTINES
+IssueFolderPath:
+	; save clipboard contents
+	temp = %clipboard%
+	
+	; activate the current TDNP issue folder
+	SetTitleMatchMode RegEx
+	WinWait, ^[1-2][0-9]{9}$, , , ,
+	IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
+	WinActivate, ^[1-2][0-9]{9}$, , , ,
+	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+	Sleep, 100
+	Send, {Tab 5}
+
+	; copy issue folder path to clipboard
+	Send, {F4}
+	Sleep, 100
+	Send, {CtrlDown}a{CtrlUp}
+	Sleep, 100
+	Send, {CtrlDown}c{CtrlUp}
+	Sleep, 100
+	Send, {Enter}
+	Sleep, 100
+
+	; grab the issue date from the folder path
+	StringRight, date, clipboard, 10
+	
+	; loop checks for correctly copied folder path
+	; up to 5 times, aborts script if unsuccessful
+	Loop 5
+	{
+		; continue the script if the path copied to clipboard
+		if RegExMatch(date, "\d\d\d\d\d\d\d\d\d\d")
+			Break
+			
+		; or reattempt to copy folder path
+		else
+		{
+			; wait one second
+			Sleep, 1000
+			
+			; reactivate the issue folder
+			SetTitleMatchMode RegEx
+			WinWait, ^[1-2][0-9]{9}$, , , ,
+			IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
+			WinActivate, ^[1-2][0-9]{9}$, , , ,
+			WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+			Sleep, 100
+			Send, {Tab 5}
+
+			; copy issue folder path to clipboard
+			Send, {F4}
+			Sleep, 100
+			Send, {CtrlDown}a{CtrlUp}
+			Sleep, 100
+			Send, {CtrlDown}c{CtrlUp}
+			Sleep, 100
+			Send, {Enter}
+			Sleep, 100
+			
+			; grab the issue date from the folder path
+			StringRight, date, clipboard, 10
+			
+			; next loop iteration
+			Continue
+		}
+		
+		; restore clipboard contents
+		clipboard = %temp%		
+
+		; abort script if unable to copy path after 5 attempts
+		MsgBox, 0, Error, Unable to copy file path.`n`nScript aborted.
+		Exit
+	}
+	
+	; assign the folder path
+	issuefolderpath = %clipboard%
+	
+	; restore clipboard contents
+	clipboard = %temp%		
+Return
+
 MetaHarvest:
 	; save clipboard contents
 	temp = %clipboard%
@@ -1367,9 +712,52 @@ MetaHarvest:
 	Sleep, 100
 	Send, {Enter}
 	Sleep, 100
-
+	
 	; grab the issue date from the file path
 	StringRight, date, clipboard, 10
+	
+	Loop 5
+	{
+		; continue the script if the path copied to clipboard
+		if RegExMatch(date, "\d\d\d\d\d\d\d\d\d\d")
+			Break
+		else
+		{
+			; wait one second
+			Sleep, 1000
+			
+			; reactivate the issue folder
+			SetTitleMatchMode RegEx
+			WinWait, ^[1-2][0-9]{9}$, , , ,
+			IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
+			WinActivate, ^[1-2][0-9]{9}$, , , ,
+			WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+			Sleep, 100
+
+			; copy issue folder path to clipboard
+			Send, {F4}
+			Sleep, 100
+			Send, {CtrlDown}a{CtrlUp}
+			Sleep, 100
+			Send, {CtrlDown}c{CtrlUp}
+			Sleep, 100
+			Send, {Enter}
+			Sleep, 100
+			
+			; grab the issue date from the file path
+			StringRight, date, clipboard, 10
+			
+			; next loop iteration
+			Continue
+		}
+		
+		; restore clipboard contents
+		clipboard = %temp%		
+
+		; abort metadata display if unable to copy path after 5 attempts
+		MsgBox, 0, Error, Unable to copy file path.`n`nMetadata display aborted.
+		Exit
+	}
 	
 	; create display date variables
 	month := SubStr(date, 5, 2)
@@ -1537,6 +925,12 @@ MetaHarvest:
 			ControlSetText, Static1, %monthname% %day%`, %year%, Date
 		}
 
+		; update the scoreboard
+		hotkeys++
+		displaymetascore++
+		ControlSetText, Static23, %displaymetascore%, TDNP_Metadata									
+		ControlSetText, Static26, %hotkeys%, TDNP_Metadata
+
 		; get ACDSee window ID
 		SetTitleMatchMode 2
 		WinGet, acdseeid, ID, ACDSee
@@ -1552,12 +946,258 @@ MetaHarvest:
 	; if there is no metadata.txt file in the folder
 	else
 	{
+		; create display variables for issue folder path
+		StringGetPos, issuefolderpos, clipboard, \, R3
+		StringLeft, issuefolder1, clipboard, issuefolderpos
+		StringTrimLeft, issuefolder2, clipboard, issuefolderpos		
+
 		; print an error message
-		MsgBox, There is no metadata.txt file in this folder.`n`n%clipboard%`n`nUse New Meta (Alt + n) to create a new file.
+		MsgBox, 0, Error, There is no metadata.txt file in this folder.`n`n%issuefolder1%`n%issuefolder2%`n`nUse New Meta (Alt + n) to create a new file.
 	}
 
 	; restore clipboard contents
 	clipboard = %temp%		
+Return
+
+NextIssue:
+	; if the titlefolderpath variable is empty
+	if titlefolderpath = _
+	{
+		; create dialog to select the title folder
+		FileSelectFolder, titlefolderpath, %scannedpath%, 0, Next Issue`n`nSelect the TITLE folder:
+		if ErrorLevel
+			Return
+
+		; extract title folder name from path
+		StringGetPos, foldernamepos, titlefolderpath, \, R1
+		foldernamepos++
+		StringTrimLeft, titlefoldername, titlefolderpath, foldernamepos
+	}
+
+	; activate the current TDNP issue folder
+	SetTitleMatchMode RegEx
+	WinWait, ^[1-2][0-9]{9}$, , , ,
+	IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
+	WinActivate, ^[1-2][0-9]{9}$, , , ,
+	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+	Sleep, 100
+	Send, {Tab 5}
+
+	; up one directory
+	Send, {AltDown}v{AltUp}
+	Sleep, 100
+	Send, g
+	Sleep, 100
+	Send, u
+	Sleep, 100
+
+	; activate the title folder
+	SetTitleMatchMode 1
+	WinWait, %titlefoldername%, , , ,
+	IfWinNotActive, %titlefoldername%, , , ,
+	WinActivate, %titlefoldername%, , , ,
+	WinWaitActive, %titlefoldername%, , , ,
+	Sleep, 100
+
+	; open the next folder
+	Send, {Down}
+	Sleep, 100
+	Send, {Enter}
+
+	; reactivate the issue folder
+	SetTitleMatchMode RegEx
+	WinWait, ^[1-2][0-9]{9}$, , , ,
+	IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
+	WinActivate, ^[1-2][0-9]{9}$, , , ,
+	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+	Sleep, 100
+  
+	; open the first TIFF file
+	Send, {Down}
+	Sleep, 100
+	Send, {Up}
+	Sleep, 100
+	Send, {Enter}
+	Sleep, 500
+Return
+
+PreviousIssue:
+	; if the titlefolderpath variable is empty
+	if titlefolderpath = _
+	{
+		; create dialog to select the title folder
+		FileSelectFolder, titlefolderpath, %scannedpath%, 0, Previous Issue`n`nSelect the TITLE folder:
+		if ErrorLevel
+			Return
+
+		; extract title folder name from path
+		StringGetPos, foldernamepos, titlefolderpath, \, R1
+		foldernamepos++
+		StringTrimLeft, titlefoldername, titlefolderpath, foldernamepos
+	}
+
+	; activate the current TDNP issue folder
+	SetTitleMatchMode RegEx
+	WinWait, ^[1-2][0-9]{9}$, , , ,
+	IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
+	WinActivate, ^[1-2][0-9]{9}$, , , ,
+	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+	Sleep, 100
+
+	; up one directory
+	Send, {AltDown}v{AltUp}
+	Sleep, 100
+	Send, g
+	Sleep, 100
+	Send, u
+	Sleep, 100
+
+	; activate the title folder
+	SetTitleMatchMode 1
+	WinWait, %titlefoldername%, , , ,
+	IfWinNotActive, %titlefoldername%, , , ,
+	WinActivate, %titlefoldername%, , , ,
+	WinWaitActive, %titlefoldername%, , , ,
+	Sleep, 100
+  
+	; open the previous folder
+	Send, {Up}
+	Sleep, 100
+	Send, {Enter}
+
+	; activate the next issue folder
+	SetTitleMatchMode RegEx
+	WinWait, ^[1-2][0-9]{9}$, , , ,
+	IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
+	WinActivate, ^[1-2][0-9]{9}$, , , ,
+	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+	Sleep, 100
+
+	; open the first TIFF file
+	Send, {Down}
+	Sleep, 100
+	Send, {Up}
+	Sleep, 100
+	Send, {Enter}
+Return
+
+GoToIssue:
+	; if the titlefolderpath variable is empty
+	if titlefolderpath = _
+	{
+		; create dialog to select the title folder
+		FileSelectFolder, titlefolderpath, %scannedpath%, 0, GoTo Issue`n`nSelect the TITLE folder:
+		if ErrorLevel
+			Return
+
+		; extract title folder name from path
+		StringGetPos, foldernamepos, titlefolderpath, \, R1
+		foldernamepos++
+		StringTrimLeft, titlefoldername, titlefolderpath, foldernamepos
+	}
+
+	; create input box to enter the folder name to go to
+	InputBox, input, GoTo Issue, Issue Folder Name:,, 150, 125,,,,,%issue%
+		if ErrorLevel
+			Return
+    	else
+		{
+			; loop checks for valid title folder name
+			Loop
+			{
+				; if title folder name is valid (10 digit number)
+				if RegExMatch(input, "\d\d\d\d\d\d\d\d\d\d")
+				{
+					; accept the input
+					issue = %input%
+
+					; case for active issue folder
+					SetTitleMatchMode RegEx
+					IfWinExist, ^[1-2][0-9]{9}$
+					{
+						; loop to close any issue folders
+						SetTitleMatchMode RegEx
+						Loop
+						{
+							IfWinExist, ^[1-2][0-9]{9}$, , , ,
+							{
+								WinClose, ^[1-2][0-9]{9}$, , , ,
+								Sleep, 200
+							}
+							else Break
+						}
+
+						; open the issue folder
+						Run, %titlefolderpath%\%issue%
+						
+						; wait for issue folder to load
+						WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+						; if the folder does not exist
+						IfWinActive, , Windows can't find, , , ,
+						{
+							; exit the script
+							Return
+						}
+						Sleep, 100
+
+						; open the first TIFF file
+						Send, {Down}
+						Sleep, 100
+						Send, {Up}
+						Sleep, 100
+						Send, {Enter}
+
+						; end the title folder name check loop
+						Break
+					}
+					
+					; case for active title folder
+					IfWinNotExist, ^[1-2][0-9]{9}$
+					SetTitleMatchMode 2
+					IfWinExist, %titlefoldername%
+					{
+						; activate title folder
+						WinWait, %titlefoldername%, , , ,
+						IfWinNotActive, %titlefoldername%, , , ,
+						WinActivate, %titlefoldername%, , , ,
+						WinWaitActive, %titlefoldername%, , , ,
+						Sleep, 100
+
+						; open the issue
+						SetKeyDelay, 150
+						Send, %issue%
+						SetKeyDelay, 10
+						Sleep, 100
+						Send, {Enter}
+						
+						; wait for issue folder to load
+						SetTitleMatchMode RegEx
+						WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+						Sleep, 100
+
+						; open the first TIFF file
+						Send, {Down}
+						Sleep, 100
+						Send, {Up}
+						Sleep, 100
+						Send, {Enter}
+
+						; end the title folder name check loop
+						Break
+					}
+				}
+				
+				; if the issue folder name entered is not valid
+				; print error message and re-enter loop
+				else
+				{
+					MsgBox, 0, GoTo Issue, Please enter a folder name in the format: YYYYMMDDEE`n`nExample: 1942061901
+					InputBox, input, GoTo Issue, Issue Folder Name:,, 150, 125,,,,,
+						if ErrorLevel
+							Return
+				}
+			}
+		}
 Return
 ; ===========================================SUBROUTINES
 
@@ -1613,7 +1253,7 @@ IssueCheckPY:
 					else
 					{
 						; print error message
-						MsgBox Please enter a date in the format: YYYY-MM-DD`n`nExample: 2013-01-31
+						MsgBox, 0, Create Report, Please enter a date in the format: YYYY-MM-DD`n`nExample: 2013-01-31
 						
 						; create new report date input box and re-enter loop
 						InputBox, input, Create Report, Enter today's date:,, 150, 125,,,,,%A_YYYY%-%A_MM%-%A_DD%
@@ -1648,6 +1288,7 @@ ExitApp
 
 ; =================EDIT
 ; titlefoldername variable input
+/*
 TitleFolderName:
 InputBox, input, Title Folder Name,,, 250, 100,,,,,%titlefoldername%
 	if ErrorLevel
@@ -1655,22 +1296,34 @@ InputBox, input, Title Folder Name,,, 250, 100,,,,,%titlefoldername%
 	else
 		titlefoldername = %input%
 Return
+*/
 
 ; titlefolderpath variable input
 TitleFolderPath:
-FileSelectFolder, titlefolderpath, %scannedpath%, 0, Edit Title Folder`n`nSelect the TITLE folder:
+FileSelectFolder, titlefolderpath, %scannedpath%, 0, Edit Folder Path`n`nSelect the TITLE folder:
 	if ErrorLevel
 		Return
+
+	; extract title folder name from path
+	StringGetPos, foldernamepos, titlefolderpath, \, R1
+	foldernamepos++
+	StringTrimLeft, titlefoldername, titlefolderpath, foldernamepos
 Return
 
 DisplayValues:
-MsgBox,
-(
-Title Folder Name:  %titlefoldername%
+if titlefolderpath = _
+{
+	MsgBox, 0, Current Folder, Title Folder Name: %titlefoldername%`n`nTitle Folder Path: %titlefolderpath%
+}
+else
+{
+	; create display variables for title folder path
+	StringGetPos, titlefolderpos, titlefolderpath, \, R2
+	StringLeft, titlefolder1, titlefolderpath, titlefolderpos
+	StringTrimLeft, titlefolder2, titlefolderpath, titlefolderpos
 
-Title Folder Path
-%titlefolderpath%
-)
+	MsgBox, 0, Current Folder, Title Folder Name:`n`n`t%titlefoldername%`n`nTitle Folder Path:`n`n`t%titlefolder1%`n`t%titlefolder2%
+}
 Return
 ; =================EDIT
 
@@ -1726,7 +1379,7 @@ EnterFolderNames:
 				else
 				{
 					; print an error message
-					MsgBox Please enter the issue date in the format: YYYYMMDDEE`n`nExample: 1885013101
+					MsgBox, 0, Enter Folder Names, Please enter the folder name in the format: YYYYMMDDEE`n`nExample: 1885013101
 					
 					; create another issue folder name input box and re-enter loop
 					InputBox, input, Folder Names, Enter issue number %count%,, 150, 125,,,,,%previous%
@@ -1739,6 +1392,13 @@ EnterFolderNames:
 Return
 
 CreateIssueFolders:
+	; abort script if issuefile is empty
+	if issuefile =
+	{
+		MsgBox, 0, Create Folders, There are no issues entered.`n`nSelect "File > Enter Folder Names" to enter issues. 
+		Return
+	}
+
 	; update scoreboard last hotkey
 	ControlSetText, Static7, CREATE, TDNP_Metadata
 	
@@ -1756,8 +1416,19 @@ CreateIssueFolders:
 		StringLeft, titlefolder1, titlefolderpath, titlefolderpos
 		StringTrimLeft, titlefolder2, titlefolderpath, titlefolderpos		
 		
-		; confirm number of folders and directory
-		MsgBox, 4, Create Issue Folders, %titlefolder1%`n%titlefolder2%`n`n`t`tCreate %currentissuenum% folders?`n`nYes to Continue`nNo to Exit
+		; parse the issue file for first and last folders
+		createfoldercount = 0
+		Loop, parse, issuefile, `n
+		{
+			createfoldercount++
+			if (createfoldercount == 1)
+				firstfolder := A_LoopField
+			else if (createfoldercount == currentissuenum)
+				lastfolder := A_LoopField				
+		}
+		
+		; confirm directory and folders to create
+		MsgBox, 4, Create Issue Folders, %titlefolder1%`n%titlefolder2%`n`n`tFirst:`t%firstfolder%`n`n`tLast:`t%lastfolder%`n`n`t`tCreate %currentissuenum% folders?`n`nYes to Continue`nNo to Exit
 		IfMsgBox, No, Return
 		
 		; loop creates issue folders stored in issuefile
@@ -1776,7 +1447,7 @@ PasteImages:
 	; abort script if issuefile is empty
 	if issuefile =
 	{
-		MsgBox, There are no issues to paste.`n`nChoose "File > Enter Folder Names" to enter issues. 
+		MsgBox, 0, Paste Images, There are no issues entered.`n`nSelect "File > Enter Folder Names" to enter issues. 
 		Return
 	}
 	else
@@ -1941,7 +1612,7 @@ Return
 
 ; display version info
 About:
-MsgBox TDNP_Metadata.ahk`nVersion 2.6`nAndrew.Weidner@unt.edu
+MsgBox, 0, About, TDNP_Metadata.ahk`nVersion 2.6`nAndrew.Weidner@unt.edu
 Return
 ; =================HELP
 ; ===========================================MENU FUNCTIONS
