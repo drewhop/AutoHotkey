@@ -242,7 +242,7 @@ Gui, 1:Add, GroupBox, x255 y135 w75 h45,
 		hotkeys++
 		editmetascore++
 		ControlSetText, Static7, EDITMETA, TDNP_Metadata
-		ControlSetText, Static19, %metadatascore%, TDNP_Metadata
+		ControlSetText, Static24, %editmetascore%, TDNP_Metadata
 		ControlSetText, Static26, %hotkeys%, TDNP_Metadata
 	}
 Return
