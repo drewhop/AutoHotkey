@@ -176,7 +176,7 @@ Gui, 1:Add, GroupBox, x255 y135 w75 h45,
 
 ; ===========================================SCRIPTS
 ; ==============================
-; NewMetaTXT
+; NEW META
 ; creates new metadata.txt file in currently active issue folder
 ; Hotkey: Alt + n
 !n::
@@ -357,65 +357,6 @@ Return
 !p::
 	; navigation subroutine
 	Gosub, PreviousIssue
-/*
-	; if the titlefolderpath variable is empty
-	if titlefolderpath = _
-	{
-		; create dialog to select the title folder
-		FileSelectFolder, titlefolderpath, %scannedpath%, 0, Previous Issue`n`nSelect the TITLE folder:
-		if ErrorLevel
-			Return
-
-		; extract title folder name from path
-		StringGetPos, foldernamepos, titlefolderpath, \, R1
-		foldernamepos++
-		StringTrimLeft, titlefoldername, titlefolderpath, foldernamepos
-	}
-
-	; activate the current TDNP issue folder
-	SetTitleMatchMode RegEx
-	WinWait, ^[1-2][0-9]{9}$, , , ,
-	IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-	WinActivate, ^[1-2][0-9]{9}$, , , ,
-	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-	Sleep, 100
-
-	; up one directory
-	Send, {AltDown}v{AltUp}
-	Sleep, 100
-	Send, g
-	Sleep, 100
-	Send, u
-	Sleep, 100
-
-	; activate the title folder
-	SetTitleMatchMode 1
-	WinWait, %titlefoldername%, , , ,
-	IfWinNotActive, %titlefoldername%, , , ,
-	WinActivate, %titlefoldername%, , , ,
-	WinWaitActive, %titlefoldername%, , , ,
-	Sleep, 100
-  
-	; open the previous folder
-	Send, {Up}
-	Sleep, 100
-	Send, {Enter}
-
-	; activate the next issue folder
-	SetTitleMatchMode RegEx
-	WinWait, ^[1-2][0-9]{9}$, , , ,
-	IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-	WinActivate, ^[1-2][0-9]{9}$, , , ,
-	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-	Sleep, 100
-
-	; open the first TIFF file
-	Send, {Down}
-	Sleep, 100
-	Send, {Up}
-	Sleep, 100
-	Send, {Enter}
-*/
 
 	; update the scoreboard
 	hotkeys++
@@ -487,7 +428,7 @@ Return
 ; ==============================
 
 ; ==============================
-; Display Meta
+; DISPLAY META
 ; display the issue metadata
 ; Hotkey: Alt + 0
 !0::
@@ -500,7 +441,7 @@ Return
 ; ==============================
 
 ; ==============================
-; EditMetaTXT
+; EDIT META
 ; opens the metadata.txt file for editing
 ; Hotkey: Alt + m
 !m::
@@ -610,6 +551,7 @@ Return
 ; ===========================================SCRIPTS
 
 ; ===========================================SUBROUTINES
+; =================METADATA
 IssueFolderPath:
 	; save clipboard contents
 	temp = %clipboard%
@@ -716,6 +658,8 @@ MetaHarvest:
 	; grab the issue date from the file path
 	StringRight, date, clipboard, 10
 	
+	; loop checks for correctly copied folder path
+	; up to 5 times, aborts script if unsuccessful
 	Loop 5
 	{
 		; continue the script if the path copied to clipboard
@@ -958,7 +902,9 @@ MetaHarvest:
 	; restore clipboard contents
 	clipboard = %temp%		
 Return
+; =================METADATA
 
+; =================NAVIGATION
 NextIssue:
 	; if the titlefolderpath variable is empty
 	if titlefolderpath = _
@@ -1199,6 +1145,7 @@ GoToIssue:
 			}
 		}
 Return
+; =================NAVIGATION
 ; ===========================================SUBROUTINES
 
 ; ===========================================MENU FUNCTIONS
@@ -1287,17 +1234,6 @@ ExitApp
 ; =================FILE
 
 ; =================EDIT
-; titlefoldername variable input
-/*
-TitleFolderName:
-InputBox, input, Title Folder Name,,, 250, 100,,,,,%titlefoldername%
-	if ErrorLevel
-		Return
-	else
-		titlefoldername = %input%
-Return
-*/
-
 ; titlefolderpath variable input
 TitleFolderPath:
 FileSelectFolder, titlefolderpath, %scannedpath%, 0, Edit Folder Path`n`nSelect the TITLE folder:
@@ -1398,16 +1334,13 @@ CreateIssueFolders:
 		MsgBox, 0, Create Folders, There are no issues entered.`n`nSelect "File > Enter Folder Names" to enter issues. 
 		Return
 	}
-
-	; update scoreboard last hotkey
-	ControlSetText, Static7, CREATE, TDNP_Metadata
-	
-	; select title folder
-	FileSelectFolder, titlefolderpath, %scannedpath%, 1, CREATE FOLDERS`n`nSelect the TITLE folder:
-	if ErrorLevel
-		Return		
 	else
 	{
+		; select title folder
+		FileSelectFolder, titlefolderpath, %scannedpath%, 1, CREATE FOLDERS`n`nSelect the TITLE folder:
+		if ErrorLevel
+			Return
+
 		; make the title folder the working directory
 		SetWorkingDir %titlefolderpath%
 		
@@ -1441,6 +1374,9 @@ CreateIssueFolders:
 		issuescore += %currentissuenum%
 		ControlSetText, Static16, %issuescore%, TDNP_Metadata
 	}
+
+	; update scoreboard last hotkey
+	ControlSetText, Static7, CREATE, TDNP_Metadata
 Return
 
 PasteImages:
