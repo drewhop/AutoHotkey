@@ -1,7 +1,8 @@
 /*
  * NDNP_QR.ahk
  *
- * DESCRIPTION: tool for NDNP data Quality Review
+ * DESCRIPTION: application for NDNP data Quality Review
+ *
  *
  * VERSION HISTORY ******************
  *
@@ -13,64 +14,37 @@
  *                         ; added reel report tool
  * Version 1.4 2013-03-07: added batch report tool
  *                         ; added page count & questionable to report
- * Version 1.5 2013-03-11: modified for FirstImpression viewer
+ * Version 1.5 2013-03-11: customized for FirstImpression viewer
  *                         ; added edition label to reports
  * Version 1.6 2013-03-15: reworked batch report to sort batch.xml
  *                         ; reworked folder navigation
  *                         ; added Open+ and Metadata Viewer
- * Version 1.7 2013-04-10: cleaned up code with subroutines; added Edit menu
+ * Version 1.7 2013-05-10: cleaned up code with subroutines; added Edit menu
  *                         ; new scripts: GoTo, GoTo+, Metadata Windows, Back
  *                         ; reworked search scripts
+ * Version 1.8 2013-05-17: cleaned up Reports, ExtractMeta, and OpenFirstTiff
+ *                         ; added skip issues option for navigation
+ * Version 1.9 2013-00-00: code review & production batch testing
+ * Version 2.0 2013-00-00: NDNP Listserv Release
  *
- * TABLE OF CONTENTS ****************
- *
- * Line#
- * -------SCRIPTS-----------
- *    Open
- *    Open+
- *    Next
- *    Next+
- *    Previous
- *    Previous+
- *    GoTo
- *    GoTo+
- *    Metadata
- *    Metadata Windows
- *    Zoom In
- *    Zoom Out
- *    ViewXML
- *    EditXML
- *    Back
- * -------SUBROUTINES-------
- *    ReelFolderCheck
- *    CloseFirstImpressionWindows
- *    IssueToReel
- *    OpenFirstTIFF
- *    ExtractMeta
- *    CreateMetaWindows
- *    DelayTimer
- * -------TOOLS-------------
- *    Reel Report
- *    Batch Report
- *    Metadata Viewer
- *    DVV Pages
- *    DVV Thumbs
  *
  * REQUIRED SOFTWARE ****************
- *
- * Notepad++ (metadata extraction)
- * http://notepad-plus-plus.org/
  *
  * First Impression Viewer (default TIFF viewer)
  * http://www.softpedia.com/get/Multimedia/Graphic/Graphic-Viewers/First-Impression.shtml
  *
+ * Notepad++ (metadata extraction)
+ * http://notepad-plus-plus.org/
+ *
  * Digital Viewer and Validator (Pages & Thumbs Loops)
  * http://www.loc.gov/ndnp/tools/
+ *
  *
  * GUI NOTE *************************
  * The GUI dimensions may need to be adjusted for your system.
  * See the AutoHotkey GUI documentation for more information:
  * http://www.autohotkey.com/docs/commands/Gui.htm
+ *
  *
  * CONTACT: Andrew.Weidner@unt.edu
  */
@@ -78,21 +52,25 @@
 #NoEnv
 #persistent
 
-; ===========================================VARIABLES
+; =========================================VARIABLES
 ; EDIT THIS VARIABLE
 ; for the drive where you store your QR batches
-batchdrive = E:\
+batchdrivedefault = E:\
 
 ; EDIT THIS VARIABLE
 ; for the path to the Notepad++ folder
-notepadpath = C:\Program Files (x86)\Notepad++
+notepadpathdefault = C:\Program Files (x86)\Notepad++
 
-CMDpath = C:\Windows\System32
-DVVpath = C:\dvv
+; EDIT THIS VARIABLE
+; for the path to the folder containing cmd.exe
+CMDpathdefault = C:\Windows\System32
+
+; EDIT THIS VARIABLE
+; for the path to the DVV folder
+DVVpathdefault = C:\dvv
 
 ; documentation
-docURL = http://digitalprojects.library.unt.edu/projects/index.php/NDNP_QR.ahk
-; docURL = https://github.com/drewhop/AutoHotkey/wiki/NDNP_QR
+docURL = https://github.com/drewhop/AutoHotkey/wiki/NDNP_QR
 
 ; scoreboard
 hotkeys = 0
@@ -107,15 +85,20 @@ zoominscore = 0
 zoomoutscore = 0
 
 ; navigation
+batchdrive = %batchdrivedefault%
+notepadpath = %notepadpathdefault%
+CMDpath = %CMDpathdefault%
+DVVpath = %DVVpathdefault%
 reelfoldername = _
 reelfolderpath = _
+navskip = 1
+navchoice = 1
 
 ; tools
 count = 0
 pagecount = 0
-thumbscount= 0
+thumbscount = 0
 loopcount = 0
-batchloopcount = 0
 
 ; search
 LCCNstring = Enter an LCCN
@@ -123,16 +106,16 @@ directorysearchstring = Do not use quotes.
 chronamsearchstring = Do not use quotes.
 date1 = 1836
 date2 = 1922
-; ===========================================VARIABLES
+; =========================================VARIABLES
 
 Gui, 1:Color, d0d0d0, 912206
 Gui, 1:Show, h0 w0, NDNP_QR
 
-; ===========================================MENUS
-; see MENU FUNCTIONS (line #)
+; =========================================MENUS
+; see MENU FUNCTIONS
 
-; File (2229)
-Menu, FileMenu, Add, Open &Batch Folder, OpenBatch
+; File
+Menu, FileMenu, Add, &Open Batch Folder, OpenBatch
 Menu, FileMenu, Add
 Menu, FileMenu, Add, V&alidate Batch, DVVvalidate
 Menu, FileMenu, Add, V&erify Batch, DVVverify
@@ -140,28 +123,34 @@ Menu, FileMenu, Add
 Menu, FileMenu, Add, &Reload, Reload
 Menu, FileMenu, Add, E&xit, Exit
 
-; Edit ()
+; Edit
 Menu, EditMenu, Add, &Select Reel Folder, EditReelFolder
-Menu, EditMenu, Add
 Menu, EditMenu, Add, &Display Current Reel Folder, DisplayReelFolder
+Menu, EditMenu, Add
+Menu, EditMenu, Add, &Folder Navigation, NavSkip
+Menu, EditMenu, Add
+Menu, EditMenu, Add, &Batch Drive, EditBatchDrive
+Menu, EditMenu, Add, &Notepad++ Folder, EditNotepadFolder
+Menu, EditMenu, Add, &CMD Folder, EditCMDFolder
+Menu, EditMenu, Add, D&VV Folder, EditDVVFolder
 
-; Tools (2270)
-Menu, ToolsMenu, Add, &Reel Report, ReelReport
+; Tools
 Menu, ToolsMenu, Add, &Batch Report, BatchReport
 Menu, ToolsMenu, Add
+Menu, ToolsMenu, Add, &Reel Report, ReelReport
 Menu, ToolsMenu, Add, &Metadata Viewer, MetaViewer
 Menu, ToolsMenu, Add
 Menu, ToolsMenu, Add, DVV &Pages Loop, DVVpages
 Menu, ToolsMenu, Add, DVV &Thumbs Loop, DVVthumbs
 
-; Search (4483)
+; Search
 Menu, SearchMenu, Add, US &Directory Search, DirectorySearch
 Menu, SearchMenu, Add
 Menu, SearchMenu, Add, US Directory: &LCCN, DirectoryLCCN
 Menu, SearchMenu, Add
 Menu, SearchMenu, Add, &ChronAm Search, ChronAmSearch
 
-; Help (4548)
+; Help
 Menu, HelpMenu, Add, &Documentation, Documentation
 Menu, HelpMenu, Add, &NDNP Awardee Wiki, NDNPwiki
 Menu, HelpMenu, Add, &About, About
@@ -175,15 +164,15 @@ Menu, MenuBar, Add, &Help, :HelpMenu
 
 ; create menu toolbar
 Gui, Menu, MenuBar
-; ===========================================MENUS
+; =========================================MENUS
 
-; ===========================================LABELS
+; =========================================LABELS
 ; row 1
 ; Last Hotkey: Static 3
 Gui, 1:Add, Text, x15  y10 w40  h15, HotKeys
 Gui, 1:Add, Text, x95  y10 w70  h15, Last HotKey
 Gui, 1:Add, Text, x105 y35 w60  h15, 
-Gui, 1:Add, Text, x175 y10 w70 h15, Report / DVV
+Gui, 1:Add, Text, x175 y10 w70  h15, Report / DVV
 Gui, 1:Add, Text, x255 y10 w70  h15, Metadata ( m )
 
 ; row 2
@@ -204,9 +193,9 @@ Gui, 2:Add, Text, x40 y55  w100 h20, Volume:
 Gui, 2:Add, Text, x49 y80  w100 h20, Issue:
 Gui, 2:Add, Text, x44 y105 w100 h20, ? Date:
 Gui, 2:Add, Text, x45 y130 w100 h20, Pages:
-; ===========================================LABELS
+; =========================================LABELS
 
-; ===========================================DATA
+; =========================================DATA
 ; set larger data font
 Gui, 1:Font, s15,
 
@@ -234,7 +223,7 @@ Gui, 2:Add, Text, x90 y55  w100 h20,
 Gui, 2:Add, Text, x90 y80  w100 h20,
 Gui, 2:Add, Text, x90 y105 w100 h20,
 Gui, 2:Add, Text, x90 y130 w100 h20,
-; ===========================================DATA
+; =========================================DATA
 
 ; =========================================BOXES
 ; main window decorative
@@ -277,6 +266,7 @@ Gui, 2:+ToolWindow
 winX+=%winWidth%
 Gui, 2:Show, x%winX% y%winY% h160 w200, Metadata
 
+; activate the NDNP_QR window
 winactivate, NDNP_QR
 
 ; pause key pauses any script or function
@@ -331,12 +321,6 @@ Return
 	WinSet, Bottom,, ahk_id %firstid%
 	Sleep, 300
 
-	; harvest the issuefolder path
-	Gosub, IssueFolderPath
-
-	; open the issue.xml file in Notepad++
-	Run, "%notepadpath%\notepad++.exe" "%issuefolderpath%\%issuefoldername%.xml"
-
 	; extract the metadata
 	GoSub, ExtractMeta
 		
@@ -372,7 +356,9 @@ Return
 	Gosub, IssueToReel
 
 	; move to the next folder
-	Send, {Down}
+	SetKeyDelay, 50
+	Send, {Down %navskip%}
+	SetKeyDelay, 10
 	Sleep, 100
 
 	; open first TIFF in selected folder
@@ -408,7 +394,9 @@ Return
 	Gosub, IssueToReel
 	
 	; move to the next folder
-	Send, {Down}
+	SetKeyDelay, 50
+	Send, {Down %navskip%}
+	SetKeyDelay, 10
 	Sleep, 100
 
 	; open first TIFF in selected folder
@@ -420,12 +408,6 @@ Return
 	; send First Impression to bottom of stack
 	WinSet, Bottom,, ahk_id %firstid%
 	Sleep, 300
-
-	; harvest the issuefolder path
-	Gosub, IssueFolderPath
-
-	; open the issue.xml file in Notepad++
-	Run, "%notepadpath%\notepad++.exe" "%issuefolderpath%\%issuefoldername%.xml"
 
 	; extract the metadata
 	GoSub, ExtractMeta
@@ -462,7 +444,9 @@ Return
 	Gosub, IssueToReel
 
 	; move to the previous folder
-	Send, {Up}
+	SetKeyDelay, 50
+	Send, {Up %navskip%}
+	SetKeyDelay, 10
 	Sleep, 100
 
 	; open first TIFF in selected folder
@@ -498,7 +482,9 @@ Return
 	Gosub, IssueToReel
 
 	; move to the previous folder
-	Send, {Up}
+	SetKeyDelay, 50
+	Send, {Up %navskip%}
+	SetKeyDelay, 10
 	Sleep, 100
 
 	; open first TIFF in selected folder
@@ -510,12 +496,6 @@ Return
 	; send First Impression to bottom of stack
 	WinSet, Bottom,, ahk_id %firstid%
 	Sleep, 300
-
-	; harvest the issuefolder path
-	Gosub, IssueFolderPath
-
-	; open the issue.xml file in Notepad++
-	Run, "%notepadpath%\notepad++.exe" "%issuefolderpath%\%issuefoldername%.xml"
 
 	; extract the metadata
 	GoSub, ExtractMeta
@@ -587,15 +567,12 @@ Return
 	WinSet, Bottom,, ahk_id %firstid%
 	Sleep, 300
 
-	; harvest the issuefolder path
+	; get the issue folder path
 	Gosub, IssueFolderPath
-
-	; open the issue.xml file in Notepad++
-	Run, "%notepadpath%\notepad++.exe" "%issuefolderpath%\%issuefoldername%.xml"
-
+	
 	; extract the metadata
-	GoSub, ExtractMeta
-
+	Gosub, ExtractMeta
+	
 	; activate First Impression
 	WinActivate, ahk_id %firstid%
 	
@@ -628,9 +605,6 @@ Return
 	; harvest the issuefolder path
 	Gosub, IssueFolderPath
 
-	; open the issue.xml file in Notepad++
-	Run, "%notepadpath%\notepad++.exe" "%issuefolderpath%\%issuefoldername%.xml"
-
 	; extract the metadata
 	GoSub, ExtractMeta
 
@@ -659,7 +633,7 @@ Return
 ; =============================CREATE METADATA WINDOWS
 
 ; =============================ZOOM IN
-; masthead view for First Impression
+; First Impression masthead view
 ; HotKey = Alt + k
 !k::
 	; get the First Impression unique window id#
@@ -695,7 +669,7 @@ Return
 ; =============================ZOOM IN
 
 ; =============================ZOOM OUT
-; full page view for First Impression
+; First Impression full page view
 ; HotKey = Alt + l
 !l::
 	; get the First Impression unique window id#
@@ -732,6 +706,7 @@ Return
 
 ; =============================VIEW ISSUE XML
 ; opens the issue.xml file in the default application
+; Web browsers work well for this
 ; Hotkey: Alt + q
 !q::
 	; harvest the issuefolder path
@@ -769,7 +744,7 @@ Return
 ; =============================EDIT ISSUE XML
 
 ; =============================BACK
-; opens the title folder with titlefolderpath variable
+; opens the reel folder with reelfolderpath variable
 ; Hotkey: Alt + b
 !b::
 	; check for reel folder variable
@@ -787,7 +762,7 @@ Return
 		else Break
 	}
 
-	; open the title folder
+	; open the reel folder
 	Run, %reelfolderpath%
 
 	; update scoreboard
@@ -800,7 +775,7 @@ Return
 ; =========================================SCRIPTS
 
 ; =========================================SUBROUTINES
-; =====================NAVIGATION
+; ======================NAVIGATION SUBS
 ReelFolderCheck:
 	if (reelfolderpath == "_")
 	{
@@ -881,12 +856,16 @@ OpenFirstTIFF:
 	WinWaitActive, ^1[0-9]{9}$, , , ,
 	Sleep, 100
 
-	; open the first TIFF
-	Send, {Down 2}
-	Sleep, 100
-	Send, {Enter}
-	Sleep, 100
-
+	; get the issue folder path
+	Gosub, IssueFolderPath
+	
+	; find and open the first TIF file
+	Loop, %issuefolderpath%\*.tif
+	{
+		Run, %issuefolderpath%\%A_LoopFileName%
+		Break
+	}
+	
 	; get the unique window id#
 	SetTitleMatchMode 2
 	WinWaitActive, First Impression
@@ -916,6 +895,17 @@ GoToIssue:
 					; accept the input
 					issuefolder = %input%
 
+					; exit script if folder does not exist
+					IfNotExist, %reelfolderpath%\%issuefolder%
+					{
+
+						; print an error message
+						MsgBox, %issuefolder% does not exist in this directory:`n`n%reelfolderpath%
+						
+						; exit the script
+						Return
+					}
+					
 					; case for active issue folder
 					SetTitleMatchMode RegEx
 					IfWinExist, ^[1-2][0-9]{9}$
@@ -936,20 +926,26 @@ GoToIssue:
 						Run, %reelfolderpath%\%issuefolder%
 						
 						; wait for issue folder to load
-						WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+						WinWaitActive, ^[1-2][0-9]{9}$, , 5, ,
 						; if the folder does not exist
-						IfWinActive, , Windows can't find, , , ,
+						if ErrorLevel
 						{
+							; open the reel folder
+							Run, %reelfolderpath%
+							
 							; exit the script
 							Return
 						}
-						Sleep, 100
 
-						; open the first TIFF file
-						Send, {Down 2}
-						Sleep, 100
-						Send, {Enter}
-						Sleep, 100
+						; assign the issuefolderpath variable
+						issuefolderpath = %reelfolderpath%\%issuefolder%
+												
+						; find and open the first TIF file
+						Loop, %issuefolderpath%\*.tif
+						{
+							Run, %issuefolderpath%\%A_LoopFileName%
+							Break
+						}
 
 						; get the unique window id#
 						SetTitleMatchMode 2
@@ -963,7 +959,7 @@ GoToIssue:
 						WinWaitActive, ahk_id %firstid%
 						Sleep, 100
 
-						; end the title folder name check loop
+						; break title check loop
 						Break
 					}
 					
@@ -988,16 +984,20 @@ GoToIssue:
 						Sleep, 100
 						Send, o
 						
-						; wait for issue folder to load
+						; wait for the issue folder
 						SetTitleMatchMode RegEx
-						WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+						WinWaitActive, ^1[0-9]{9}$, , , ,
 						Sleep, 100
 
-						; open the first TIFF file
-						Send, {Down 2}
-						Sleep, 100
-						Send, {Enter}
-						Sleep, 100
+						; get the issue folder path
+						Gosub, IssueFolderPath
+						
+						; find and open the first TIF file
+						Loop, %issuefolderpath%\*.tif
+						{
+							Run, %issuefolderpath%\%A_LoopFileName%
+							Break
+						}
 
 						; get the unique window id#
 						SetTitleMatchMode 2
@@ -1011,7 +1011,62 @@ GoToIssue:
 						WinWaitActive, ahk_id %firstid%
 						Sleep, 100
 
-						; end the reel folder name check loop
+						; break title check loop
+						Break
+					}
+					
+					; case for no relevant folders
+					IfWinNotExist, ^[1-2][0-9]{9}$
+					SetTitleMatchMode 2
+					IfWinNotExist, %reelfoldername%
+					{
+						;open the reel folder
+						Run, %reelfolderpath%
+						
+						; activate reel folder
+						WinWait, %reelfoldername%, , , ,
+						IfWinNotActive, %reelfoldername%, , , ,
+						WinActivate, %reelfoldername%, , , ,
+						WinWaitActive, %reelfoldername%, , , ,
+						Sleep, 100
+
+						; open the issue
+						SetKeyDelay, 150
+						Send, %issuefolder%
+						SetKeyDelay, 10
+						Sleep, 100
+						Send, {AltDown}f{AltUp}
+						Sleep, 100
+						Send, o
+						
+						; wait for the issue folder
+						SetTitleMatchMode RegEx
+						WinWaitActive, ^1[0-9]{9}$, , , ,
+						Sleep, 100
+
+						; get the issue folder path
+						Gosub, IssueFolderPath
+						
+						; find and open the first TIF file
+						Loop, %issuefolderpath%\*.tif
+						{
+							Run, %issuefolderpath%\%A_LoopFileName%
+							Break
+						}
+
+						; get the unique window id#
+						SetTitleMatchMode 2
+						WinWaitActive, First Impression
+						Sleep, 100
+						WinGet, firstid, ID, First Impression
+
+						; activate First Impression
+						SetTitleMatchMode 1
+						WinActivate, ahk_id %firstid%
+						WinWaitActive, ahk_id %firstid%
+						Sleep, 100
+
+						; break title check loop
 						Break
 					}
 				}
@@ -1028,9 +1083,9 @@ GoToIssue:
 			}
 		}
 Return
-; =====================NAVIGATION
+; ======================NAVIGATION SUBS
 
-; =====================METADATA
+; ======================METADATA SUBS
 IssueFolderPath:
 	; save clipboard contents
 	temp = %clipboard%
@@ -1121,326 +1176,247 @@ ExtractMeta:
 	; store clipboard contents
 	temp = %clipboard%
 	
-	; clear clipboard contents
-	clipboard =
-
-	; wait for Notepad++
-	SetTitleMatchMode 2
-	WinWait, Notepad++, , , ,
-	IfWinNotActive, Notepad++, , , ,
-	WinActivate, Notepad++, , , ,
-	WinWaitActive, Notepad++, , , ,
-	Sleep, 200
-
-	; activate Find dialog
-	Send, {CtrlDown}f{CtrlUp}
-
-	; wait for Find window to load
-	WinWaitActive, Find, , , ,
-	Sleep, 100
-
-	; find the volume number
-	SendInput, ="volume"
-	Send, {Enter}
-	Sleep, 100
-
-	; if no volume number
-	ifWinActive, Find, Can't find the text:, ,
-	{
-		Send, {Enter}
-		volume = none
-		
-		; update the volume number
-		ControlSetText, Static6, %volume%, Metadata
-		ControlSetText, Static1, %volume%, Volume
-	}
-				
-	else
-	{
-		; move to the number
-		SendInput, <mods:number>
-		Send, {Enter}
-		Sleep, 100
-		
-		; close the Find Window
-		Send, {Esc}
-		Sleep, 100
-
-		; copy the volume number
-		Send, {Right}
-		Send, {ShiftDown}{End}{ShiftUp}
-		Send, {CtrlDown}c{CtrlUp}
-		Sleep, 100
-
-		; remove the </mods:number> tag
-		; and store the volume number
-		StringTrimRight, volume, clipboard, 14
-
-		; update the volume number
-		ControlSetText, Static6, %volume%, Metadata
-		ControlSetText, Static1, %volume%, Volume
-
-		; activate Find dialog
-		Send, {CtrlDown}f{CtrlUp}
-	}
-				
-	; wait for Find window to load
-	WinWaitActive, Find, , , ,
-	Sleep, 100
-
-	; find the issue number
-	SendInput, ="issue"
-	Send, {Enter}
-	Sleep, 100
-				
-	; if no issue number
-	ifWinActive, Find, Can't find the text:, ,
-	{
-		Send, {Enter}
-		issue = none
-		
-		; update the issue number
-		ControlSetText, Static7, %issue%, Metadata		
-		ControlSetText, Static1, %issue%, Issue
-	}
-				
-	else
-	{
-		; move to the number
-		SendInput, <mods:number>
-		Send, {Enter}
-		Sleep, 100
-		
-		; close the Find Window
-		Send, {Esc}
-		Sleep, 100
-
-		; copy the issue number
-		Send, {Right}
-		Send, {ShiftDown}{End}{ShiftUp}
-		Send, {CtrlDown}c{CtrlUp}
-		Sleep, 100
-
-		; remove the </mods:number> tag
-		; and store the issue number
-		StringTrimRight, issue, clipboard, 14
-
-		; update the issue number
-		ControlSetText, Static7, %issue%, Metadata
-		ControlSetText, Static1, %issue%, Issue
-
-		; activate Find dialog
-		Send, {CtrlDown}f{CtrlUp}
-	}
-				
-	; wait for Find window to load
-	WinWaitActive, Find, , , ,
-	Sleep, 100
+	; initialize the issuexml variable
+	issuexml =
 			
-	; find the edition
-	SendInput, ="edition"
-	Send, {Enter}
-	Sleep, 100
+	; initialize the metadata values
+	volume =
+	issue =
+	date =
+	editionlabel =
+	questionable =
+	questionabledisplay =
+	monthname =
+	day =
+	year =
+	monthnameQ =
+	dayQ =
+	yearQ =
+			
+	; initialize the metadata flags
+	volumeflag = 0
+	issueflag = 0
+
+	; read in the issue.xml file to the issuexml variable
+	FileRead, issuexml, %issuefolderpath%\%issuefoldername%.xml
 				
-	; move to the edition label
-	SendInput, <mods:caption>
-	Send, {Enter}
-	Sleep, 100
-		
-	; if no edition label
-	ifWinActive, Find, Can't find the text:, ,
+	; loop to parse the issuexml variable
+	Loop, parse, issuexml, `n, `r%A_Space%%A_Tab%
 	{
-		Send, {Enter}
-		editionlabel =
-	}
-				
-	else
-	{		
-		; close the Find Window
-		Send, {Esc}
-		Sleep, 100
-
-		; copy the edition label
-		Send, {Right}
-		Send, {ShiftDown}{End}{ShiftUp}
-		Send, {CtrlDown}c{CtrlUp}
-		Sleep, 100
-
-		; remove the </mods:caption> tag
-		; and store the issue number
-		StringTrimRight, editionlabel, clipboard, 15
-
-		
-		; create Edition Label GUI
-		; except for first pass of Reel Report or Metadata Viewer
-		if ((loopcount == 0) || (loopcount > 1))
+		; if the line contains a volume number tag
+		; set the volume number flag
+		IfInString, A_LoopField, type="volume"
 		{
-			WinGetPos, winX, winY, winWidth, winHeight, Metadata
-			winY+=%winHeight%
-
-			Gui, 9:+AlwaysOnTop
-			Gui, 9:+ToolWindow
-			Gui, 9:Font, cRed s15 bold, Arial
-			Gui, 9:Add, Text, x15 y15 w380 h25, %editionlabel%
-			Gui, 9:Font, cRed s10 bold, Arial
-			Gui, 9:Add, GroupBox, x0 y-7 w400 h63,       
-			Gui, 9:Show, x%winX% y%winY% h55 w400, Edition
-		}
-		
-		; wait for Notepad++
-		SetTitleMatchMode 2
-		WinWait, Notepad++, , , ,
-		IfWinNotActive, Notepad++, , , ,
-		WinActivate, Notepad++, , , ,
-		WinWaitActive, Notepad++, , , ,
-		Sleep, 200
-			
-		; activate Find dialog
-		Send, {CtrlDown}f{CtrlUp}
-	}
-
-	; wait for Find window to load
-	WinWaitActive, Find, , , ,
-	Sleep, 100
+			; set the volume number flag
+			volumeflag = 1
 				
-	; find the publication date
-	SendInput, </mods:dateIssued>
-	Send, {Enter}
+			; continue the parsing loop
+			Continue
+		}
 
-	; close the Find Window
-	Send, {Esc}
-	Sleep, 100
+		; if the volumeflag has been set
+		if (volumeflag == 1)
+		{
+			; assign the volume number
+			StringTrimLeft, volume, A_LoopField, 13
+			StringTrimRight, volume, volume, 14
+					
+			; reset the volumeflag
+			volumeflag = 0
+		}
 
-	; copy the publication date
-	Send, {Left}{ShiftDown}{Left 10}{ShiftUp}
-	Send, {CtrlDown}c{CtrlUp}
-  
-	; store the publication date
-	date = %clipboard%
+		; if the line contains an issue number tag
+		IfInString, A_LoopField, type="issue"
+		{
+			; set the issue number flag
+			issueflag = 1
+					
+			; continue the parsing loop
+			Continue
+		}
 
-	; create display date variables
-	month := SubStr(date, 6, 2)
-		if (month = 01) {
-			monthname = Jan.
+		; if the issueflag has been set
+		if (issueflag == 1)
+		{
+			; assign the issue number
+			StringTrimLeft, issue, A_LoopField, 13
+			StringTrimRight, issue, issue, 14
+				
+			; reset the issueflag
+			issueflag = 0
 		}
-		else if (month = 02) {
-			monthname = Feb.
+
+		; if the line contains an edition label
+		IfInString, A_LoopField, mods:caption
+		{
+			; assign the edition label
+			StringTrimLeft, editionlabel, A_LoopField, 14
+			StringTrimRight, editionlabel, editionlabel, 15
+
+			; create Edition Label GUI
+			; except for first pass of Reel Report or Metadata Viewer
+			if ((loopcount == 0) || (loopcount > 1))
+			{
+				WinGetPos, winX, winY, winWidth, winHeight, Metadata
+				winY+=%winHeight%
+
+				Gui, 9:+AlwaysOnTop
+				Gui, 9:+ToolWindow
+				Gui, 9:Font, cRed s15 bold, Arial
+				Gui, 9:Add, Text, x15 y15 w380 h25, %editionlabel%
+				Gui, 9:Font, cRed s10 bold, Arial
+				Gui, 9:Add, GroupBox, x0 y-7 w400 h63,       
+				Gui, 9:Show, x%winX% y%winY% h55 w400, Edition
+			}
 		}
-		else if (month = 03) {
-			monthname = Mar.
+
+		; if the line contains an issue date
+		IfInString, A_LoopField, <mods:dateIssued encoding="iso8601">
+		{
+			; assign the issue date
+			StringMid, date, A_LoopField, 37, 10
+
+			; create display date variables
+			month := SubStr(date, 6, 2)
+				if (month = 01) {
+					monthname = Jan.
+				}
+				else if (month = 02) {
+					monthname = Feb.
+				}
+				else if (month = 03) {
+					monthname = Mar.
+				}
+				else if (month = 04) {
+					monthname = Apr.
+				}
+				else if (month = 05) {
+					monthname = May
+				}
+				else if (month = 06) {
+					monthname = June
+				}
+				else if (month = 07) {
+					monthname = July
+				}
+				else if (month = 08) {
+					monthname = Aug.
+				}
+				else if (month = 09) {
+					monthname = Sept.
+				}
+				else if (month = 10) {
+					monthname = Oct.
+				}
+				else if (month = 11) {
+					monthname = Nov.
+				}
+				else if (month = 12) {
+					monthname = Dec.
+				}
+			day := SubStr(date, 9)
+			if SubStr(day, 1, 1) = 0
+			{
+				day := SubStr(day, 2)
+			}
+			year := SubStr(date, 1, 4)
 		}
-		else if (month = 04) {
-			monthname = Apr.
+
+		; if the line contains a questionable issue date
+		IfInString, A_LoopField, qualifier="questionable"
+		{
+			; assign the questionable issue date
+			StringMid, questionable, A_LoopField, 62, 10
+
+			; assign the report display variable
+			questionabledisplay = Questionable: %questionable%
+		
+			; create display questionable date variables
+			month := SubStr(questionabledate, 6, 2)
+				if (month = 01) {
+					monthnameQ = Jan.
+				}
+				else if (month = 02) {
+					monthnameQ = Feb.
+				}
+				else if (month = 03) {
+					monthnameQ = Mar.
+				}
+				else if (month = 04) {
+					monthnameQ = Apr.
+				}
+				else if (month = 05) {
+					monthnameQ = May
+				}
+				else if (month = 06) {
+					monthnameQ = June
+				}
+				else if (month = 07) {
+					monthnameQ = July
+				}
+				else if (month = 08) {
+					monthnameQ = Aug.
+				}
+				else if (month = 09) {
+					monthnameQ = Sept.
+				}
+				else if (month = 10) {
+					monthnameQ = Oct.
+				}
+				else if (month = 11) {
+					monthnameQ = Nov.
+				}
+				else if (month = 12) {
+					monthnameQ = Dec.
+				}
+			dayQ := SubStr(questionable, 9)
+			if SubStr(dayQ, 1, 1) = 0
+			{
+				dayQ := SubStr(dayQ, 2)
+			}
+			yearQ := SubStr(questionable, 1, 4)
+
+			; if reel report or metadata viewer
+			if loopcount > 1
+			{
+				WinGetPos, winX, winY, winWidth, winHeight, Date
+				winY+=%winHeight%
+
+				; create Questionable Date GUI
+				Gui, 7:+AlwaysOnTop
+				Gui, 7:+ToolWindow
+				Gui, 7:Font, cRed s15 bold, Arial
+				Gui, 7:Add, Text, x35 y15 w160 h25, %monthnameQ% %dayQ%, %yearQ%
+				Gui, 7:Font, cRed s10 bold, Arial
+				Gui, 7:Add, GroupBox, x0 y-7 w200 h63,       
+				Gui, 7:Show, x%winX% y%winY% h55 w200, Questionable
+			}
 		}
-		else if (month = 05) {
-			monthname = May
+
+		; initialize the number of pages variable
+		numpages = 0
+					
+		; count the number of .TIF files
+		Loop, %issuefolderpath%\*.tif
+		{
+			numpages++
 		}
-		else if (month = 06) {
-			monthname = June
-		}
-		else if (month = 07) {
-			monthname = July
-		}
-		else if (month = 08) {
-			monthname = Aug.
-		}
-		else if (month = 09) {
-			monthname = Sept.
-		}
-		else if (month = 10) {
-			monthname = Oct.
-		}
-		else if (month = 11) {
-			monthname = Nov.
-		}
-		else if (month = 12) {
-			monthname = Dec.
-		}
-	day := SubStr(date, 9)
-	if SubStr(day, 1, 1) = 0
-	{
-		day := SubStr(day, 2)
 	}
-	year := SubStr(date, 1, 4)
 
 	; update the date field
 	ControlSetText, Static5, %date%, Metadata
 	ControlSetText, Static1, %monthname% %day%`, %year%, Date
 
-	; clear the questionabledate variable
-	questionabledate =
+	; update the volume number
+	ControlSetText, Static6, %volume%, Metadata
+	ControlSetText, Static1, %volume%, Volume
 
-	; activate Find dialog
-	Send, {CtrlDown}f{CtrlUp}
+	; update the issue number
+	ControlSetText, Static7, %issue%, Metadata		
+	ControlSetText, Static1, %issue%, Issue
 
-	; wait for Find window to load
-	WinWaitActive, Find, , , ,
-	Sleep, 100
-
-	; find a questionable date
-	SendInput, "questionable">
-	Send, {Enter}
-	Sleep, 100
-
-	; if no questionable date
-	ifWinActive, Find, Can't find the text:, ,
-	{
-		Send, {Enter}
-		Sleep, 100
-		
-		; close the Find window
-		Send, {Esc}
-		Sleep, 100
-		
-		; update the questionable date
-		ControlSetText, Static8, %questionabledate%, Metadata		
-	}
-				
-	else
-	{
-		; close the Find Window
-		Send, {Esc}
-		Sleep, 100
-
-		; copy the questionable publication date
-		Send, {Right}{ShiftDown}{Right 10}{ShiftUp}
-		Send, {CtrlDown}c{CtrlUp}
-  
-		; store the questionable publication date
-		questionabledate = %clipboard%
-		
-		; update the questionable date
-		ControlSetText, Static8, %questionabledate%, Metadata		
-
-		if loopcount > 1
-		{
-			WinGetPos, winX, winY, winWidth, winHeight, Date
-			winY+=%winHeight%
-
-			; create Questionable Date GUI
-			Gui, 7:+AlwaysOnTop
-			Gui, 7:+ToolWindow
-			Gui, 7:Font, cRed s15 bold, Arial
-			Gui, 7:Add, Text, x35 y15 w160 h25, %monthnameQ% %dayQ%, %yearQ%
-			Gui, 7:Font, cRed s10 bold, Arial
-			Gui, 7:Add, GroupBox, x0 y-7 w200 h63,       
-			Gui, 7:Show, x%winX% y%winY% h55 w200, Questionable
-		}
-	}
-	
-	; close the issue.xml file
-	Send, {AltDown}f{AltUp}
-	Sleep, 100
-	Send, c
-
-	; initialize the number of pages variable
-	numpages = 0
-				
-	; count the number of .TIF files
-	Loop, %issuefolderpath%\*.tif
-	{
-		numpages++
-	}
+	; update the questionable date
+	ControlSetText, Static8, %questionable%, Metadata		
 
 	; update the number of pages
 	ControlSetText, Static9, %numpages%, Metadata
@@ -1559,11 +1535,11 @@ DelayTimer:
 		}
 	}
 Return
-; =====================METADATA
+; ======================METADATA SUBS
 ; =========================================SUBROUTINES
 
 ; =========================================MENU FUNCTIONS
-; =================FILE
+; ======================FILE MENU
 ; open a batch folder
 ; edit the file path variable in line 26 for your system
 OpenBatch:
@@ -1608,9 +1584,9 @@ Reload
 ; exit application
 Exit:
 ExitApp
-; =================FILE
+; ======================FILE MENU
 
-; =================EDIT
+; ======================EDIT MENU
 EditReelFolder:
 	; create dialog to select the reel folder
 	FileSelectFolder, reelfolderpath, %batchdrive%, 0, `nSelect the REEL folder:
@@ -1641,14 +1617,298 @@ DisplayReelFolder:
 		MsgBox, 0, Current Reel, Reel Folder Name:`n`n`t%reelfoldername%`n`nReel Folder Path:`n`n`t%reelfolder1%`n`t%reelfolder2%
 	}
 Return
-; =================EDIT
 
-; ======================TOOLS
+NavSkip:
+	; create the Folder Navigation GUI
+	Gui, 12:Add, Text,, FOLDER NAVIGATION`n`nNumber of folders:
+	Gui, 12:Add, DropDownList, Choose%navchoice% R7 vnavskip, 1|2|3|5|10|15|20
+	Gui, 12:Add, Button, x10 y80 gNavSkipGo default, OK
+	Gui, 12:Add, Button, x45 y80 gNavSkipCancel, Cancel
+	Gui, 12:Show,, Folder Navigation
+Return
+
+NavSkipGo:
+	; assign the navskip variable value
+	Gui, 12:Submit
+	
+	; assign the navchoice variable value
+	if (navskip == 1)
+		navchoice = %navskip%
+	else if (navskip == 2)
+		navchoice = %navskip%
+	else if (navskip == 3)
+		navchoice = %navskip%
+	else if (navskip == 5)
+		navchoice = 4
+	else if (navskip == 10)
+		navchoice = 5
+	else if (navskip == 15)
+		navchoice = 6
+	else navchoice = 7
+		
+	; close the Folder Navigation GUI
+	Gui, 12:Destroy
+Return
+
+NavSkipCancel:
+	Gui, 12:Destroy
+Return
+
+EditBatchDrive:
+	; create dialog to select the batch storage drive
+	FileSelectFolder, batchdrive,, 0, `nSelect the drive where your batches are stored:
+	if ErrorLevel
+	{
+		batchdrive = %batchdrivedefault%
+		Return
+	}
+Return
+
+EditNotepadFolder:
+	; create dialog to select the Notepad++ folder
+	FileSelectFolder, notepadpath, C:\, 0, `nSelect the folder where Notepad++ is installed:
+	if ErrorLevel
+	{
+		notepadpath = %notepadpathdefault%
+		Return
+	}
+Return
+
+EditCMDFolder:
+	; create dialog to select the CMD.exe folder
+	FileSelectFolder, CMDpath, C:\, 0, `nSelect the folder where CMD.exe is installed:
+	if ErrorLevel
+	{
+		CMDpath = %CMDpathdefault%
+		Return
+	}
+Return
+
+EditDVVFolder:
+	; create dialog to select the DVV folder
+	FileSelectFolder, DVVpath, C:\, 0, `nSelect the folder where the DVV is installed:
+	if ErrorLevel
+	{
+		DVVpath = %DVVpathdefault%
+		Return
+	}
+Return
+; ======================EDIT MENU
+
+; ======================TOOLS MENU
+; ======BATCH REPORT
+; creates a report of all the issues in a batch
+; text file will be created in the batch folder
+BatchReport:
+	; update last hotkey
+	ControlSetText, Static3, BATCH, NDNP_QR
+ 
+	; initialize the file variables
+	issuefile =
+	batchxml =
+
+	; create dialog to select a batch folder
+	FileSelectFolder, batchfolderpath, %batchdrive%, 0, BATCH REPORT`n`nSelect a BATCH folder:
+	if ErrorLevel
+		Return
+	else
+	{	
+		; extract batch name from path
+		StringGetPos, foldernamepos, batchfolderpath, \, R1
+		foldernamepos++
+		StringTrimLeft, batchname, batchfolderpath, foldernamepos
+
+		; store the start time
+		start = %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec% 
+			
+		; create the report file in the batch folder
+		FileAppend, %batchfolderpath%`n`nIdentifier`t`tPages`tDate`t`tVolume`tIssue`n`n, %batchfolderpath%\%batchname%-report.txt
+
+		; read in the batch.xml file to the batchxml variable
+		FileRead, batchxml, %batchfolderpath%\batch.xml
+
+		; initialize the issue counter
+		issuecount = 0
+
+		; loop to parse the batchxml and store issue paths
+		Loop, parse, batchxml, `n, `r%A_Space%%A_Tab%
+		{
+			; if the line contains an <issue> tag
+			IfInString, A_LoopField, issue
+			{
+				; trim the <issue> line before the file path
+				StringTrimLeft, rawissueXMLpath, A_LoopField, 66
+			
+				; remove the </issue> tag and store the issue.xml path
+				StringTrimRight, issueXMLpath, rawissueXMLpath, 8
+
+				; append issue.xml path to issuefile
+				issuefile .= issueXMLpath
+						
+				; append new line to issuefile
+				issuefile .= "`n"
+					
+				; update the issue count
+				issuecount++
+			}
+		}
+		
+		; sort the issuefile variable
+		Sort, issuefile
+
+		; initialize the total page counter
+		totalpages = 0
+
+		; *******************************
+		; loop through sorted issuefile
+		; *******************************
+		Loop, parse, issuefile, `n
+		{
+			; *************************************************
+			; AUTO EXIT if issuefile is empty
+			if A_LoopField =
+			{
+				; add the issue count to the report
+				FileAppend, `nBatch: %batchname%`nIssues: %issuecount%`n Pages: %totalpages%, %batchfolderpath%\%batchname%-report.txt
+
+				; print the start and end times
+				FileAppend, `n`nSTART: %start%, %batchfolderpath%\%batchname%-report.txt
+				FileAppend, `n  END: %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%, %batchfolderpath%\%batchname%-report.txt
+
+				; create a message box to indicate that the script ended
+				MsgBox, 0, Batch Report, Batch: %batchname%`nIssues: %issuecount%`nPages: %totalpages%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%
+
+				;exit the report tool
+				return
+			}
+			; *************************************************
+
+			; remove the issue.xml file name and store the partial issue folder path
+			StringTrimRight, issuepath, A_LoopField, 15
+
+			; remove the dates and store the LCCN and Reel #
+			StringTrimRight, identifier, A_LoopField, 26
+			Sleep, 100	
+
+			; create issue folder path variable for page count
+			issuefolderpath = %batchfolderpath%\%issuepath%
+
+			; initialize the issuexml variable
+			issuexml =
+			
+			; initialize the metadata values
+			volume =
+			issue =
+			date =
+			editionlabel =
+			questionable =
+			questionabledisplay =
+			
+			; initialize the metadata flags
+			volumeflag = 0
+			issueflag = 0
+
+			; read in the issue.xml file to the issuexml variable
+			FileRead, issuexml, %batchfolderpath%\%A_LoopField%
+
+			; ************************
+			; extract issue metadata
+			; ************************
+			Loop, parse, issuexml, `n, `r%A_Space%%A_Tab%
+			{
+				; if the line contains a volume number tag
+				; set the volume number flag
+				IfInString, A_LoopField, type="volume"
+				{
+					; set the volume number flag
+					volumeflag = 1
+					
+					; continue the parsing loop
+					Continue
+				}
+
+				; if the volumeflag has been set
+				if (volumeflag == 1)
+				{
+					; assign the volume number
+					StringTrimLeft, volume, A_LoopField, 13
+					StringTrimRight, volume, volume, 14
+					
+					; reset the volumeflag
+					volumeflag = 0
+				}
+
+				; if the line contains an issue number tag
+				IfInString, A_LoopField, type="issue"
+				{
+					; set the issue number flag
+					issueflag = 1
+					
+					; continue the parsing loop
+					Continue
+				}
+
+				; if the issueflag has been set
+				if (issueflag == 1)
+				{
+					; assign the issue number
+					StringTrimLeft, issue, A_LoopField, 13
+					StringTrimRight, issue, issue, 14
+					
+					; reset the issueflag
+					issueflag = 0
+				}
+
+				; if the line contains an edition label
+				IfInString, A_LoopField, mods:caption
+				{
+					; assign the edition label
+					StringTrimLeft, editionlabel, A_LoopField, 14
+					StringTrimRight, editionlabel, editionlabel, 15
+				}
+
+				; if the line contains an issue date
+				IfInString, A_LoopField, <mods:dateIssued encoding="iso8601">
+				{
+					; assign the issue date
+					StringMid, date, A_LoopField, 37, 10
+				}
+
+				; if the line contains a questionable issue date
+				IfInString, A_LoopField, qualifier="questionable"
+				{
+					; assign the report display variable
+					StringMid, questionable, A_LoopField, 62, 10
+					questionabledisplay = Questionable: %questionable%
+				}
+			}
+
+			; initialize the number of pages variable
+			numpages = 0
+							
+			; count the number of .TIF files
+			Loop, %issuefolderpath%\*.tif
+			{
+				numpages++
+			}
+
+			; add the page count to the total
+			totalpages += numpages					
+
+			; add the issue data to the report
+			FileAppend, %identifier%`t%numpages%`t%date%`t%volume%`t%issue%`t%editionlabel%`t%questionabledisplay%`n, %batchfolderpath%\%batchname%-report.txt
+		}
+	}
+Return
+; ======BATCH REPORT
+
 ; ======REEL REPORT
-; creates a report of all the issues in a reel folder
+; displays first TIFF and metadata
+; and creates a report for the issues in a reel folder
+; text file will be created in the LCCN folder
 ReelReport:
 	; update last hotkey & loop label
-	ControlSetText, Static3, REPORT, NDNP_QR
+	ControlSetText, Static3, REEL, NDNP_QR
 	ControlSetText, Static4, Reel Report, NDNP_QR
 
 	; initialize the issue and total pages counters
@@ -1667,6 +1927,7 @@ ReelReport:
 			Return
 		else
 		{
+			; close any First Impression windows
 			Gosub, CloseFirstImpressionWindows			
 			
 			; store the start time
@@ -1680,7 +1941,7 @@ ReelReport:
 			foldernamepos++
 			StringTrimLeft, reelnumber, reelfolderpath, foldernamepos
 
-			; create the report
+			; create the report file
 			FileAppend, %reelfolderpath%`n`nPages`tDate`t`tVolume`tIssue`n`n, %reportpath%\%reelnumber%-report.txt
 
 			; open the reel folder
@@ -1705,53 +1966,12 @@ ReelReport:
 		
 			Loop
 			{
-				; *************************************************
-				; ALTERED FILE FAILSAFE
-				SetTitleMatchMode 2	
-				ifWinExist, Save
-				{
-					WinActivate, Save, , , ,
-					WinWaitActive, Save, , , ,
-					Sleep, 100
-
-					; close Save dialog without saving changes
-					Send, n
-					Sleep, 100
-	
-					; add an error message to the report
-					FileAppend, `n`nReport for reel %reelnumber% aborted.`n`nIssues: %loopcount%`n Pages: %totalpages%`nCHECK FOR ERRORS: %date%, %reportpath%\%reelnumber%-report.txt
-
-					; print the start and end times
-					FileAppend, `n`nSTART: %start%, %reportpath%\%reelnumber%-report.txt
-					FileAppend, `n  END: %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%, %reportpath%\%reelnumber%-report.txt
-
-					; close the metadata windows
-					Gui, 4:Destroy
-					Gui, 5:Destroy
-					Gui, 6:Destroy
-					Gui, 7:Destroy
-					Gui, 9:Destroy
-
-					; create a message box to indicate the script was aborted
-					MsgBox, 0, Reel Report, The report for reel %reelnumber% was aborted.`n`nIssues: %loopcount%`nPages: %totalpages%`n`nCHECK FOR ERRORS: %date%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%
-					
-					; reset variables
-					loopcount = 0
-					reelfoldername = _
-					reelfolderpath = _
-
-				; exit the script
-				Return
-				}
-				; *************************************************
-			
 				; activate the issue folder
 				SetTitleMatchMode RegEx
 				WinWait, ^[1-2][0-9]{9}$, , 5, ,
 				if ErrorLevel
 				; *************************************************
-				; AUTO EXIT FUNCTION
-				; executes at end of issue folders
+				; AUTO EXIT at end of issue folders
 				{
 					; add the issue count to the report
 					FileAppend, `nIssues: %loopcount%`n Pages: %totalpages%, %reportpath%\%reelnumber%-report.txt
@@ -1775,10 +1995,10 @@ ReelReport:
 					reelfoldername = _
 					reelfolderpath = _
 
-				;exit the script
-				return
+					;exit the script
+					return
 				}
-				; *************************************************						
+				; *************************************************
 				IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
 				WinActivate, ^[1-2][0-9]{9}$, , , ,
 				WinWaitActive, ^[1-2][0-9]{9}$, , , ,
@@ -1792,6 +2012,7 @@ ReelReport:
 				Send, {Enter}
 				Sleep, 300
 
+				; get the First Impression window ID
 				SetTitleMatchMode 2
 				WinGet, firstid, ID, First Impression
 
@@ -1812,9 +2033,6 @@ ReelReport:
 				; harvest the issue folder path
 				Gosub, IssueFolderPath
 				
-				; open issue.xml in Notepad++
-				Run, "%notepadpath%\notepad++.exe" "%issuefolderpath%\%issuefoldername%.xml"
-
 				; increment the counter
 				loopcount++
 				
@@ -1883,13 +2101,16 @@ ReelReport:
 						Sleep, 100
 	
 						; open the next issue folder
-						Send, {Down}
+						SetKeyDelay, 50
+						Send, {Down %navskip%}
+						SetKeyDelay, 50
 						Sleep, 100
 						Send, {AltDown}f{AltUp}
 						Sleep, 100
 						Send, o
 					
-					Continue
+						; next loop iteration
+						Continue
 					}
 
 					else
@@ -1904,8 +2125,8 @@ ReelReport:
 				}
 
 				; *************************************************
-				; MANUAL EXIT FUNCTION
-				; executes if Left Shift is held down during page display delay
+				; MANUAL EXIT
+				; hold down Left Shift during page display delay
 				getKeyState, state, LShift
 				if state = D
 				{
@@ -1931,8 +2152,8 @@ ReelReport:
 					reelfoldername = _
 					reelfolderpath = _
 
-				;exit the script
-				return
+					;exit the report tool
+					return
 				}
 				; *************************************************						
 
@@ -1968,7 +2189,9 @@ ReelReport:
 				Sleep, 100
 	
 				; open the next issue folder
-				Send, {Down}
+				SetKeyDelay, 50
+				Send, {Down %navskip%}
+				SetKeyDelay, 10
 				Sleep, 100
 				Send, {AltDown}f{AltUp}
 				Sleep, 100
@@ -1979,257 +2202,8 @@ ReelReport:
 Return
 ; ======REEL REPORT
 
-; ======BATCH REPORT
-; creates a report of all the issues in a batch
-BatchReport:
-	; delay time (milliseconds) for loading issue.xml files
-	delay = 1000
-	
-	; update last hotkey & report label
-	ControlSetText, Static3, REPORT, NDNP_QR
-	ControlSetText, Static4, Batch Report, NDNP_QR
-
-	; initialize the issue and total pages counters
-	batchloopcount = 0
-	totalpages = 0
-
-	; create dialog to select a batch folder
-	FileSelectFolder, batchfolderpath, %batchdrive%, 0, BATCH REPORT`n`nSelect a BATCH folder:
-	if ErrorLevel
-		Return
-	else
-	{	
-		; extract batch name from path
-		StringGetPos, foldernamepos, batchfolderpath, \, R1
-		foldernamepos++
-		StringTrimLeft, batchname, batchfolderpath, foldernamepos
-
-		; store the start time
-		start = %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec% 
-			
-		; create the report file in the batch folder
-		FileAppend, %batchfolderpath%`n`nIdentifier`t`tPages`tDate`t`tVolume`tIssue`n`n, %batchfolderpath%\%batchname%-report.txt
-
-		; open the batch.xml file in Notepad++
-		Run, "%notepadpath%\notepad++.exe" "%batchfolderpath%\batch.xml"
-
-		; initialize the issue counter
-		issuecount = 0
-			
-		; initialize the issuefile
-		issuefile =
-	
-		; *******************************************************
-		; loop through every issue listed in the batch.xml file *
-		; and store file paths in the issuefile variable        *
-		;                                                       *
-		; Notepad++ Find dialog:                                *
-		;   "Wrap Around" must be UNCHECKED                     *
-		;   or the loop will continue infinitely                *
-		; *******************************************************
-		Loop
-		{
-			; *************************************************
-			; ALTERED FILE FAILSAFE
-			SetTitleMatchMode 2	
-			ifWinExist, Save
-			{
-				; close Save dialog without saving changes
-				Send, n
-				Sleep, 100
-
-				; add an error message to the report including the last file opened
-				FileAppend, `nReport for batch %batchname% aborted.`n`nIssues: %issuecount%`n Pages: %totalpages%, %batchfolderpath%\%batchname%-report.txt
-				FileAppend, `nCHECK FOR ERRORS: %issuepath%, %batchfolderpath%\%batchname%-report.txt
-
-				; print the start and end times
-				FileAppend, `n`nSTART: %start%, %batchfolderpath%\%batchname%-report.txt
-				FileAppend, `n  END: %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%, %batchfolderpath%\%batchname%-report.txt
-		
-				; create a message box to indicate the script was aborted
-				MsgBox, 0, Batch Report, The report for batch %batchname% was aborted.`n`nIssues: %issuecount%`nPages: %totalpages%`n`nCHECK FOR ERRORS: %issuepath%`n`nSTART:`t%start%`n`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%
-
-			; exit the script
-			return
-			}
-			; *************************************************
-
-			; activate batch.xml window
-			SetTitleMatchMode 2
-			WinWait, batch.xml, , 10, ,
-				if ErrorLevel
-				; **********************************
-				; TIMEOUT EXIT FUNCTION
-				; executes if batch.xml window cannot be found
-				{
-					; add the issue count to the report
-					FileAppend, `nBatch: %batchname%`nIssues: %issuecount%`n Pages: %totalpages%, %batchfolderpath%\%batchname%-report.txt
-
-					; print the start and end times
-					FileAppend, `n`nSTART: %start%, %batchfolderpath%\%batchname%-report.txt
-					FileAppend, `n  END: %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%, %batchfolderpath%\%batchname%-report.txt
-
-					; create a message box to indicate that the script ended
-					MsgBox, 0, Batch Report, The report for batch %batchname% timed out.`n`nIssues: %issuecount%`nPages: %totalpages%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%
-
-				;exit the script
-				return
-				}
-				; **********************************
-			IfWinNotActive, batch.xml, , , ,
-			WinActivate, batch.xml, , , ,
-			WinWaitActive, batch.xml, , , ,
-			Sleep, 100
-
-			; activate the Find dialog and locate the next issue.xml file
-			Send, {CtrlDown}f{CtrlUp}
-			Sleep, 50
-			Send, editionOrder
-			Sleep, 50
-			Send, {Enter}
-			Sleep, 50
-				
-			; if no more issues in batch.xml
-			ifWinActive, Find, Can't find the text:, ,
-			{
-				Send, {Enter}
-				Sleep, 50
-					
-				; close the Find dialog
-				Send, {Esc}
-				Sleep, 50
-										
-				; close the batch.xml
-				Send, {AltDown}f{AltUp}
-				Sleep, 50
-				Send, c
-
-				; end the loop
-				Break
-			}
-				
-			; close the Find dialog
-			Send, {Esc}
-			Sleep, 50
-				
-			; copy the issue.xml file path
-			Send, {Right 7}
-			Sleep, 50
-			Send, {ShiftDown}{End}{ShiftUp}
-			Sleep, 50	
-			Send, {CtrlDown}c{CtrlUp}
-			Sleep, 50
-	
-			; remove the </issue> tag and store the issue.xml path
-			StringTrimRight, issueXMLpath, clipboard, 8
-
-			; append issue.xml path to issuefile
-			issuefile .= issueXMLpath
-					
-			; append new line to issuefile
-			issuefile .= "`n"
-				
-			; update the issue count
-			issuecount++
-		}
-			
-		; sort the issuefile variable
-		Sort, issuefile
-
-		; *****************************************
-		; loop through sorted issuefile           *
-		; extract metadata and add to report      *
-		; *****************************************
-		Loop, parse, issuefile, `n
-		{
-			; *************************************************
-			; AUTO EXIT FUNCTION
-			; exit script if issuefile is empty
-			if A_LoopField =
-			{
-				; add the issue count to the report
-				FileAppend, `nBatch: %batchname%`nIssues: %issuecount%`n Pages: %totalpages%, %batchfolderpath%\%batchname%-report.txt
-
-				; print the start and end times
-				FileAppend, `n`nSTART: %start%, %batchfolderpath%\%batchname%-report.txt
-				FileAppend, `n  END: %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%, %batchfolderpath%\%batchname%-report.txt
-
-				; create a message box to indicate that the script ended
-				MsgBox, 0, Batch Report, Batch: %batchname%`nIssues: %issuecount%`nPages: %totalpages%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%
-
-				; reset the counter
-				batchloopcount = 0
-
-			;exit the script
-			return
-			}
-			; *************************************************
-				
-			; *************************************************
-			; ALTERED FILE FAILSAFE
-			SetTitleMatchMode 2	
-			ifWinExist, Save
-			{
-				; close Save dialog without saving changes
-				Send, n
-				Sleep, 100
-
-				; add an error message to the report including the last file opened
-				FileAppend, `nReport for batch %batchname% aborted.`n`nIssues: %batchloopcount%`n Pages: %totalpages%, %batchfolderpath%\%batchname%-report.txt
-				FileAppend, `nCHECK FOR ERRORS: %issuepath%, %batchfolderpath%\%batchname%-report.txt
-
-				; print the start and end times
-				FileAppend, `n`nSTART: %start%, %batchfolderpath%\%batchname%-report.txt
-				FileAppend, `n  END: %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%, %batchfolderpath%\%batchname%-report.txt
-		
-				; create a message box to indicate the script was aborted
-				MsgBox, 0, Batch Report, The report for batch %batchname% was aborted.`n`nIssues: %batchloopcount%`nPages: %totalpages%`n`nCHECK FOR ERRORS: %issuepath%`n`nSTART:`t%start%`n`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%
-
-				; reset the counter
-				batchloopcount = 0
-
-			; exit the script
-			return
-			}
-			; *************************************************
-			
-			; close the Edition Label Window
-			Gui, 9:Destroy
-			
-			; remove the issue.xml file name and store the issue folder path
-			StringTrimRight, issuepath, A_LoopField, 15
-
-			; remove the dates and store the LCCN and Reel #
-			StringTrimRight, identifier, A_LoopField, 26
-			Sleep, 100	
-
-			; create variable for ExtractMeta page count
-			issuefolderpath = %batchfolderpath%\%issuepath%
-			
-			; open the issue.xml file in Notepad++
-			Run, "%notepadpath%\notepad++.exe" "%batchfolderpath%\%A_LoopField%"
-			Sleep, %delay%
-		
-			; extract the metadata
-			Gosub, ExtractMeta
-
-			; add the page count to the total
-			totalpages += numpages
-				
-			; add the issue data to the report
-			FileAppend, %identifier%`t%numpages%`t%date%`t%volume%`t%issue%`t%editionlabel%`t%questionabledisplay%`n, %batchfolderpath%\%batchname%-report.txt
-				
-			; update the scoreboard
-			batchloopcount++
-			ControlSetText, Static15, %batchloopcount%, NDNP_QR
-			Sleep, 100
-		}
-	}
-Return
-; ======BATCH REPORT
-
 ; ======METADATA VIEWER
-; opens the first image and displays the issue metadata
+; opens the first TIFF and displays the issue metadata
 ; for each issue in a reel folder
 MetaViewer:
 	; update last hotkey & loop label
@@ -2285,46 +2259,12 @@ MetaViewer:
 		
 			Loop
 			{
-				; *************************************************
-				; ALTERED FILE FAILSAFE
-				SetTitleMatchMode 2	
-				ifWinExist, Save
-				{
-					WinActivate, Save, , , ,
-					WinWaitActive, Save, , , ,
-					Sleep, 100
-
-					; close Save dialog without saving changes
-					Send, n
-					Sleep, 100
-	
-					; close the metadata windows
-					Gui, 4:Destroy
-					Gui, 5:Destroy
-					Gui, 6:Destroy
-					Gui, 7:Destroy
-					Gui, 9:Destroy
-
-					; create a message box to indicate the script was aborted
-					MsgBox, 0, Metadata Viewer, The metadata viewer for reel %reelnumber% was aborted.`n`nIssues: %loopcount%`nPages: %totalpages%`n`nCHECK FOR ERRORS: %date%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%
-					
-					; reset variables
-					loopcount = 0
-					reelfoldername = _
-					reelfolderpath = _
-					
-				; exit the script
-				Return
-				}
-				; *************************************************
-			
 				; activate the issue folder
 				SetTitleMatchMode RegEx
 				WinWait, ^[1-2][0-9]{9}$, , 5, ,
 				if ErrorLevel
 				; *************************************************
-				; AUTO EXIT FUNCTION
-				; executes at end of issue folders
+				; AUTO EXIT at end of issue folders
 				{
 					; close the metadata windows
 					Gui, 4:Destroy
@@ -2341,8 +2281,8 @@ MetaViewer:
 					reelfoldername = _
 					reelfolderpath = _
 					
-				;exit the script
-				return
+					;exit the script
+					return
 				}
 				; *************************************************						
 				IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
@@ -2358,6 +2298,7 @@ MetaViewer:
 				Send, {Enter}
 				Sleep, 300
 
+				; get the First Impression window ID
 				SetTitleMatchMode 2
 				WinGet, firstid, ID, First Impression
 
@@ -2377,9 +2318,6 @@ MetaViewer:
 
 				; harvest the issue folder path
 				Gosub, IssueFolderPath
-				
-				; open issue.xml in Notepad++
-				Run, "%notepadpath%\notepad++.exe" "%issuefolderpath%\%issuefoldername%.xml"
 
 				; increment the counter
 				loopcount++
@@ -2405,8 +2343,8 @@ MetaViewer:
 				Gosub, DelayTimer
 				
 				; *************************************************
-				; MANUAL EXIT FUNCTION
-				; executes if Left Shift is held down during page display delay
+				; MANUAL EXIT
+				; hold down Left Shift during page display delay
 				getKeyState, state, LShift
 				if state = D
 				{
@@ -2425,8 +2363,8 @@ MetaViewer:
 					reelfoldername = _
 					reelfolderpath = _
 					
-				;exit the script
-				return
+					;exit the metadata viewer
+					return
 				}
 				; *************************************************						
 
@@ -2462,7 +2400,9 @@ MetaViewer:
 				Sleep, 100
 	
 				; open the next issue folder
-				Send, {Down}
+				SetKeyDelay, 50
+				Send, {Down %navskip%}
+				SetKeyDelay, 10
 				Sleep, 100
 				Send, {AltDown}f{AltUp}
 				Sleep, 100
@@ -2607,9 +2547,9 @@ DVVthumbs:
 	}
 Return
 ; ======DVV THUMBS LOOP
-; ======================TOOLS
+; ======================TOOLS MENU
 
-; =================SEARCH
+; ======================SEARCH MENU
 DirectoryLCCN:
 	InputBox, LCCNstring, US Directory: LCCN,,, 200, 100,,,,,%LCCNstring%
 	if ErrorLevel
@@ -2642,14 +2582,24 @@ ChronAmSearch:
 Return
 
 DirectoryGo:
+	; assign the search string
 	Gui, 10:Submit
+	
+	; close the search GUI
 	Gui, 10:Destroy
+	
+	; load the results in the default Web browser
 	Run, http://chroniclingamerica.loc.gov/search/titles/results/?state=%state%&county=&city=&year1=1690&year2=2013&terms=%directorysearchstring%&frequency=&language=&ethnicity=&labor=&material_type=&lccn=&rows=20
 Return
 
 ChronAmGo:
+	; assign the search string
 	Gui, 11:Submit
+	
+	; close the search GUI
 	Gui, 11:Destroy
+	
+	; load the results in the default Web browser
 	Run, http://chroniclingamerica.loc.gov/search/pages/results/?state=%state%&date1=%date1%&date2=%date2%&proxtext=%chronamsearchstring%&x=0&y=0&dateFilterType=yearRange&rows=20&searchType=basic
 Return
 
@@ -2660,12 +2610,12 @@ Return
 CASearchCancel:
 	Gui, 11:Destroy
 Return
-; =================SEARCH
+; ======================SEARCH MENU
 
-; =================HELP
+; ======================HELP MENU
 ; display version info
 About:
-	MsgBox, 0, About, NDNP_QR.ahk`nVersion 1.7`nAndrew.Weidner@unt.edu
+	MsgBox, 0, About, NDNP_QR.ahk`nVersion 1.8`nAndrew.Weidner@unt.edu
 Return
 
 ; open NDNP Awardee wiki
@@ -2677,7 +2627,7 @@ Return
 Documentation:
   Run, %docURL%
 Return
-; =================HELP
+; ======================HELP MENU
 ; =========================================MENU FUNCTIONS
 
 GuiClose:
