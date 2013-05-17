@@ -226,7 +226,7 @@ DirectorySearch:
 	Gui, 10:+ToolWindow
 	; search box input field
 	Gui, 10:Add, Text,, Enter a search term:
-	Gui, 10:Add, Edit, w170 vdirectorysearchstring, %directorysearchstring%
+	Gui, 10:Add, Edit, w130 vdirectorysearchstring, %directorysearchstring%
 	; state dropdown menu
 	Gui, 10:Add, Text,, Choose a state (optional):
 	Gui, 10:Add, DropDownList, r10 vstate, Alabama|Arizona|California|Colorado|District of Columbia|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|Kansas|Kentucky|Louisiana|Minnesota|Mississippi|Missouri|Montana|Nebraska|New Mexico|New York|North Dakota|Ohio|Oklahoma|Oregon|Pennsylvania|South Carolina|Tennessee|Texas|Utah|Vermont|Virginia|Washington
@@ -271,7 +271,7 @@ ChronAmSearch:
 	Gui, 11:+ToolWindow
 	; search box input field
 	Gui, 11:Add, Text,, Enter a search term:
-	Gui, 11:Add, Edit, w170 vchronamsearchstring, %chronamsearchstring%
+	Gui, 11:Add, Edit, w130 vchronamsearchstring, %chronamsearchstring%
 	; state dropdown menu
 	Gui, 11:Add, Text,, Choose a state (optional):
 	Gui, 11:Add, DropDownList, r10 vstate, Alabama|Arizona|California|Colorado|District of Columbia|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|Kansas|Kentucky|Louisiana|Minnesota|Mississippi|Missouri|Montana|Nebraska|New Mexico|New York|North Dakota|Ohio|Oklahoma|Oregon|Pennsylvania|South Carolina|Tennessee|Texas|Utah|Vermont|Virginia|Washington
@@ -280,9 +280,9 @@ ChronAmSearch:
 	Gui, 11:Add, Edit, x10 y115 vdate1, %date1%
 	Gui, 11:Add, Edit, x50 y115 vdate2, %date2%
 	; run ChronAmGo on Search button
-	Gui, 11:Add, Button, x10 y150 gChronAmGo default, Search
+	Gui, 11:Add, Button, x10 y145 gChronAmGo default, Search
 	; run CASearchCancel on Cancel button
-	Gui, 11:Add, Button, x65 y150 gCASearchCancel, Cancel
+	Gui, 11:Add, Button, x65 y145 gCASearchCancel, Cancel
 	Gui, 11:Show,, ChronAm Search
 Return
 
@@ -349,11 +349,11 @@ ChronAmData:
 	Gui, 14:Add, DropDownList, r10 vstatecode, az|curiv|dlc|fu|hihouml|in|iune|khi|kyu|lu|mnhi|mohi|mthi|nbu|ndhi|nmu|nn|ohi|okhi|oru|pst|scu|tu|txdn|uuml|vi|vtu|wa
 	; search box input field
 	Gui, 14:Add, Text,, Enter a batch name (optional):
-	Gui, 14:Add, Edit, w150 vdatabatch,
+	Gui, 14:Add, Edit, w140 vdatabatch,
 	; run ChronAmDataGo on Browse button
 	Gui, 14:Add, Button, w40 x10 y100 gChronAmDataGo default, GO
 	; run CADataCancel on Cancel button
-	Gui, 14:Add, Button, x65 y100 gCADataCancel, Cancel
+	Gui, 14:Add, Button, x60 y100 gCADataCancel, Cancel
 	Gui, 14:Show,, ChronAm Data
 Return
 
