@@ -9,10 +9,10 @@
  *
  *    NDNP_QR.ahk (compile for NDNP_QR.exe)
  *    NDNP_QR_hotkeys.ahk
+ *    NDNP_QR_menus.ahk
  *    NDNP_QR_metadata.ahk
  *    NDNP_QR_navigation.ahk
  *    NDNP_QR_tools.ahk
- *    NDNP_QR_menus.ahk
  *
  * *******************************************************
  *
