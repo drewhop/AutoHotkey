@@ -6,7 +6,7 @@
 ; ======================FILE MENU
 ; open a reel folder
 OpenReel:
-  ; create dialog to select the reel folder
+	; create dialog to select the reel folder
 	FileSelectFolder, reelfolderpath, %batchdrive%, 2, `nSelect a REEL folder:
 	if ErrorLevel
 	{
@@ -31,6 +31,7 @@ OpenReel:
 	foldernamepos++
 	StringTrimLeft, reelfoldername, reelfolderpath, foldernamepos
 	
+/*
 	; check to see if it is a reel folder
 	StringLen, length, reelfoldername
 	if (length != 11)
@@ -42,9 +43,46 @@ OpenReel:
 		reelfolderpath = _
 		reelfoldername = _
 	}
-		
-	else
+*/
+	; loop checks to see if it is a reel folder
+	Loop
 	{
+		StringLen, length, reelfoldername
+		if (length != 11)
+		{		
+			; print error message
+			MsgBox, 0, Reel Folder, %reelfoldername% does not appear to be a REEL folder.`n`n`tPlease try again.
+
+			; reset the variables
+			reelfolderpath = _
+			reelfoldername = _
+
+			; create dialog to select the reel folder
+			FileSelectFolder, reelfolderpath, %batchdrive%, 2, `nSelect the REEL folder:
+			if ErrorLevel
+			{
+				; reset the variables on Cancel
+				reelfolderpath = _
+				reelfoldername = _
+				Exit
+			}
+
+			; create display variables for reel folder path
+			StringGetPos, reelfolderpos, reelfolderpath, \, R2
+			StringLeft, reelfolder1, reelfolderpath, reelfolderpos
+			StringTrimLeft, reelfolder2, reelfolderpath, reelfolderpos
+
+			; extract reel folder name from path
+			StringGetPos, foldernamepos, reelfolderpath, \, R1
+			foldernamepos++
+			StringTrimLeft, reelfoldername, reelfolderpath, foldernamepos
+		}
+				
+		else Break
+	}
+	
+;	else
+;	{
 		; open the reel folder		
 		Run, %reelfolderpath%
 		
@@ -57,7 +95,7 @@ OpenReel:
 		Send, {Down}
 		Sleep, 100
 		Send, {Up}
-	}
+;	}
 Return
 
 ; validate a batch with the command line
@@ -162,6 +200,45 @@ EditReelFolder:
 	StringGetPos, foldernamepos, reelfolderpath, \, R1
 	foldernamepos++
 	StringTrimLeft, reelfoldername, reelfolderpath, foldernamepos
+
+	; loop checks to see if it is a reel folder
+	Loop
+	{
+		StringLen, length, reelfoldername
+		if (length != 11)
+		{		
+			; print error message
+			MsgBox, 0, Reel Folder, %reelfoldername% does not appear to be a REEL folder.`n`n`tPlease try again.
+
+			; reset the variables
+			reelfolderpath = _
+			reelfoldername = _
+
+			; create dialog to select the reel folder
+			FileSelectFolder, reelfolderpath, %batchdrive%, 2, `nSelect the REEL folder:
+			if ErrorLevel
+			{
+				; reset the variables on Cancel
+				reelfolderpath = _
+				reelfoldername = _
+				Exit
+			}
+
+			; create display variables for reel folder path
+			StringGetPos, reelfolderpos, reelfolderpath, \, R2
+			StringLeft, reelfolder1, reelfolderpath, reelfolderpos
+			StringTrimLeft, reelfolder2, reelfolderpath, reelfolderpos
+
+			; extract reel folder name from path
+			StringGetPos, foldernamepos, reelfolderpath, \, R1
+			foldernamepos++
+			StringTrimLeft, reelfoldername, reelfolderpath, foldernamepos
+		}
+				
+		else Break
+	}
+	
+	Gosub, ResetReel
 Return
 
 DisplayReelFolder:
@@ -215,6 +292,10 @@ EditDVVFolder:
 		DVVpath = %DVVpathdefault%
 		Return
 	}
+Return
+
+DisplayCurrentPaths:
+	MsgBox, 0, Current Paths, Batch Drive:`n`n     %batchdrive%`n`nCMD Folder:`n`n     %CMDpath%`n`nDVV Folder:`n`n     %DVVpath%`n`nNotepad++ Folder:`n`n     %notepadpath%
 Return
 ; =======DIRECTORY PATHS
 ; ======================EDIT MENU
