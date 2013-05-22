@@ -31,19 +31,6 @@ OpenReel:
 	foldernamepos++
 	StringTrimLeft, reelfoldername, reelfolderpath, foldernamepos
 	
-/*
-	; check to see if it is a reel folder
-	StringLen, length, reelfoldername
-	if (length != 11)
-	{		
-		; print error message
-		MsgBox, 0, Open Reel Folder, %reelfoldername% does not appear to be a REEL folder.`n`n`tPlease try again.
-
-		; reset the variables
-		reelfolderpath = _
-		reelfoldername = _
-	}
-*/
 	; loop checks to see if it is a reel folder
 	Loop
 	{
@@ -81,21 +68,18 @@ OpenReel:
 		else Break
 	}
 	
-;	else
-;	{
-		; open the reel folder		
-		Run, %reelfolderpath%
+	; open the reel folder		
+	Run, %reelfolderpath%
 		
-		; wait for the window to load
-		SetTitleMatchMode 1
-		WinWaitActive, %reelfoldername%
-		Sleep, 100
+	; wait for the window to load
+	SetTitleMatchMode 1
+	WinWaitActive, %reelfoldername%
+	Sleep, 100
 		
-		; select the first issue
-		Send, {Down}
-		Sleep, 100
-		Send, {Up}
-;	}
+	; select the first issue
+	Send, {Down}
+	Sleep, 100
+	Send, {Up}
 Return
 
 ; validate a batch with the command line
