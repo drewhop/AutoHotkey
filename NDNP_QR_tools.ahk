@@ -7,7 +7,7 @@
 ; creates a report of all the issues in a batch
 ; text file will be created in the batch folder
 BatchReport:
-  ; update last hotkey
+	; update last hotkey
 	ControlSetText, Static3, BATCH, NDNP_QR
  
 	; initialize the file variables
@@ -282,8 +282,8 @@ DelayCancel:
 	; close the Delay Time GUI
 	Gui, 16:Destroy
 		
-	; exit the script
-	Exit
+	; set the cancelbutton
+	cancelbutton = 1
 Return
 
 ; delay timer window
@@ -382,6 +382,15 @@ ReelLoopFunction:
 		SetTitleMatchMode 1
 		WinWaitActive, Delay Time
 		WinWaitClose, Delay Time
+
+		if (cancelbutton == 1)
+		{
+			; reset cancelbutton
+			cancelbutton = 0
+			
+			; exit the script
+			Return
+		}
 
 		; close any First Impression windows
 		Gosub, CloseFirstImpressionWindows			
@@ -611,7 +620,7 @@ ReelLoopFunction:
 					else
 					{
 						; add the note to the report
-						FileAppend, Note: %note%`n, %reportpath%\%reelnumber%-report.txt
+						FileAppend, `tNote: %note%`n, %reportpath%\%reelnumber%-report.txt
 
 						; close the Questionable Date & Edition Label windows
 						Gui, 7:Destroy
@@ -799,62 +808,75 @@ Return
 ; Pause to pause/restart
 ; hold down F1 to cancel
 DVVpages:
-	; create input box to enter the delay time
-	InputBox, delay, DVV Pages Loop, Enter the delay in milliseconds:`n1000 milliseconds = 1 second,, 250, 140,,,,,3000
-	if ErrorLevel
-		Return
-	else
+	; delay time dialog
+	Gosub, DVVDelay
+	
+	; wait for window to close
+	SetTitleMatchMode 1
+	WinWaitActive, DVV Delay
+	WinWaitClose, DVV Delay
+	
+	if (cancelbutton == 1)
 	{
-		; update last hotkey
-		ControlSetText, Static3, PAGES, NDNP_QR
-		ControlSetText, Static4, DVV Pages, NDNP_QR
+		; reset cancelbutton
+		cancelbutton = 0
 		
-		; initialize the page counter
-		pagecount = 0
-		
-		; initialize the mini-counter
-		; if the thumbs loop has been activated
-		if (thumbscount != 0)
-		{
-			count = 0
-			thumbscount = 0
-		}
-
-		; create the counter GUI
-		; this window may be closed without exiting the loop
-		Gui, 3:+AlwaysOnTop
-		Gui, 3:+ToolWindow
-		Gui, 3:Font, cGreen s25 bold, Arial
-		Gui, 3:Add, Text, x15 y3 w75 h35, 0
-		Gui, 3:Add, GroupBox, x0 y-19 w111 h65,
-		Gui, 3:Show, h45 w110, DVV_Pages
-
-		; set the loop to begin as paused
-		Pause, On
-
-		Loop
-		{
-			; open the next page
-			Send, {Down}
-			Send, {Enter}
-			
-			; update the scoreboard
-			count++
-			pagecount++
-			ControlSetText, Static1, %pagecount%, DVV_Pages
-			ControlSetText, Static15, %count%, NDNP_QR
-			
-			; delay for the specified time
-			Sleep, %delay%
-			
-			; end the loop if F1 is held down
-			if getKeyState("F1")
-			break
-		}
-		
-		; close the counter window
-		Gui, 3:Destroy
+		; exit the script
+		Return
 	}
+	
+	; update last hotkey
+	ControlSetText, Static3, PAGES, NDNP_QR
+	ControlSetText, Static4, DVV Pages, NDNP_QR
+		
+	; initialize the page counter
+	pagecount = 0
+		
+	; initialize the mini-counter
+	; if the thumbs loop has been activated
+	if (thumbscount != 0)
+	{
+		count = 0
+		thumbscount = 0
+	}
+
+	; create the counter GUI
+	; this window may be closed without exiting the loop
+	Gui, 3:+AlwaysOnTop
+	Gui, 3:+ToolWindow
+	Gui, 3:Font, cGreen s25 bold, Arial
+	Gui, 3:Add, Text, x15 y3 w75 h35, 0
+	Gui, 3:Add, GroupBox, x0 y-19 w111 h65,
+	Gui, 3:Show, h45 w110, DVV_Pages
+
+	; set the loop to begin as paused
+	Pause, On
+
+	Loop
+	{
+		; open the next page
+		Send, {Down}
+		Send, {Enter}
+			
+		; update the scoreboard
+		count++
+		pagecount++
+		ControlSetText, Static1, %pagecount%, DVV_Pages
+		ControlSetText, Static15, %count%, NDNP_QR
+			
+		; delay for the specified time
+		Sleep, %dvvdelayms%
+			
+		; end the loop if F1 is held down
+		if getKeyState("F1")
+		break
+	}
+		
+	; close the counter window
+	Gui, 3:Destroy
+
+	; print exit message
+	MsgBox, 0, DVV Pages, The loop has ended.
 Return
 ; ======DVV PAGES LOOP
 
@@ -863,68 +885,120 @@ Return
 ; Pause to pause/restart
 ; hold down F1 to cancel
 DVVthumbs:
-	; create input box to enter the delay time
-	InputBox, delay, DVV Thumbs Loop, Enter the delay in milliseconds:`n1000 milliseconds = 1 second,, 250, 140,,,,,7000
-	if ErrorLevel
-		Return
-	else
+	; delay time dialog
+	Gosub, DVVDelay
+	
+	; wait for window to close
+	SetTitleMatchMode 1
+	WinWaitActive, DVV Delay
+	WinWaitClose, DVV Delay
+	
+	if (cancelbutton == 1)
 	{
-		; update last hotkey
-		ControlSetText, Static3, THUMBS, NDNP_QR
-		ControlSetText, Static4, DVV Thumbs, NDNP_QR
+		; reset cancelbutton
+		cancelbutton = 0
 		
-		; initialize the thumbs counter
-		thumbscount = 0
-		
-		; initialize the mini-counter
-		; if the pages loop has been activated
-		if pagecount != 0
-		{
-			count = 0
-			pagecount = 0
-		}
-		
-		; create the counter GUI
-		; this window may be closed without exiting the loop
-		Gui, 3:+AlwaysOnTop
-		Gui, 3:+ToolWindow
-		Gui, 3:Font, cGreen s25 bold, Arial
-		Gui, 3:Add, Text, x15 y3 w75 h35, 0
-		Gui, 3:Add, GroupBox, x0 y-19 w111 h65,
-		Gui, 3:Show, h45 w110, DVV_Thumbs
-		
-		; start the loop as paused
-		Pause, On
-
-		Loop
-		{
-			; move to next issue
-			Send, {Down}
-			Sleep,100
-			
-			; close the issue tree
-			Send, {Left}
-			Sleep, 100
-			
-			; open the issue thumbs
-			Send, {AltDown}s{AltUp}
-			
-			; update scoreboard
-			count++
-			thumbscount++
-			ControlSetText, Static1, %thumbscount%, DVV_Thumbs
-			ControlSetText, Static15, %count%, NDNP_QR
-
-			; delay for the specified time
-			Sleep, %delay%
-			
-			; end the loop if F1 is held down
-			if getKeyState("F1")
-			break
-		}
-		
-		; close the counter window
-		Gui, 3:Destroy
+		; exit the script
+		Return
 	}
+
+	; update last hotkey
+	ControlSetText, Static3, THUMBS, NDNP_QR
+	ControlSetText, Static4, DVV Thumbs, NDNP_QR
+		
+	; initialize the thumbs counter
+	thumbscount = 0
+		
+	; initialize the mini-counter
+	; if the pages loop has been activated
+	if pagecount != 0
+	{
+		count = 0
+		pagecount = 0
+	}
+		
+	; create the counter GUI
+	; this window may be closed without exiting the loop
+	Gui, 3:+AlwaysOnTop
+	Gui, 3:+ToolWindow
+	Gui, 3:Font, cGreen s25 bold, Arial
+	Gui, 3:Add, Text, x15 y3 w75 h35, 0
+	Gui, 3:Add, GroupBox, x0 y-19 w111 h65,
+	Gui, 3:Show, h45 w110, DVV_Thumbs
+		
+	; start the loop as paused
+	Pause, On
+
+	Loop
+	{
+		; move to next issue
+		Send, {Down}
+		Sleep,100
+			
+		; close the issue tree
+		Send, {Left}
+		Sleep, 100
+			
+		; open the issue thumbs
+		Send, {AltDown}s{AltUp}
+			
+		; update scoreboard
+		count++
+		thumbscount++
+		ControlSetText, Static1, %thumbscount%, DVV_Thumbs
+		ControlSetText, Static15, %count%, NDNP_QR
+
+		; delay for the specified time
+		Sleep, %dvvdelayms%
+			
+		; end the loop if F1 is held down
+		if getKeyState("F1")
+		break
+	}
+		
+	; close the counter window
+	Gui, 3:Destroy
+	
+	; print exit message
+	MsgBox, 0, DVV Thumbs, The loop has ended.
 Return
 ; ======DVV THUMBS LOOP
+
+; ======DVV DELAY DIALOG
+; create the GUI
+DVVDelay:
+	Gui, 17:+ToolWindow
+	Gui, 17:Add, Text,, Number seconds:
+	; navchoice value (1-11) pre-selected, assigns value (2-12) to dvvdelay
+	Gui, 17:Add, DropDownList, Choose%dvvdelaychoice% R11 vdvvdelay, 2|3|4|5|6|7|8|9|10|11|12
+	; run DVVDelayGo if OK
+	Gui, 17:Add, Button, w40 x10 y55 gDVVDelayGo default, OK
+	; run DVVDelayCancel if Cancel
+	Gui, 17:Add, Button, x65 y55 gDVVDelayCancel, Cancel
+	Gui, 17:Show,, DVV Delay
+Return
+
+; OK button function
+DVVDelayGo:
+	; assign the dvvdelay variable value
+	Gui, 17:Submit
+	
+	; assign the dvvdelaychoice variable value
+	dvvdelaychoice := dvvdelay - 1
+	
+	; set the delay in milliseconds
+	dvvdelayms := dvvdelay * 1000
+	
+	; close the DVV Delay GUI
+	Gui, 17:Destroy
+Return
+
+; Cancel button function
+DVVDelayCancel:
+	; close the DVV Delay GUI
+	Gui, 17:Destroy
+	
+	; set the CancelButton
+	cancelbutton = 1
+Return
+; ======DVV DELAY DIALOG
