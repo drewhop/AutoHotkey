@@ -5,7 +5,7 @@
 
 ; ======================ISSUE FOLDER PATH
 IssueFolderPath:
-  ; save clipboard contents
+	; save clipboard contents
 	temp = %clipboard%
 	
 	; empty the clipboard
@@ -24,57 +24,57 @@ IssueFolderPath:
 		; error handling variables
 		if (openflag == 1)
 		{
-			errortitle = Open
+			errortitle = Error: Open
 			openflag = 0
 		}
-		else if (openplusflag == 1)
+		else if (global openplusflag == 1)
 		{
-			errortitle = Open+
+			errortitle = Error: Open+
 			openplusflag = 0
 		}
 		else if (nextflag == 1)
 		{
-			errortitle = Next
+			errortitle = Error: Next
 			nextflag = 0
 		}
 		else if (nextplusflag == 1)
 		{
-			errortitle = Next+
+			errortitle = Error: Next+
 			nextplusflag = 0
 		}
 		else if (previousflag == 1)
 		{
-			errortitle = Previous
+			errortitle = Error: Previous
 			previousflag = 0
 		}
 		else if (previousplusflag == 1)
 		{
-			errortitle = Previous+
+			errortitle = Error: Previous+
 			previousplusflag = 0
 		}
 		else if (gotoflag == 1)
 		{
-			errortitle = GoTo
+			errortitle = Error: GoTo
 			gotoflag = 0
 		}
 		else if (gotoplusflag == 1)
 		{
-			errortitle = GoTo
+			errortitle = Error: GoTo+
 			gotoplusflag = 0
 		}
 		else if (metadataflag == 1)
 		{
-			errortitle = Metadata
+			errortitle = Error: Display Metadata
 			metadataflag = 0
 		}
 		else if (viewissuexmlflag == 1)
 		{
-			errortitle = ViewIssueXML
+			errortitle = Error: ViewIssueXML
 			viewissuexmlflag = 0
 		}
 		else if (editissuexmlflag == 1)
 		{
-			errortitle = EditIssueXML
+			errortitle = Error: EditIssueXML
 			editissuexmlflag = 0
 		}
 		else errortitle = Error
@@ -86,7 +86,7 @@ IssueFolderPath:
 		}
 		
 		; print error message after 5 seconds
-		MsgBox, 0, %errortitle%, %errorsubtitle%`nIssueFolderPath`nNDNP_QR_metadata.ahk`n`nCannot find folder %reelfoldername%`n`nOptions:`n`t"File > Open Reel Folder"`n`t"Edit > Reel Folder > Set Path"
+		MsgBox, 0, %errortitle%, %errorsubtitle%`n===IssueFolderPath===`nNDNP_QR_metadata.ahk`n`nCannot find folder %reelfoldername%`n`nOptions:`n`t"File > Open Reel Folder"`n`t"Edit > Reel Folder > Set Path"
 		
 		; exit the script
 		Exit
@@ -109,53 +109,128 @@ IssueFolderPath:
 		Gosub, IssueToReel
 	}	
 	
-	; loop checks for correctly copied issue folder name
-	; up to 5 times, aborts script if unsuccessful
-	Loop 5
+	; exit script if issue name copied to clipboard
+	if RegExMatch(issuefoldername, "\d\d\d\d\d\d\d\d\d\d")
 	{
-		; continue the script if issue name copied to clipboard
-		if RegExMatch(issuefoldername, "\d\d\d\d\d\d\d\d\d\d")
-			Break
-			
-		; or reattempt to copy folder path
-		else
-		{
-			; wait one second
-			Sleep, 1000
-
-			; re-activate the reel folder
-			SetTitleMatchMode 1
-			WinActivate, %reelfoldername%, , , ,
-			WinWaitActive, %reelfoldername%, , , ,
-			Sleep, 100
-
-			; copy name of selected folder
-			Send, {F2}
-			Sleep, 100
-			Send, {CtrlDown}c{CtrlUp}
-			Sleep, 100
-			Send, {Enter}
-			ClipWait
-			issuefoldername = %clipboard%
-
-			; next loop iteration
-			Continue
-		}
+		; assign the issue folder path
+		issuefolderpath = %reelfolderpath%\%issuefoldername%
 		
 		; restore clipboard contents
 		clipboard = %temp%		
+	
+		Return
+	}
+			
+	; loop checks twice for correctly copied issue folder name
+	; aborts script if unsuccessful
+	Loop 2
+	{
+		; wait a half second
+		Sleep, 500
 
-		; abort script if unable to copy path after 5 attempts
-		MsgBox, 0, %errortitle%, Issue Folder Path`nNDNP_QR_metadata.ahk`n`nUnable to copy folder name.`n`nScript aborted.
-		Exit
+		; re-activate the reel folder
+		SetTitleMatchMode 1
+		WinActivate, %reelfoldername%, , , ,
+		WinWaitActive, %reelfoldername%, , , ,
+		Sleep, 100
+
+		; copy name of selected folder
+		Send, {F2}
+		Sleep, 100
+		Send, {CtrlDown}c{CtrlUp}
+		Sleep, 100
+		Send, {Enter}
+		ClipWait
+		issuefoldername = %clipboard%
+
+		; return if issue name copied to clipboard
+		if RegExMatch(issuefoldername, "\d\d\d\d\d\d\d\d\d\d")
+		{
+			; assign the issue folder path
+			issuefolderpath = %reelfolderpath%\%issuefoldername%
+				
+			; restore clipboard contents
+			clipboard = %temp%		
+			
+			Return
+		}
 	}
 
-	; assign the issue folder path
-	issuefolderpath = %reelfolderpath%\%issuefoldername%
+	; abort script if unable to copy path after 2 attempts
+	; reset the variables
+	errortitle =
+	errorsubtitle =
+		
+	; error handling variables
+	if (openflag == 1)
+	{
+		errortitle = Error: Open
+		openflag = 0
+	}
+	else if (global openplusflag == 1)
+	{
+		errortitle = Error: Open+
+		openplusflag = 0
+	}
+	else if (nextflag == 1)
+	{
+		errortitle = Error: Next
+		nextflag = 0
+	}
+	else if (nextplusflag == 1)
+	{
+		errortitle = Error: Next+
+		nextplusflag = 0
+	}
+	else if (previousflag == 1)
+	{
+		errortitle = Error: Previous
+		previousflag = 0
+	}
+	else if (previousplusflag == 1)
+	{
+		errortitle = Error: Previous+
+		previousplusflag = 0
+	}
+	else if (gotoflag == 1)
+	{
+		errortitle = Error: GoTo
+		gotoflag = 0
+	}
+	else if (gotoplusflag == 1)
+	{
+		errortitle = Error: GoTo+
+		gotoplusflag = 0
+	}
+	else if (metadataflag == 1)
+	{
+		errortitle = Error: Display Metadata
+		metadataflag = 0
+	}
+	else if (viewissuexmlflag == 1)
+	{
+		errortitle = Error: ViewIssueXML
+		viewissuexmlflag = 0
+	}
+	else if (editissuexmlflag == 1)
+	{
+		errortitle = Error: EditIssueXML
+		editissuexmlflag = 0
+	}
+	else errortitle = Error
+	
+	if (tiffopenflag == 1)
+	{
+		errorsubtitle = OpenFirstTIFF`nNDNP_QR_navigation.ahk
+		tiffopenflag = 0
+	}
+
+	; print error message
+	MsgBox, 0, %errortitle%, ===Issue Folder Path===`nNDNP_QR_metadata.ahk`n`nUnable to copy folder name.`n`nScript will end now.
 	
 	; restore clipboard contents
 	clipboard = %temp%		
-Return
+Exit
 ; ======================ISSUE FOLDER PATH
 
 ; ======================EXTRACT METADATA
@@ -379,15 +454,15 @@ ExtractMeta:
 				Gui, 7:Show, x%winX% y%winY% h55 w200, Questionable
 			}
 		}
+	}
 
-		; initialize the number of pages variable
-		numpages = 0
+	; initialize the number of pages variable
+	numpages = 0
 					
-		; count the number of .TIF files
-		Loop, %issuefolderpath%\*.tif
-		{
-			numpages++
-		}
+	; count the number of .TIF files
+	Loop, %issuefolderpath%\*.tif
+	{
+		numpages++
 	}
 
 	; update the date field
@@ -420,9 +495,165 @@ ExtractMeta:
 Return
 ; ======================EXTRACT METADATA
 
+; ======================REDRAW METADATA WINDOW
+RedrawMetaWindow:
+	; create the Metdata window if necessary
+	IfWinNotExist, Metadata
+	{
+		Gui, 2:Font,, Arial
+		Gui, 2:Add, Text, x40 y55  w100 h20, Volume:
+		Gui, 2:Add, Text, x49 y80  w100 h20, Issue:
+		Gui, 2:Add, Text, x44 y105 w100 h20, ? Date:
+		Gui, 2:Add, Text, x45 y130 w100 h20, Pages:
+		Gui, 2:Font, cRed s12 bold, Arial
+		Gui, 2:Add, Text, x55 y20  w90  h20,
+		Gui, 2:Add, Text, x90 y55  w105 h20,
+		Gui, 2:Add, Text, x90 y80  w105 h20,
+		Gui, 2:Add, Text, x90 y105 w100 h20,
+		Gui, 2:Add, Text, x90 y130 w100 h20,
+		Gui, 2:Add, GroupBox, x0 y-8 w200 h169,       
+		Gui, 2:Add, GroupBox, x40 y5 w120 h40,       
+		Gui, 2:Add, GroupBox, x38 y3 w124 h44,       
+
+		WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
+
+		Gui, 2:+AlwaysOnTop
+		Gui, 2:+ToolWindow
+		winX+=%winWidth%
+		Gui, 2:Show, x%winX% y%winY% h160 w200, Metadata
+		ControlSetText, Static5, %date%, Metadata
+		ControlSetText, Static6, %volume%, Metadata
+		ControlSetText, Static7, %issue%, Metadata		
+		ControlSetText, Static8, %questionable%, Metadata		
+		ControlSetText, Static9, %numpages%, Metadata
+	}
+
+	; get the string lengths for volume and issue numbers
+	StringLen, lengthvol, volume
+	StringLen, lengthiss, issue
+	
+	; redraw the Metadata window (if necessary)
+	WinGetPos, winX, winY, winWidth, winHeight, Metadata
+	if (((lengthvol > 9) || (lengthiss > 9)) && (winWidth == 206))
+	{
+		Gui, 2:Destroy
+		Gui, 2:Font,, Arial
+		Gui, 2:Add, Text, x40 y55  w100 h20, Volume:
+		Gui, 2:Add, Text, x49 y80  w100 h20, Issue:
+		Gui, 2:Add, Text, x44 y105 w100 h20, ? Date:
+		Gui, 2:Add, Text, x45 y130 w100 h20, Pages:
+		Gui, 2:Font, cRed s12 bold, Arial
+		Gui, 2:Add, Text, x55 y20  w90  h20,
+		Gui, 2:Add, Text, x90 y55  w150 h20,
+		Gui, 2:Add, Text, x90 y80  w150 h20,
+		Gui, 2:Add, Text, x90 y105 w100 h20,
+		Gui, 2:Add, Text, x90 y130 w100 h20,
+		Gui, 2:Add, GroupBox, x0 y-8 w250 h169,       
+		Gui, 2:Add, GroupBox, x40 y5 w120 h40,       
+		Gui, 2:Add, GroupBox, x38 y3 w124 h44,       
+		Gui, 2:+AlwaysOnTop
+		Gui, 2:+ToolWindow
+		Gui, 2:Show, x%winX% y%winY% h160 w250, Metadata
+		ControlSetText, Static5, %date%, Metadata
+		ControlSetText, Static6, %volume%, Metadata
+		ControlSetText, Static7, %issue%, Metadata		
+		ControlSetText, Static8, %questionable%, Metadata		
+		ControlSetText, Static9, %numpages%, Metadata	
+	}
+	
+	else if (((lengthvol < 10) || (lengthiss < 10)) && (winWidth == 256))
+	{
+		Gui, 2:Destroy
+		Gui, 2:Font,, Arial
+		Gui, 2:Add, Text, x40 y55  w100 h20, Volume:
+		Gui, 2:Add, Text, x49 y80  w100 h20, Issue:
+		Gui, 2:Add, Text, x44 y105 w100 h20, ? Date:
+		Gui, 2:Add, Text, x45 y130 w100 h20, Pages:
+		Gui, 2:Font, cRed s12 bold, Arial
+		Gui, 2:Add, Text, x55 y20  w90  h20,
+		Gui, 2:Add, Text, x90 y55  w105 h20,
+		Gui, 2:Add, Text, x90 y80  w105 h20,
+		Gui, 2:Add, Text, x90 y105 w100 h20,
+		Gui, 2:Add, Text, x90 y130 w100 h20,
+		Gui, 2:Add, GroupBox, x0 y-8 w200 h169,       
+		Gui, 2:Add, GroupBox, x40 y5 w120 h40,       
+		Gui, 2:Add, GroupBox, x38 y3 w124 h44,       
+		Gui, 2:+AlwaysOnTop
+		Gui, 2:+ToolWindow
+		Gui, 2:Show, x%winX% y%winY% h160 w200, Metadata
+		ControlSetText, Static5, %date%, Metadata
+		ControlSetText, Static6, %volume%, Metadata
+		ControlSetText, Static7, %issue%, Metadata		
+		ControlSetText, Static8, %questionable%, Metadata		
+		ControlSetText, Static9, %numpages%, Metadata			
+	}
+Return
+; ======================REDRAW METADATA WINDOW
+
 ; ======================CREATE METADATA WINDOWS
 CreateMetaWindows:
-	; position to right of Metadata window
+	; initialize the coordinates variables
+	dateX = 0
+	dateY = 0
+	volumeX = 0
+	volumeY = 0
+	issueX = 0
+	issueY = 0
+	
+	; get the screen coordinates of any existing windows
+	SetTitleMatchMode 1
+	IfWinExist, Date
+	{
+		WinGetPos, dateX, dateY,,, Date
+	}
+	IfWinExist, Volume
+	{
+		WinGetPos, volumeX, volumeY,,, Volume
+	}
+	IfWinExist, Issue
+	{
+		WinGetPos, issueX, issueY,,, Issue
+	}
+	
+	; destroy any existing metadatawindows
+	Gui, 4:Destroy
+	Gui, 5:Destroy
+	Gui, 6:Destroy
+	Gui, 7:Destroy
+	Gui, 9:Destroy
+	
+	; create the Metdata window if necessary
+	IfWinNotExist, Metadata
+	{
+		Gui, 2:Font,, Arial
+		Gui, 2:Add, Text, x40 y55  w100 h20, Volume:
+		Gui, 2:Add, Text, x49 y80  w100 h20, Issue:
+		Gui, 2:Add, Text, x44 y105 w100 h20, ? Date:
+		Gui, 2:Add, Text, x45 y130 w100 h20, Pages:
+		Gui, 2:Font, cRed s12 bold, Arial
+		Gui, 2:Add, Text, x55 y20  w90  h20,
+		Gui, 2:Add, Text, x90 y55  w105 h20,
+		Gui, 2:Add, Text, x90 y80  w105 h20,
+		Gui, 2:Add, Text, x90 y105 w100 h20,
+		Gui, 2:Add, Text, x90 y130 w100 h20,
+		Gui, 2:Add, GroupBox, x0 y-8 w200 h169,       
+		Gui, 2:Add, GroupBox, x40 y5 w120 h40,       
+		Gui, 2:Add, GroupBox, x38 y3 w124 h44,       
+
+		WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
+
+		Gui, 2:+AlwaysOnTop
+		Gui, 2:+ToolWindow
+		winX+=%winWidth%
+		Gui, 2:Show, x%winX% y%winY% h160 w200, Metadata
+		ControlSetText, Static5, %date%, Metadata
+		ControlSetText, Static6, %volume%, Metadata
+		ControlSetText, Static7, %issue%, Metadata		
+		ControlSetText, Static8, %questionable%, Metadata		
+		ControlSetText, Static9, %numpages%, Metadata
+	}
+	
+	; default position to right of Metadata window
 	WinGetPos, winX, winY, winWidth, winHeight, Metadata
 	winX+=%winWidth%
 
@@ -430,18 +661,50 @@ CreateMetaWindows:
 	Gui, 6:+AlwaysOnTop
 	Gui, 6:+ToolWindow
 	Gui, 6:Font, cRed s25 bold, Arial
-	Gui, 6:Add, GroupBox, x0 y-18 w200 h74,       
-	Gui, 6:Add, Text, x15 y8 w170 h35, %issue%
-	Gui, 6:Show, x%winX% y%winY% h55 w200, Issue
+	StringLen, lengthiss, issue
+	if (lengthiss > 7)
+	{
+		Gui, 6:Add, GroupBox, x0 y-18 w300 h74,
+		Gui, 6:Add, Text, x15 y8 w270 h35, %issue%
+		if ((issueX == 0) && (issueY == 0))
+			Gui, 6:Show, x%winX% y%winY% h55 w300, Issue
+		else
+			Gui, 6:Show, x%issueX% y%issueY% h55 w300, Issue
+	}
+	else
+	{
+		Gui, 6:Add, GroupBox, x0 y-18 w200 h74,       
+		Gui, 6:Add, Text, x15 y8 w170 h35, %issue%
+		if ((issueX == 0) && (issueY == 0))
+			Gui, 6:Show, x%winX% y%winY% h55 w200, Issue
+		else
+			Gui, 6:Show, x%issueX% y%issueY% h55 w200, Issue
+	}
 
 	; Volume number GUI
 	Gui, 5:+AlwaysOnTop
 	Gui, 5:+ToolWindow
 	Gui, 5:Font, cRed s25 bold, Arial
-	Gui, 5:Add, GroupBox, x0 y-18 w200 h74,       
-	Gui, 5:Add, Text, x15 y8 w170 h35, %volume%
-	Gui, 5:Show, x%winX% y%winY% h55 w200, Volume
-
+	StringLen, lengthvol, volume
+	if (lengthvol > 7)
+	{
+		Gui, 5:Add, GroupBox, x0 y-18 w300 h74,       
+		Gui, 5:Add, Text, x15 y8 w270 h35, %volume%
+		if ((volumeX == 0) && (volumeY == 0))
+			Gui, 5:Show, x%winX% y%winY% h55 w300, Volume
+		else
+			Gui, 5:Show, x%volumeX% y%volumeY% h55 w300, Volume
+	}
+	else
+	{
+		Gui, 5:Add, GroupBox, x0 y-18 w200 h74,       
+		Gui, 5:Add, Text, x15 y8 w170 h35, %volume%
+		if ((volumeX == 0) && (volumeY == 0))
+			Gui, 5:Show, x%winX% y%winY% h55 w200, Volume
+		else
+			Gui, 5:Show, x%volumeX% y%volumeY% h55 w200, Volume
+	}
+	
 	; Date GUI
 	Gui, 4:+AlwaysOnTop
 	Gui, 4:+ToolWindow
@@ -449,7 +712,10 @@ CreateMetaWindows:
 	Gui, 4:Add, Text, x35 y15 w160 h25, %monthname% %day%, %year%
 	Gui, 4:Font, cRed s10 bold, Arial
 	Gui, 4:Add, GroupBox, x0 y-7 w200 h63,       
-	Gui, 4:Show, x%winX% y%winY% h55 w200, Date
+	if ((dateX == 0) && (dateY == 0))
+		Gui, 4:Show, x%winX% y%winY% h55 w200, Date
+	else
+		Gui, 4:Show, x%dateX% y%dateY% h55 w200, Date
 	
 	; Questionable Date GUI
 	if (questionabledate != "")
@@ -482,7 +748,62 @@ CreateMetaWindows:
 		Gui, 9:Add, GroupBox, x0 y-7 w400 h63,       
 		Gui, 9:Show, x%winX% y%winY% h55 w400, Edition
 	}				
-
+	
+	; redraw the Metadata window (if necessary)
+	WinGetPos, winX, winY, winWidth, winHeight, Metadata
+	if (((lengthvol > 9) || (lengthiss > 9)) && (winWidth == 206))
+	{
+		Gui, 2:Destroy
+		Gui, 2:Font,, Arial
+		Gui, 2:Add, Text, x40 y55  w100 h20, Volume:
+		Gui, 2:Add, Text, x49 y80  w100 h20, Issue:
+		Gui, 2:Add, Text, x44 y105 w100 h20, ? Date:
+		Gui, 2:Add, Text, x45 y130 w100 h20, Pages:
+		Gui, 2:Font, cRed s12 bold, Arial
+		Gui, 2:Add, Text, x55 y20  w90  h20,
+		Gui, 2:Add, Text, x90 y55  w150 h20,
+		Gui, 2:Add, Text, x90 y80  w150 h20,
+		Gui, 2:Add, Text, x90 y105 w100 h20,
+		Gui, 2:Add, Text, x90 y130 w100 h20,
+		Gui, 2:Add, GroupBox, x0 y-8 w250 h169,       
+		Gui, 2:Add, GroupBox, x40 y5 w120 h40,       
+		Gui, 2:Add, GroupBox, x38 y3 w124 h44,       
+		Gui, 2:+AlwaysOnTop
+		Gui, 2:+ToolWindow
+		Gui, 2:Show, x%winX% y%winY% h160 w250, Metadata
+		ControlSetText, Static5, %date%, Metadata
+		ControlSetText, Static6, %volume%, Metadata
+		ControlSetText, Static7, %issue%, Metadata		
+		ControlSetText, Static8, %questionable%, Metadata		
+		ControlSetText, Static9, %numpages%, Metadata	
+	}
+	else if (((lengthvol < 10) || (lengthiss < 10)) && (winWidth == 256))
+	{
+		Gui, 2:Destroy
+		Gui, 2:Font,, Arial
+		Gui, 2:Add, Text, x40 y55  w100 h20, Volume:
+		Gui, 2:Add, Text, x49 y80  w100 h20, Issue:
+		Gui, 2:Add, Text, x44 y105 w100 h20, ? Date:
+		Gui, 2:Add, Text, x45 y130 w100 h20, Pages:
+		Gui, 2:Font, cRed s12 bold, Arial
+		Gui, 2:Add, Text, x55 y20  w90  h20,
+		Gui, 2:Add, Text, x90 y55  w105 h20,
+		Gui, 2:Add, Text, x90 y80  w105 h20,
+		Gui, 2:Add, Text, x90 y105 w100 h20,
+		Gui, 2:Add, Text, x90 y130 w100 h20,
+		Gui, 2:Add, GroupBox, x0 y-8 w200 h169,       
+		Gui, 2:Add, GroupBox, x40 y5 w120 h40,       
+		Gui, 2:Add, GroupBox, x38 y3 w124 h44,       
+		Gui, 2:+AlwaysOnTop
+		Gui, 2:+ToolWindow
+		Gui, 2:Show, x%winX% y%winY% h160 w200, Metadata
+		ControlSetText, Static5, %date%, Metadata
+		ControlSetText, Static6, %volume%, Metadata
+		ControlSetText, Static7, %issue%, Metadata		
+		ControlSetText, Static8, %questionable%, Metadata		
+		ControlSetText, Static9, %numpages%, Metadata			
+	}
+	
 	; pause first instance of Reel Report and Metadata Viewer
 	if (loopcount == 1)
 	{
