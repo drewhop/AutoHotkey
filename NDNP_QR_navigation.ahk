@@ -5,10 +5,10 @@
 
 ; ======================REEL FOLDER CHECK
 ReelFolderCheck:
-  if (reelfolderpath == "_")
+	if (reelfolderpath == "_")
 	{
 		; create dialog to select the reel folder
-		FileSelectFolder, reelfolderpath, %batchdrive%, 0, `nSelect the REEL folder:
+		FileSelectFolder, reelfolderpath, %batchdrive%, 2, `nSelect the REEL folder:
 		if ErrorLevel
 		{
 			; reset the variables on Cancel
@@ -26,9 +26,81 @@ ReelFolderCheck:
 		StringGetPos, foldernamepos, reelfolderpath, \, R1
 		foldernamepos++
 		StringTrimLeft, reelfoldername, reelfolderpath, foldernamepos
+		
+		; loop checks to see if it is a reel folder
+		Loop
+		{
+			StringLen, length, reelfoldername
+			if (length != 11)
+			{		
+				; print error message
+				MsgBox, 0, Reel Folder, %reelfoldername% does not appear to be a REEL folder.`n`n`tPlease try again.
+
+				; reset the variables
+				reelfolderpath = _
+				reelfoldername = _
+
+				; create dialog to select the reel folder
+				FileSelectFolder, reelfolderpath, %batchdrive%, 2, `nSelect the REEL folder:
+				if ErrorLevel
+				{
+					; reset the variables on Cancel
+					reelfolderpath = _
+					reelfoldername = _
+					Exit
+				}
+
+				; create display variables for reel folder path
+				StringGetPos, reelfolderpos, reelfolderpath, \, R2
+				StringLeft, reelfolder1, reelfolderpath, reelfolderpos
+				StringTrimLeft, reelfolder2, reelfolderpath, reelfolderpos
+
+				; extract reel folder name from path
+				StringGetPos, foldernamepos, reelfolderpath, \, R1
+				foldernamepos++
+				StringTrimLeft, reelfoldername, reelfolderpath, foldernamepos
+			}
+				
+			else Break
+		}
 	}
 Return
 ; ======================REEL FOLDER CHECK
+
+; ======================RESET REEL
+ResetReel:
+	; loop to close any issue folders
+	SetTitleMatchMode RegEx
+	Loop
+	{
+		IfWinExist, ^[1-2][0-9]{9}$, , , ,
+		{
+			WinClose, ^[1-2][0-9]{9}$, , , ,
+			Sleep, 200
+		}
+		else Break
+	}
+
+	; activate current reel folder if it exists
+	SetTitleMatchMode 1
+	IfWinExist, %reelfoldername%
+		WinActivate, %reelfoldername%
+
+	; otherwise open the reel folder
+	else
+	{
+		Run, %reelfolderpath%
+		
+		; wait for the folder to load
+		WinWaitActive, %reelfoldername%
+		
+		; select first issue
+		Send, {Down}
+		Sleep, 50
+		Send, {Up}
+	}
+Return
+; ======================RESET REEL
 
 ; ======================CLOSE FIRST IMPRESSION WINDOWS
 CloseFirstImpressionWindows:
