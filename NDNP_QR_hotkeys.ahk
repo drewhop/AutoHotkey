@@ -7,10 +7,23 @@
 ; opens first TIFF file for selected issue folder
 ; HotKey = Alt + i
 !i::
-  ; deactivate the NDNP_QR window
+	; deactivate the NDNP_QR windows
 	SetTitleMatchMode 1
 	IfWinActive, NDNP_QR
 		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Metadata
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Date
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Volume
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Issue
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Questionable
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Edition
+		WinActivate, ahk_class Shell_TrayWnd
+	Sleep, 200
 	
 	; set the script flag
 	openflag = 1
@@ -21,6 +34,9 @@
 	; close all First Impression windows
 	Gosub, CloseFirstImpressionWindows
 
+	; reset the reel folder
+	Gosub, ResetReel
+	
 	; open first TIFF in selected folder
 	Gosub, OpenFirstTIFF
 
@@ -44,10 +60,23 @@ Return
 ; and displays the issue metadata
 ; HotKey = Ctrl + Alt + i
 ^!i::
-	; deactivate the NDNP_QR window
+	; deactivate the NDNP_QR windows
 	SetTitleMatchMode 1
 	IfWinActive, NDNP_QR
 		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Metadata
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Date
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Volume
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Issue
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Questionable
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Edition
+		WinActivate, ahk_class Shell_TrayWnd
+	Sleep, 200
 	
 	; set the script flag
 	openplusflag = 1
@@ -61,6 +90,9 @@ Return
 	; close all First Impression windows
 	Gosub, CloseFirstImpressionWindows
 
+	; reset the reel folder
+	Gosub, ResetReel
+	
 	; open first TIFF in selected folder
 	Gosub, OpenFirstTIFF
 	
@@ -80,6 +112,10 @@ Return
 	; bring metadata windows to front
 	WinSet, Top,, Metadata
 	WinSet, Top,, Edition
+	WinSet, Top,, Date
+	WinSet, Top,, Volume
+	WinSet, Top,, Issue
+	WinSet, Top,, Questionable
 
 	; reset the script flag
 	openplusflag = 0
@@ -99,10 +135,23 @@ Return
 ; opens the first TIFF file for the next issue folder
 ; Hotkey: Alt + o
 !o::
-	; deactivate the NDNP_QR window
+	; deactivate the NDNP_QR windows
 	SetTitleMatchMode 1
 	IfWinActive, NDNP_QR
 		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Metadata
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Date
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Volume
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Issue
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Questionable
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Edition
+		WinActivate, ahk_class Shell_TrayWnd
+	Sleep, 200
 	
 	; set the script flag
 	nextflag = 1
@@ -156,10 +205,23 @@ Return
 ; and displays the issue metadata
 ; Hotkey: Ctrl + Alt + o
 ^!o::
-	; deactivate the NDNP_QR window
+	; deactivate the NDNP_QR windows
 	SetTitleMatchMode 1
 	IfWinActive, NDNP_QR
 		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Metadata
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Date
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Volume
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Issue
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Questionable
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Edition
+		WinActivate, ahk_class Shell_TrayWnd
+	Sleep, 200
 	
 	; set the script flag
 	nextplusflag = 1
@@ -212,6 +274,10 @@ Return
 	; bring metadata windows to front
 	WinSet, Top,, Metadata
 	WinSet, Top,, Edition
+	WinSet, Top,, Date
+	WinSet, Top,, Volume
+	WinSet, Top,, Issue
+	WinSet, Top,, Questionable
 
 	; reset the script flag
 	nextplusflag = 0
@@ -231,10 +297,23 @@ Return
 ; opens the first TIFF file for the previous issue folder
 ; Hotkey: Alt + p
 !p::
-	; deactivate the NDNP_QR window
+	; deactivate the NDNP_QR windows
 	SetTitleMatchMode 1
 	IfWinActive, NDNP_QR
 		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Metadata
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Date
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Volume
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Issue
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Questionable
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Edition
+		WinActivate, ahk_class Shell_TrayWnd
+	Sleep, 200
 	
 	; set the script flag
 	previousflag = 1
@@ -288,10 +367,23 @@ Return
 ; and displays the issue metadata
 ; Hotkey: Ctrl + Alt + p
 ^!p::
-	; deactivate the NDNP_QR window
+	; deactivate the NDNP_QR windows
 	SetTitleMatchMode 1
 	IfWinActive, NDNP_QR
 		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Metadata
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Date
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Volume
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Issue
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Questionable
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Edition
+		WinActivate, ahk_class Shell_TrayWnd
+	Sleep, 200
 	
 	; set the script flag
 	previousplusflag = 1
@@ -344,6 +436,10 @@ Return
 	; bring metadata windows to front
 	WinSet, Top,, Metadata
 	WinSet, Top,, Edition
+	WinSet, Top,, Date
+	WinSet, Top,, Volume
+	WinSet, Top,, Issue
+	WinSet, Top,, Questionable
 
 	; reset the script flag
 	previousplusflag = 0
@@ -363,10 +459,23 @@ Return
 ; opens the first TIFF file for a specific issue folder
 ; Hotkey: Alt + g
 !g::
-	; deactivate the NDNP_QR window
+	; deactivate the NDNP_QR windows
 	SetTitleMatchMode 1
 	IfWinActive, NDNP_QR
 		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Metadata
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Date
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Volume
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Issue
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Questionable
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Edition
+		WinActivate, ahk_class Shell_TrayWnd
+	Sleep, 200
 	
 	; set the script flag
 	gotoflag = 1
@@ -403,10 +512,23 @@ Return
 ; and displays the issue metadata
 ; Hotkey: Ctrl + Alt + g
 ^!g::
-	; deactivate the NDNP_QR window
+	; deactivate the NDNP_QR windows
 	SetTitleMatchMode 1
 	IfWinActive, NDNP_QR
 		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Metadata
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Date
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Volume
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Issue
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Questionable
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Edition
+		WinActivate, ahk_class Shell_TrayWnd
+	Sleep, 200
 	
 	; set the script flag
 	gotoplusflag = 1
@@ -442,6 +564,10 @@ Return
 	; bring metadata windows to front
 	WinSet, Top,, Metadata
 	WinSet, Top,, Edition
+	WinSet, Top,, Date
+	WinSet, Top,, Volume
+	WinSet, Top,, Issue
+	WinSet, Top,, Questionable
 
 	; set the script flag
 	gotoplusflag = 0
@@ -461,10 +587,23 @@ Return
 ; displays the metadata for the selected issue folder
 ; Hotkey: Alt + m
 !m::
-	; deactivate the NDNP_QR window
+	; deactivate the NDNP_QR windows
 	SetTitleMatchMode 1
 	IfWinActive, NDNP_QR
 		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Metadata
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Date
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Volume
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Issue
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Questionable
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Edition
+		WinActivate, ahk_class Shell_TrayWnd
+	Sleep, 200
 	
 	; set the script flag
 	metadataflag = 1
@@ -488,6 +627,10 @@ Return
 	; bring metadata windows to front
 	WinSet, Top,, Metadata
 	WinSet, Top,, Edition
+	WinSet, Top,, Date
+	WinSet, Top,, Volume
+	WinSet, Top,, Issue
+	WinSet, Top,, Questionable
 
 	; set the script flag
 	metadataflag = 0
@@ -501,14 +644,53 @@ Return
 Return
 ; =============================METADATA
 
+; =============================REDRAW METADATA WINDOW
+; restores/redraws the Metadata window
+; Hotkey: Win + Alt + m
+#!m::
+	; deactivate the NDNP_QR windows
+	SetTitleMatchMode 1
+	IfWinActive, NDNP_QR
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Metadata
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Date
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Volume
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Issue
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Questionable
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Edition
+		WinActivate, ahk_class Shell_TrayWnd
+	Sleep, 200
+	
+	Gosub, RedrawMetaWindow
+Return
+; =============================REDRAW METADATA WINDOW
+
 ; =============================METADATA WINDOWS
 ; creates separate windows for the issue metadata
 ; Hotkey: Ctrl + Alt + m
 ^!m::
-	; deactivate the NDNP_QR window
+	; deactivate the NDNP_QR windows
 	SetTitleMatchMode 1
 	IfWinActive, NDNP_QR
 		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Metadata
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Date
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Volume
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Issue
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Questionable
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Edition
+		WinActivate, ahk_class Shell_TrayWnd
+	Sleep, 200
 	
 	Gosub, CreateMetaWindows
 Return
@@ -518,10 +700,23 @@ Return
 ; First Impression masthead view
 ; HotKey = Alt + k
 !k::
-	; deactivate the NDNP_QR window
+	; deactivate the NDNP_QR windows
 	SetTitleMatchMode 1
 	IfWinActive, NDNP_QR
 		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Metadata
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Date
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Volume
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Issue
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Questionable
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Edition
+		WinActivate, ahk_class Shell_TrayWnd
+	Sleep, 200
 	
 	; get the First Impression unique window id#
 	SetTitleMatchMode 2
@@ -559,10 +754,23 @@ Return
 ; First Impression full page view
 ; HotKey = Alt + l
 !l::
-	; deactivate the NDNP_QR window
+	; deactivate the NDNP_QR windows
 	SetTitleMatchMode 1
 	IfWinActive, NDNP_QR
 		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Metadata
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Date
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Volume
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Issue
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Questionable
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Edition
+		WinActivate, ahk_class Shell_TrayWnd
+	Sleep, 200
 	
 	; get the First Impression unique window id#
 	SetTitleMatchMode 2
@@ -601,10 +809,23 @@ Return
 ; Web browsers work well for this
 ; Hotkey: Alt + q
 !q::
-	; deactivate the NDNP_QR window
+	; deactivate the NDNP_QR windows
 	SetTitleMatchMode 1
 	IfWinActive, NDNP_QR
 		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Metadata
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Date
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Volume
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Issue
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Questionable
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Edition
+		WinActivate, ahk_class Shell_TrayWnd
+	Sleep, 200
 	
 	; set the script flag
 	viewissuexmlflag = 1
@@ -631,10 +852,23 @@ Return
 ; opens issue.xml with Notepad++
 ; Hotkey: Alt + w
 !w::
-	; deactivate the NDNP_QR window
+	; deactivate the NDNP_QR windows
 	SetTitleMatchMode 1
 	IfWinActive, NDNP_QR
 		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Metadata
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Date
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Volume
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Issue
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Questionable
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Edition
+		WinActivate, ahk_class Shell_TrayWnd
+	Sleep, 200
 	
 	; set the script flag
 	editissuexmlflag = 1
@@ -661,44 +895,29 @@ Return
 ; resets desktop to the current reel folder
 ; Hotkey: Alt + b
 !b::
-	; deactivate the NDNP_QR window
+	; deactivate the NDNP_QR windows
 	SetTitleMatchMode 1
 	IfWinActive, NDNP_QR
 		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Metadata
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Date
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Volume
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Issue
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Questionable
+		WinActivate, ahk_class Shell_TrayWnd
+	IfWinActive, Edition
+		WinActivate, ahk_class Shell_TrayWnd
+	Sleep, 200
 	
 	; check for reel folder variable
 	Gosub, ReelFolderCheck
 
-	; loop to close any issue folders
-	SetTitleMatchMode RegEx
-	Loop
-	{
-		IfWinExist, ^[1-2][0-9]{9}$, , , ,
-		{
-			WinClose, ^[1-2][0-9]{9}$, , , ,
-			Sleep, 200
-		}
-		else Break
-	}
-
-	; activate current reel folder if it exists
-	SetTitleMatchMode 1
-	IfWinExist, %reelfoldername%
-		WinActivate, %reelfoldername%
-
-	; otherwise open the reel folder
-	else
-	{
-		Run, %reelfolderpath%
-		
-		; wait for the folder to load
-		WinWaitActive, %reelfoldername%
-		
-		; select first issue
-		Send, {Down}
-		Sleep, 50
-		Send, {Up}
-	}
+	; reset the reel folder
+	Gosub, ResetReel
 	
 	; update scoreboard
 	hotkeys++
