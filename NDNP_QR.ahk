@@ -9,10 +9,10 @@
  *
  *    NDNP_QR.ahk (compile for NDNP_QR.exe)
  *    NDNP_QR_hotkeys.ahk
- *    NDNP_QR_menus.ahk
  *    NDNP_QR_metadata.ahk
  *    NDNP_QR_navigation.ahk
  *    NDNP_QR_tools.ahk
+ *    NDNP_QR_menus.ahk
  *
  * *******************************************************
  *
@@ -58,7 +58,8 @@ CMDpathdefault = C:\Windows\System32
 DVVpathdefault = C:\dvv
 
 ; EDIT THIS VARIABLE
-; for the default tools delay time in seconds
+; for the tools delay time in seconds
+; (Reel Report & Metadata Viewer)
 ; must be an integer in the range 3-9
 delaydefault = 6
 
@@ -80,6 +81,10 @@ navchoice = 1
 ; tools
 delay = %delaydefault%
 delaychoice := delay - 2
+dvvdelay =
+dvvdelayms =
+dvvdelaychoice =
+cancelbutton = 0
 count = 0
 pagecount = 0
 thumbscount = 0
@@ -155,13 +160,15 @@ Menu, FileMenu, Add, E&xit, Exit
 Menu, EditMenu, Add, &Folder Navigation, NavSkip
 Menu, EditMenu, Add
 Menu, ReelMenu, Add, &Set Path, EditReelFolder
-Menu, ReelMenu, Add, &Display Path, DisplayReelFolder
+Menu, ReelMenu, Add, &Display Current, DisplayReelFolder
 Menu, EditMenu, Add, &Reel Folder, :ReelMenu
 Menu, EditMenu, Add
 Menu, DirMenu, Add, &Batch Drive, EditBatchDrive
 Menu, DirMenu, Add, &CMD Folder, EditCMDFolder
 Menu, DirMenu, Add, &DVV Folder, EditDVVFolder
 Menu, DirMenu, Add, &Notepad++ Folder, EditNotepadFolder
+Menu, DirMenu, Add
+Menu, DirMenu, Add, Display Current &Paths, DisplayCurrentPaths
 Menu, EditMenu, Add, Directory &Paths, :DirMenu
 
 ; Tools
@@ -170,12 +177,15 @@ Menu, ToolsMenu, Add
 Menu, ToolsMenu, Add, &Reel Report, ReelReport
 Menu, ToolsMenu, Add, &Metadata Viewer, MetaViewer
 Menu, ToolsMenu, Add
-Menu, ToolsMenu, Add, DVV &Pages Loop, DVVpages
-Menu, ToolsMenu, Add, DVV &Thumbs Loop, DVVthumbs
+Menu, DVVMenu, Add, DVV &Pages, DVVpages
+Menu, DVVMenu, Add, DVV &Thumbs, DVVthumbs
+Menu, DVVMenu, Add
+Menu, DVVMenu, Add, Set &Delay, DVVDelay
+Menu, ToolsMenu, Add, DVV Loops, :DVVMenu
 
 ; Search
 Menu, SearchMenu, Add, &US Directory Search, DirectorySearch
-Menu, SearchMenu, Add, US Directory: &LCCN, DirectoryLCCN
+Menu, SearchMenu, Add, US Directory &LCCN, DirectoryLCCN
 Menu, SearchMenu, Add
 Menu, SearchMenu, Add, &ChronAm Search, ChronAmSearch
 Menu, SearchMenu, Add, ChronAm &Browse, ChronAmBrowse
@@ -250,8 +260,8 @@ Gui, 2:Font, cRed s12 bold, Arial
 
 ; Metadata: Static 5-9
 Gui, 2:Add, Text, x55 y20  w90  h20,
-Gui, 2:Add, Text, x90 y55  w100 h20,
-Gui, 2:Add, Text, x90 y80  w100 h20,
+Gui, 2:Add, Text, x90 y55  w105 h20,
+Gui, 2:Add, Text, x90 y80  w105 h20,
 Gui, 2:Add, Text, x90 y105 w100 h20,
 Gui, 2:Add, Text, x90 y130 w100 h20,
 ; =========================================DATA
@@ -316,6 +326,7 @@ Pause::Pause
 ;  GOTO: opens first TIFF for specific issue folder
 ;  GOTO+: also displays issue metadata
 ;  METADATA: displays metadata for selected issue folder
+;  REDRAW METADATA WINDOW: restores/redraws Metadata window
 ;  METADATA WINDOWS: loads separate windows for issue metadata
 ;  ZOOM IN: First Impression masthead view
 ;  ZOOM OUT: First Impression full page view
@@ -327,6 +338,7 @@ Pause::Pause
 ; REQUIRED FILE
 #Include NDNP_QR_navigation.ahk
 ;  ReelFolderCheck: tests for stored "reelfolderpath" variable
+;  ResetReel: opens or activates the current reel folder
 ;  CloseFirstImpressionWindows: loop closes all FI windows
 ;  OpenFirstTIFF: opens first .TIF for selected folder
 ;  GoToIssue: input dialog for GOTO hotkeys
@@ -336,6 +348,7 @@ Pause::Pause
 #Include NDNP_QR_metadata.ahk
 ;  IssueFolderPath: assigns the "issuefolderpath" variable
 ;  ExtractMeta: parses issue.xml file & displays metadata
+;  RedrawMetaWindow: restores/redraws Metadata window
 ;  CreateMetaWindows: loads separate metadata windows
 ; =========================================SUBROUTINES
 
@@ -353,6 +366,8 @@ Pause::Pause
 ;  DelayTimer: timer window
 ;  ReelLoopFunction: primary function for ReelReport & MetaViewer
 ;  DVVpages & DVVthumbs: viewing loops for the DVV
+;  DVVDelay: delay dialog for DVV Loops
+;  DVVDelayGo & DVVDelayCancel: button functions
 ; ======================TOOLS MENU
 
 ; REQUIRED FILE ****************************************
