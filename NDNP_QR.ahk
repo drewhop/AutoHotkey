@@ -281,6 +281,7 @@ Gui, 1:Add, GroupBox, x15  y75 w75 h45,
 Gui, 1:Add, GroupBox, x95  y75 w75 h45,           
 Gui, 1:Add, GroupBox, x175 y75 w75 h45,           
 Gui, 1:Add, GroupBox, x255 y75 w75 h45,           
+
 ; row 3
 Gui, 1:Add, GroupBox, x15  y135 w75 h45,         
 Gui, 1:Add, GroupBox, x95  y135 w75 h45,           
@@ -418,7 +419,7 @@ Return
 
 ; display version info
 About:
-	MsgBox, 0, About, NDNP_QR.ahk`nVersion 1.8`nAndrew.Weidner@unt.edu
+	MsgBox, 0, About, NDNP_QR.ahk`nVersion 1.9`nAndrew.Weidner@unt.edu
 Return
 ; ======================HELP MENU
 ; =========================================MENU FUNCTIONS
