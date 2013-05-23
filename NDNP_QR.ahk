@@ -64,7 +64,6 @@ DVVpathdefault = C:\dvv
 delaydefault = 6
 
 ; documentation
-; docURL = http://digitalprojects.library.unt.edu/projects/index.php/NDNP_QR.ahk
 docURL = https://github.com/drewhop/AutoHotkey/wiki/NDNP_QR
 
 ; system
