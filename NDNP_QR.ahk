@@ -231,7 +231,7 @@ Gui, 1:Add, Text, x95  y130 w70 h20, Zoom Out ( l )
 Gui, 1:Add, Text, x175 y130 w70 h20, ViewXML ( q )
 Gui, 1:Add, Text, x255 y130 w70 h20, EditXML ( w )
 
-; Metadata window
+; Metadata window font and size
 Gui, 2:Font, s8, Arial
 Gui, 2:Add, Text, x40 y55  w100 h20, Volume:
 Gui, 2:Add, Text, x49 y80  w100 h20, Issue:
@@ -240,7 +240,7 @@ Gui, 2:Add, Text, x45 y130 w100 h20, Pages:
 ; =========================================LABELS
 
 ; =========================================DATA
-; set larger data font
+; set larger main window data font
 Gui, 1:Font, s15, Arial
 
 ; row 1: Static 14-16
@@ -258,7 +258,7 @@ Gui, 1:Add, Text, x105 y150 w45 h25, 0
 Gui, 1:Add, Text, x185 y150 w45 h25, 0
 Gui, 1:Add, Text, x265 y150 w45 h25, 0
 
-; Metadata window font
+; Metadata window data font
 Gui, 2:Font, cRed s12 bold, Arial
 
 ; Metadata: Static 5-9
