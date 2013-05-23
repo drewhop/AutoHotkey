@@ -497,10 +497,13 @@ Return
 
 ; ======================REDRAW METADATA WINDOW
 RedrawMetaWindow:
+	; destroy current Metadata window
+	Gui, 2:Destroy
+	
 	; create the Metdata window if necessary
 	IfWinNotExist, Metadata
 	{
-		Gui, 2:Font,, Arial
+		Gui, 2:Font, s8, Arial
 		Gui, 2:Add, Text, x40 y55  w100 h20, Volume:
 		Gui, 2:Add, Text, x49 y80  w100 h20, Issue:
 		Gui, 2:Add, Text, x44 y105 w100 h20, ? Date:
@@ -537,7 +540,7 @@ RedrawMetaWindow:
 	if (((lengthvol > 9) || (lengthiss > 9)) && (winWidth == 206))
 	{
 		Gui, 2:Destroy
-		Gui, 2:Font,, Arial
+		Gui, 2:Font, s8, Arial
 		Gui, 2:Add, Text, x40 y55  w100 h20, Volume:
 		Gui, 2:Add, Text, x49 y80  w100 h20, Issue:
 		Gui, 2:Add, Text, x44 y105 w100 h20, ? Date:
@@ -564,7 +567,7 @@ RedrawMetaWindow:
 	else if (((lengthvol < 10) || (lengthiss < 10)) && (winWidth == 256))
 	{
 		Gui, 2:Destroy
-		Gui, 2:Font,, Arial
+		Gui, 2:Font, s8, Arial
 		Gui, 2:Add, Text, x40 y55  w100 h20, Volume:
 		Gui, 2:Add, Text, x49 y80  w100 h20, Issue:
 		Gui, 2:Add, Text, x44 y105 w100 h20, ? Date:
@@ -622,10 +625,11 @@ CreateMetaWindows:
 	Gui, 7:Destroy
 	Gui, 9:Destroy
 	
-	; create the Metdata window if necessary
+	; create the Metadata window if necessary
 	IfWinNotExist, Metadata
 	{
-		Gui, 2:Font,, Arial
+		Gui, 2:Destroy
+		Gui, 2:Font, s8, Arial
 		Gui, 2:Add, Text, x40 y55  w100 h20, Volume:
 		Gui, 2:Add, Text, x49 y80  w100 h20, Issue:
 		Gui, 2:Add, Text, x44 y105 w100 h20, ? Date:
@@ -754,7 +758,7 @@ CreateMetaWindows:
 	if (((lengthvol > 9) || (lengthiss > 9)) && (winWidth == 206))
 	{
 		Gui, 2:Destroy
-		Gui, 2:Font,, Arial
+		Gui, 2:Font, s8, Arial
 		Gui, 2:Add, Text, x40 y55  w100 h20, Volume:
 		Gui, 2:Add, Text, x49 y80  w100 h20, Issue:
 		Gui, 2:Add, Text, x44 y105 w100 h20, ? Date:
@@ -780,7 +784,7 @@ CreateMetaWindows:
 	else if (((lengthvol < 10) || (lengthiss < 10)) && (winWidth == 256))
 	{
 		Gui, 2:Destroy
-		Gui, 2:Font,, Arial
+		Gui, 2:Font, s8, Arial
 		Gui, 2:Add, Text, x40 y55  w100 h20, Volume:
 		Gui, 2:Add, Text, x49 y80  w100 h20, Issue:
 		Gui, 2:Add, Text, x44 y105 w100 h20, ? Date:
