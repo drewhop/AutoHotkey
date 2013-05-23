@@ -64,6 +64,7 @@ DVVpathdefault = C:\dvv
 delaydefault = 6
 
 ; documentation
+; docURL = http://digitalprojects.library.unt.edu/projects/index.php/NDNP_QR.ahk
 docURL = https://github.com/drewhop/AutoHotkey/wiki/NDNP_QR
 
 ; system
@@ -208,6 +209,9 @@ Gui, Menu, MenuBar
 ; =========================================MENUS
 
 ; =========================================LABELS
+; set main window font and size
+; Gui, 1:Font, s10, Arial
+
 ; row 1
 ; Last Hotkey: Static 3
 Gui, 1:Add, Text, x15  y10 w40  h15, HotKeys
@@ -229,7 +233,7 @@ Gui, 1:Add, Text, x175 y130 w70 h20, ViewXML ( q )
 Gui, 1:Add, Text, x255 y130 w70 h20, EditXML ( w )
 
 ; Metadata window
-Gui, 2:Font,, Arial
+Gui, 2:Font, s8, Arial
 Gui, 2:Add, Text, x40 y55  w100 h20, Volume:
 Gui, 2:Add, Text, x49 y80  w100 h20, Issue:
 Gui, 2:Add, Text, x44 y105 w100 h20, ? Date:
@@ -238,7 +242,7 @@ Gui, 2:Add, Text, x45 y130 w100 h20, Pages:
 
 ; =========================================DATA
 ; set larger data font
-Gui, 1:Font, s15,
+Gui, 1:Font, s15, Arial
 
 ; row 1: Static 14-16
 Gui, 1:Add, Text, x25  y30 w55 h25, 0
