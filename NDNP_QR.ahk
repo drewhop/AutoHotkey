@@ -192,7 +192,7 @@ Menu, SearchMenu, Add, ChronAm &Browse, ChronAmBrowse
 Menu, SearchMenu, Add, ChronAm &Data, ChronAmData
 
 ; Help
-Menu, HelpMenu, Add, &Documentation, Documentation
+Menu, HelpMenu, Add, Online &Documentation, Documentation
 Menu, HelpMenu, Add, &NDNP Awardee Wiki, NDNPwiki
 Menu, HelpMenu, Add, &About, About
 
