@@ -561,9 +561,13 @@ ReelLoopFunction:
 					; add to report and continue loop
 					else
 					{
-						; add the note to the report
-						FileAppend, `t%date%: %note%`n, %reportpath%\%reelnumber%-report.txt
-
+						; check if the note is blank
+						if (note != "")
+						{
+							; add the note to the report
+							FileAppend, `t%date%: %note%`n, %reportpath%\%reelnumber%-report.txt
+						}
+						
 						; close the Questionable Date & Edition Label windows
 						Gui, 7:Destroy
 						Gui, 9:Destroy
@@ -605,15 +609,19 @@ ReelLoopFunction:
 							; add note to notes file
 							else
 							{
-								; increment the notes counter
-								notecount++
-								
-								; format the notes file
-								FileAppend, ----------------------------`nNotes for Reel: %reelnumber%`n`nDate`t`tNote`n`n, %reportpath%\%reelnumber%-notes.txt									
+								; check if the note is blank
+								if (note != "")
+								{
+									; increment the notes counter
+									notecount++
 									
-								; add the note to the report
-								FileAppend, %date%`t%note%`n, %reportpath%\%reelnumber%-notes.txt
-
+									; format the notes file
+									FileAppend, ----------------------------`nNotes for Reel: %reelnumber%`n`nDate`t`tNote`n`n, %reportpath%\%reelnumber%-notes.txt									
+										
+									; add the note to the notes file
+									FileAppend, %date%`t%note%`n, %reportpath%\%reelnumber%-notes.txt
+								}
+								
 								; close the Questionable Date & Edition Label windows
 								Gui, 7:Destroy
 								Gui, 9:Destroy
@@ -646,11 +654,15 @@ ReelLoopFunction:
 							Continue
 						}
 
-						; increment the notes counter
-						notecount++
-								
-						; add the note to the report
-						FileAppend, %date%`t%note%`n, %reportpath%\%reelnumber%-notes.txt
+						; check if the note is blank
+						if (note != "")
+						{
+							; increment the notes counter
+							notecount++
+									
+							; add the note to the report
+							FileAppend, %date%`t%note%`n, %reportpath%\%reelnumber%-notes.txt
+						}
 
 						; close the Questionable Date & Edition Label windows
 						Gui, 7:Destroy
