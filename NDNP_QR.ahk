@@ -8,11 +8,12 @@
  * when running the NDNP_QR.ahk script or at compile time
  *
  *    NDNP_QR.ahk (compile for NDNP_QR.exe)
+ *    NDNP_QR_dvvloops.ahk
  *    NDNP_QR_hotkeys.ahk
+ *    NDNP_QR_menus.ahk
  *    NDNP_QR_metadata.ahk
  *    NDNP_QR_navigation.ahk
  *    NDNP_QR_tools.ahk
- *    NDNP_QR_menus.ahk
  *
  * *******************************************************
  *
@@ -147,7 +148,7 @@ editissuexmlflag = 0
 ; =========================================VARIABLES
 
 ; BEGIN GUI FORMATTING *******************************************
-; this section formats the NDNP_QR(1:) and Metadata(2:) windows
+; this section formats the NDNP_QR(1) and Metadata(2) windows
 Gui, 1:Color, d0d0d0, 912206
 Gui, 1:Show, h0 w0, NDNP_QR
 
@@ -358,7 +359,7 @@ Pause::Pause
 ; =========================================MENU FUNCTIONS
 ; ======================TOOLS MENU
 ; REQUIRED FILE
-#Include NDNP_QR_reeltools.ahk
+#Include NDNP_QR_tools.ahk
 ;  BatchReport: creates a .TXT report of all issues in a batch
 ;  ReelReport: creates a .TXT report of all issues in a reel
 ;              while displaying images and metadata
@@ -367,7 +368,7 @@ Pause::Pause
 ;  ReelLoopFunction: primary function for ReelReport & MetaViewer
 ;  DELAY TIMER: timer window functions
 
-#Include NDNP_QR_dvvtools.ahk
+#Include NDNP_QR_dvvloops.ahk
 ;  DVVpages & DVVthumbs: viewing loops for the DVV
 ;  DVV COUNTER BUTTONS: counter button functions
 ;  DVV DELAY DIALOG: delay dialog functions
@@ -402,7 +403,7 @@ Pause::Pause
 ;  ChronAmSearch: dialog for ChronAm Search
 ;  ChronAmGo & CASearchCancel: button functions
 ;  ChronAmBrowse: dialog for ChronAm Browse
-;  ChronAmBrowseGo & CABrowsesCancel: button functions
+;  ChronAmBrowseGo & CABrowseCancel: button functions
 ;  ChronAmData: dialog for ChronAm Data
 ;  ChronAmDataGo & CADataCancel: button functions
 ; ======================SEARCH MENU
