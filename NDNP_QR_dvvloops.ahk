@@ -8,7 +8,8 @@
 ; Pause to pause/restart
 ; hold down F1 to cancel
 DVVpages:
-  dvvloopname = Pages
+	dvvloopname = Pages
+	notecount = 0
 	
 	; delay time dialog
 	Gosub, DVVDelay
@@ -81,12 +82,22 @@ DVVpages:
 					; close the counter window
 					Gui, 3:Destroy
 
+					; print exit message
+					if (notecount > 0)
+					{
+						MsgBox, 4, DVV_%dvvloopname% Ended, You created %notecount% notes.`n`nWould you like to open the DVVnotes.txt file?
+						IfMsgBox, Yes
+						{
+							Run, %DVVpath%\DVVnotes.txt
+						}
+					}
+					
+					else
+						MsgBox, 0, DVV_Pages, The loop has ended.
+
 					; reset loopname
 					dvvloopname =
-					
-					; print exit message
-					MsgBox, 0, DVV Pages, The loop has ended.
-
+	
 					Return
 				}
 			}
@@ -114,9 +125,14 @@ DVVpages:
 		; delay for the specified time
 		Sleep, %dvvdelayms%
 			
+		; hold down Right Shift for note
+		getKeyState, state, RShift
+		if state = D
+			Gosub, DVVnotes
+
 		; end the loop if F1 is held down
 		if getKeyState("F1")
-		break
+			break
 
 		; end the loop if Cancel button
 		if (cancelbutton == 1)
@@ -129,11 +145,21 @@ DVVpages:
 	; close the counter window
 	Gui, 3:Destroy
 
+	; print exit message
+	if (notecount > 0)
+	{
+		MsgBox, 4, DVV_%dvvloopname% Ended, You created %notecount% notes.`n`nWould you like to open the DVVnotes.txt file?
+		IfMsgBox, Yes
+		{
+			Run, %DVVpath%\DVVnotes.txt
+		}
+	}
+	
+	else
+		MsgBox, 0, DVV_Pages, The loop has ended.
+
 	; reset loopname
 	dvvloopname =
-		
-	; print exit message
-	MsgBox, 0, DVV Pages, The loop has ended.
 Return
 ; ======DVV PAGES LOOP
 
@@ -141,6 +167,7 @@ Return
 ; loop to view thumbnail images in the DVV
 DVVthumbs:
 	dvvloopname = Thumbs
+	notecount = 0
 
 	; delay time dialog
 	Gosub, DVVDelay
@@ -213,12 +240,22 @@ DVVthumbs:
 					; close the counter window
 					Gui, 3:Destroy
 
+					; print exit message
+					if (notecount > 0)
+					{
+						MsgBox, 4, DVV_%dvvloopname% Ended, You created %notecount% notes.`n`nWould you like to open the DVVnotes.txt file?
+						IfMsgBox, Yes
+						{
+							Run, %DVVpath%\DVVnotes.txt
+						}
+					}
+					
+					else
+						MsgBox, 0, DVV_Thumbs, The loop has ended.
+
 					; reset loopname
 					dvvloopname =
-					
-					; print exit message
-					MsgBox, 0, DVV Thumbs, The loop has ended.
-
+	
 					Return
 				}
 			}
@@ -253,6 +290,11 @@ DVVthumbs:
 		; delay for the specified time
 		Sleep, %dvvdelayms%
 		
+		; hold down Right Shift for note
+		getKeyState, state, RShift
+		if state = D
+			Gosub, DVVnotes
+
 		; end the loop if F1 is held down
 		if getKeyState("F1")
 			break
@@ -268,13 +310,97 @@ DVVthumbs:
 	; close the counter window
 	Gui, 3:Destroy
 	
+	; print exit message
+	if (notecount > 0)
+	{
+		MsgBox, 4, DVV_%dvvloopname% Ended, You created %notecount% notes.`n`nWould you like to open the DVVnotes.txt file?
+		IfMsgBox, Yes
+		{
+			Run, %DVVpath%\DVVnotes.txt
+		}
+	}
+	
+	else
+		MsgBox, 0, DVV_Thumbs, The loop has ended.
+
 	; reset loopname
 	dvvloopname =
-		
-	; print exit message
-	MsgBox, 0, DVV Thumbs, The loop has ended.
-Exit
+Return
 ; ======DVV THUMBS LOOP
+
+; ======DVV NOTES
+DVVnotes:
+	; case for inactive notes function
+	if (notecount == 0)
+	{
+		MsgBox, 4, DVV_%dvvloopname% Notes, Would you like to save a note?`n`nThe DVVnotes.txt file will be`ncreated if it does not already exist.
+		IfMsgBox, Yes
+		{
+			; activate notes function
+			IfWinExist, DVV_%dvvloopname%
+			{
+				WinGetPos, winX, winY, winWidth, winHeight, DVV_%dvvloopname%
+				winX+=%winWidth%
+				InputBox, note, DVV_%dvvloopname% Notes, Enter a note:,, 450, 120, %winX%, %winY%,,,
+				if ErrorLevel
+					Return				
+			}
+			
+			else
+			{
+				WinGetPos, winX, winY, winWidth, winHeight, LOC Digital Viewer
+				InputBox, note, DVV_%dvvloopname% Notes, Enter a note:,, 450, 120, %winX%, %winY%,,,
+				if ErrorLevel
+					Return
+			}
+
+			; check if the note is blank
+			if (note != "")
+			{
+				; increment the notes counter
+				notecount++
+								
+				; format the notes file
+				FileAppend, -------------------------------------`nDVV_%dvvloopname% Notes: %A_YYYY%-%A_MM%-%A_DD% (%A_Hour%:%A_Min%)`n`n, %DVVpath%\DVVnotes.txt									
+										
+				; add the note to the DVVnotes.txt file
+				FileAppend, %note%`n`n, %DVVpath%\DVVnotes.txt
+			}		
+		}
+	}
+						
+	; add note to notes file
+	else
+	{
+		IfWinExist, DVV_%dvvloopname%
+		{
+			WinGetPos, winX, winY, winWidth, winHeight, DVV_%dvvloopname%
+			winX+=%winWidth%
+			InputBox, note, DVV_%dvvloopname% Notes, Enter a note:,, 450, 120, %winX%, %winY%,,,
+			if ErrorLevel
+				Return				
+		}
+			
+		else
+		{
+			WinGetPos, winX, winY, winWidth, winHeight, LOC Digital Viewer
+			InputBox, note, DVV_%dvvloopname% Notes, Enter a note:,, 450, 120, %winX%, %winY%,,,
+			if ErrorLevel
+				Return
+		}
+
+		; check if the note is blank
+		if (note != "")
+		{
+			; increment the notes counter
+			notecount++
+									
+			; add the note to the DVVnotes.txt file
+			FileAppend, %note%`n`n, %DVVpath%\DVVnotes.txt
+		}
+	}
+Return
+; ======DVV NOTES
 
 ; ======DVV COUNTER BUTTONS
 ; toggles Pause/Start
