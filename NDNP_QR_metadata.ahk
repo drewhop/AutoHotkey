@@ -325,10 +325,8 @@ ExtractMeta:
 				Gui, 9:+AlwaysOnTop
 				Gui, 9:+ToolWindow
 				Gui, 9:Font, cRed s15 bold, Arial
-				Gui, 9:Add, Text, x15 y15 w380 h25, %editionlabel%
-				Gui, 9:Font, cRed s10 bold, Arial
-				Gui, 9:Add, GroupBox, x0 y-7 w400 h63,       
-				Gui, 9:Show, x%winX% y%winY% h55 w400, Edition
+				Gui, 9:Add, Text, x15 y8 w380 h25, %editionlabel%
+				Gui, 9:Show, x%winX% y%winY% h40 w400, Edition
 			}
 		}
 
@@ -438,8 +436,9 @@ ExtractMeta:
 			}
 			yearQ := SubStr(questionable, 1, 4)
 
-			; if reel report or metadata viewer
-			if loopcount > 1
+			; if Date window exists
+			SetTitleMatchMode 1
+			IfWinExist, Date
 			{
 				WinGetPos, winX, winY, winWidth, winHeight, Date
 				winY+=%winHeight%
@@ -448,10 +447,8 @@ ExtractMeta:
 				Gui, 7:+AlwaysOnTop
 				Gui, 7:+ToolWindow
 				Gui, 7:Font, cRed s15 bold, Arial
-				Gui, 7:Add, Text, x35 y15 w160 h25, %monthnameQ% %dayQ%, %yearQ%
-				Gui, 7:Font, cRed s10 bold, Arial
-				Gui, 7:Add, GroupBox, x0 y-7 w200 h63,       
-				Gui, 7:Show, x%winX% y%winY% h55 w200, Questionable
+				Gui, 7:Add, Text, x35 y8 w160 h25, %monthnameQ% %dayQ%, %yearQ%
+				Gui, 7:Show, x%winX% y%winY% h40 w200, Questionable
 			}
 		}
 	}
@@ -466,22 +463,60 @@ ExtractMeta:
 	}
 
 	; update the date field
-	ControlSetText, Static5, %date%, Metadata
+	ControlSetText, Static6, %date%, Metadata
 	ControlSetText, Static1, %monthname% %day%`, %year%, Date
 
 	; update the volume number
-	ControlSetText, Static6, %volume%, Metadata
-	ControlSetText, Static1, %volume%, Volume
+	ControlSetText, Static7, %volume%, Metadata
+	SetTitleMatchMode 1
+	IfWinExist, Volume
+	{
+		WinGetPos, winX, winY,,, Volume
+		Gui, 5:Destroy
+		Gui, 5:+AlwaysOnTop
+		Gui, 5:+ToolWindow
+		Gui, 5:Font, cRed s15 bold, Arial
+		StringLen, lengthvol, volume
+		if (lengthvol > 5)
+		{
+			Gui, 5:Add, Text, x15 y8 w170 h25, %volume%
+			Gui, 5:Show, x%winX% y%winY% h40 w190, Volume
+		}
+		else
+		{
+			Gui, 5:Add, Text, x15 y8 w70 h35, %volume%
+			Gui, 5:Show, x%winX% y%winY% h40 w100, Volume
+		}
+	}
 
 	; update the issue number
-	ControlSetText, Static7, %issue%, Metadata		
-	ControlSetText, Static1, %issue%, Issue
+	ControlSetText, Static8, %issue%, Metadata
+	SetTitleMatchMode 1
+	IfWinExist, Issue
+	{
+		WinGetPos, winX, winY,,, Issue
+		Gui, 6:Destroy
+		Gui, 6:+AlwaysOnTop
+		Gui, 6:+ToolWindow
+		Gui, 6:Font, cRed s15 bold, Arial
+		StringLen, lengthiss, issue
+		if (lengthiss > 5)
+		{
+			Gui, 6:Add, Text, x15 y8 w170 h25, %issue%
+			Gui, 6:Show, x%winX% y%winY% h40 w190, Issue
+		}
+		else
+		{
+			Gui, 6:Add, Text, x15 y8 w70 h25, %issue%
+			Gui, 6:Show, x%winX% y%winY% h40 w100, Issue
+		}
+	}
 
 	; update the questionable date
-	ControlSetText, Static8, %questionable%, Metadata		
+	ControlSetText, Static9, %questionable%, Metadata		
 
 	; update the number of pages
-	ControlSetText, Static9, %numpages%, Metadata
+	ControlSetText, Static10, %numpages%, Metadata
 	
 	; create GUIs for Date, Volume, Issue, Questionable, and Edition Label
 	; if first pass of Reel Report or Metadata Viewer
@@ -497,99 +532,43 @@ Return
 
 ; ======================REDRAW METADATA WINDOW
 RedrawMetaWindow:
+	; get the appropriate window coordinates
+	SetTitleMatchMode 1
+	IfWinExist, Metadata
+	{
+		WinGetPos, winX, winY,,, Metadata
+	}
+	else
+	{
+		WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
+		winX+=%winWidth%
+	}
+	
 	; destroy current Metadata window
 	Gui, 2:Destroy
 	
-	; create the Metdata window if necessary
-	IfWinNotExist, Metadata
-	{
-		Gui, 2:Font, s8, Arial
-		Gui, 2:Add, Text, x40 y55  w100 h20, Volume:
-		Gui, 2:Add, Text, x49 y80  w100 h20, Issue:
-		Gui, 2:Add, Text, x44 y105 w100 h20, ? Date:
-		Gui, 2:Add, Text, x45 y130 w100 h20, Pages:
-		Gui, 2:Font, cRed s12 bold, Arial
-		Gui, 2:Add, Text, x55 y20  w90  h20,
-		Gui, 2:Add, Text, x90 y55  w105 h20,
-		Gui, 2:Add, Text, x90 y80  w105 h20,
-		Gui, 2:Add, Text, x90 y105 w100 h20,
-		Gui, 2:Add, Text, x90 y130 w100 h20,
-		Gui, 2:Add, GroupBox, x0 y-8 w200 h169,       
-		Gui, 2:Add, GroupBox, x40 y5 w120 h40,       
-		Gui, 2:Add, GroupBox, x38 y3 w124 h44,       
+	; create the Metadata window
+	Gui, 2:Font, s8, Arial
+	Gui, 2:Add, Text, x26 y20  w100 h20, Date:
+	Gui, 2:Add, Text, x13 y45  w100 h20, Volume:
+	Gui, 2:Add, Text, x22 y70  w100 h20, Issue:
+	Gui, 2:Add, Text, x17 y95  w100 h20, ? Date:
+	Gui, 2:Add, Text, x18 y120 w100 h20, Pages:
+	Gui, 2:Font, cRed s12 bold, Arial
+	Gui, 2:Add, Text, x65 y20  w100 h20,
+	Gui, 2:Add, Text, x65 y45  w130 h20,
+	Gui, 2:Add, Text, x65 y70  w130 h20,
+	Gui, 2:Add, Text, x65 y95  w100 h20,
+	Gui, 2:Add, Text, x65 y120 w100 h20,
 
-		WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
-
-		Gui, 2:+AlwaysOnTop
-		Gui, 2:+ToolWindow
-		winX+=%winWidth%
-		Gui, 2:Show, x%winX% y%winY% h160 w200, Metadata
-		ControlSetText, Static5, %date%, Metadata
-		ControlSetText, Static6, %volume%, Metadata
-		ControlSetText, Static7, %issue%, Metadata		
-		ControlSetText, Static8, %questionable%, Metadata		
-		ControlSetText, Static9, %numpages%, Metadata
-	}
-
-	; get the string lengths for volume and issue numbers
-	StringLen, lengthvol, volume
-	StringLen, lengthiss, issue
-	
-	; redraw the Metadata window (if necessary)
-	WinGetPos, winX, winY, winWidth, winHeight, Metadata
-	if (((lengthvol > 9) || (lengthiss > 9)) && (winWidth == 206))
-	{
-		Gui, 2:Destroy
-		Gui, 2:Font, s8, Arial
-		Gui, 2:Add, Text, x40 y55  w100 h20, Volume:
-		Gui, 2:Add, Text, x49 y80  w100 h20, Issue:
-		Gui, 2:Add, Text, x44 y105 w100 h20, ? Date:
-		Gui, 2:Add, Text, x45 y130 w100 h20, Pages:
-		Gui, 2:Font, cRed s12 bold, Arial
-		Gui, 2:Add, Text, x55 y20  w90  h20,
-		Gui, 2:Add, Text, x90 y55  w150 h20,
-		Gui, 2:Add, Text, x90 y80  w150 h20,
-		Gui, 2:Add, Text, x90 y105 w100 h20,
-		Gui, 2:Add, Text, x90 y130 w100 h20,
-		Gui, 2:Add, GroupBox, x0 y-8 w250 h169,       
-		Gui, 2:Add, GroupBox, x40 y5 w120 h40,       
-		Gui, 2:Add, GroupBox, x38 y3 w124 h44,       
-		Gui, 2:+AlwaysOnTop
-		Gui, 2:+ToolWindow
-		Gui, 2:Show, x%winX% y%winY% h160 w250, Metadata
-		ControlSetText, Static5, %date%, Metadata
-		ControlSetText, Static6, %volume%, Metadata
-		ControlSetText, Static7, %issue%, Metadata		
-		ControlSetText, Static8, %questionable%, Metadata		
-		ControlSetText, Static9, %numpages%, Metadata	
-	}
-	
-	else if (((lengthvol < 10) || (lengthiss < 10)) && (winWidth == 256))
-	{
-		Gui, 2:Destroy
-		Gui, 2:Font, s8, Arial
-		Gui, 2:Add, Text, x40 y55  w100 h20, Volume:
-		Gui, 2:Add, Text, x49 y80  w100 h20, Issue:
-		Gui, 2:Add, Text, x44 y105 w100 h20, ? Date:
-		Gui, 2:Add, Text, x45 y130 w100 h20, Pages:
-		Gui, 2:Font, cRed s12 bold, Arial
-		Gui, 2:Add, Text, x55 y20  w90  h20,
-		Gui, 2:Add, Text, x90 y55  w105 h20,
-		Gui, 2:Add, Text, x90 y80  w105 h20,
-		Gui, 2:Add, Text, x90 y105 w100 h20,
-		Gui, 2:Add, Text, x90 y130 w100 h20,
-		Gui, 2:Add, GroupBox, x0 y-8 w200 h169,       
-		Gui, 2:Add, GroupBox, x40 y5 w120 h40,       
-		Gui, 2:Add, GroupBox, x38 y3 w124 h44,       
-		Gui, 2:+AlwaysOnTop
-		Gui, 2:+ToolWindow
-		Gui, 2:Show, x%winX% y%winY% h160 w200, Metadata
-		ControlSetText, Static5, %date%, Metadata
-		ControlSetText, Static6, %volume%, Metadata
-		ControlSetText, Static7, %issue%, Metadata		
-		ControlSetText, Static8, %questionable%, Metadata		
-		ControlSetText, Static9, %numpages%, Metadata			
-	}
+	Gui, 2:+AlwaysOnTop
+	Gui, 2:+ToolWindow
+	Gui, 2:Show, x%winX% y%winY% h160 w200, Metadata
+	ControlSetText, Static6, %date%, Metadata
+	ControlSetText, Static7, %volume%, Metadata
+	ControlSetText, Static8, %issue%, Metadata		
+	ControlSetText, Static9, %questionable%, Metadata		
+	ControlSetText, Static10, %numpages%, Metadata
 Return
 ; ======================REDRAW METADATA WINDOW
 
@@ -625,37 +604,11 @@ CreateMetaWindows:
 	Gui, 7:Destroy
 	Gui, 9:Destroy
 	
-	; create the Metadata window if necessary
-	IfWinNotExist, Metadata
-	{
-		Gui, 2:Destroy
-		Gui, 2:Font, s8, Arial
-		Gui, 2:Add, Text, x40 y55  w100 h20, Volume:
-		Gui, 2:Add, Text, x49 y80  w100 h20, Issue:
-		Gui, 2:Add, Text, x44 y105 w100 h20, ? Date:
-		Gui, 2:Add, Text, x45 y130 w100 h20, Pages:
-		Gui, 2:Font, cRed s12 bold, Arial
-		Gui, 2:Add, Text, x55 y20  w90  h20,
-		Gui, 2:Add, Text, x90 y55  w105 h20,
-		Gui, 2:Add, Text, x90 y80  w105 h20,
-		Gui, 2:Add, Text, x90 y105 w100 h20,
-		Gui, 2:Add, Text, x90 y130 w100 h20,
-		Gui, 2:Add, GroupBox, x0 y-8 w200 h169,       
-		Gui, 2:Add, GroupBox, x40 y5 w120 h40,       
-		Gui, 2:Add, GroupBox, x38 y3 w124 h44,       
-
-		WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
-
-		Gui, 2:+AlwaysOnTop
-		Gui, 2:+ToolWindow
-		winX+=%winWidth%
-		Gui, 2:Show, x%winX% y%winY% h160 w200, Metadata
-		ControlSetText, Static5, %date%, Metadata
-		ControlSetText, Static6, %volume%, Metadata
-		ControlSetText, Static7, %issue%, Metadata		
-		ControlSetText, Static8, %questionable%, Metadata		
-		ControlSetText, Static9, %numpages%, Metadata
-	}
+	; redraw the metadata window
+	Gosub, RedrawMetaWindow
+	
+	; wait for the window to load
+	WinWaitActive, Metadata
 	
 	; default position to right of Metadata window
 	WinGetPos, winX, winY, winWidth, winHeight, Metadata
@@ -664,65 +617,59 @@ CreateMetaWindows:
 	; Issue number GUI
 	Gui, 6:+AlwaysOnTop
 	Gui, 6:+ToolWindow
-	Gui, 6:Font, cRed s25 bold, Arial
+	Gui, 6:Font, cRed s15 bold, Arial
 	StringLen, lengthiss, issue
-	if (lengthiss > 7)
+	if (lengthiss > 5)
 	{
-		Gui, 6:Add, GroupBox, x0 y-18 w300 h74,
-		Gui, 6:Add, Text, x15 y8 w270 h35, %issue%
+		Gui, 6:Add, Text, x15 y8 w170 h35, %issue%
 		if ((issueX == 0) && (issueY == 0))
-			Gui, 6:Show, x%winX% y%winY% h55 w300, Issue
+			Gui, 6:Show, x%winX% y%winY% h40 w190, Issue
 		else
-			Gui, 6:Show, x%issueX% y%issueY% h55 w300, Issue
+			Gui, 6:Show, x%issueX% y%issueY% h40 w190, Issue
 	}
 	else
 	{
-		Gui, 6:Add, GroupBox, x0 y-18 w200 h74,       
-		Gui, 6:Add, Text, x15 y8 w170 h35, %issue%
+		Gui, 6:Add, Text, x15 y8 w70 h25, %issue%
 		if ((issueX == 0) && (issueY == 0))
-			Gui, 6:Show, x%winX% y%winY% h55 w200, Issue
+			Gui, 6:Show, x%winX% y%winY% h40 w100, Issue
 		else
-			Gui, 6:Show, x%issueX% y%issueY% h55 w200, Issue
+			Gui, 6:Show, x%issueX% y%issueY% h40 w100, Issue
 	}
 
 	; Volume number GUI
 	Gui, 5:+AlwaysOnTop
 	Gui, 5:+ToolWindow
-	Gui, 5:Font, cRed s25 bold, Arial
+	Gui, 5:Font, cRed s15 bold, Arial
 	StringLen, lengthvol, volume
-	if (lengthvol > 7)
+	if (lengthvol > 5)
 	{
-		Gui, 5:Add, GroupBox, x0 y-18 w300 h74,       
-		Gui, 5:Add, Text, x15 y8 w270 h35, %volume%
+		Gui, 5:Add, Text, x15 y8 w170 h35, %volume%
 		if ((volumeX == 0) && (volumeY == 0))
-			Gui, 5:Show, x%winX% y%winY% h55 w300, Volume
+			Gui, 5:Show, x%winX% y%winY% h40 w190, Volume
 		else
-			Gui, 5:Show, x%volumeX% y%volumeY% h55 w300, Volume
+			Gui, 5:Show, x%volumeX% y%volumeY% h40 w190, Volume
 	}
 	else
 	{
-		Gui, 5:Add, GroupBox, x0 y-18 w200 h74,       
-		Gui, 5:Add, Text, x15 y8 w170 h35, %volume%
+		Gui, 5:Add, Text, x15 y8 w70 h35, %volume%
 		if ((volumeX == 0) && (volumeY == 0))
-			Gui, 5:Show, x%winX% y%winY% h55 w200, Volume
+			Gui, 5:Show, x%winX% y%winY% h40 w100, Volume
 		else
-			Gui, 5:Show, x%volumeX% y%volumeY% h55 w200, Volume
+			Gui, 5:Show, x%volumeX% y%volumeY% h40 w100, Volume
 	}
 	
 	; Date GUI
 	Gui, 4:+AlwaysOnTop
 	Gui, 4:+ToolWindow
 	Gui, 4:Font, cRed s15 bold, Arial
-	Gui, 4:Add, Text, x35 y15 w160 h25, %monthname% %day%, %year%
-	Gui, 4:Font, cRed s10 bold, Arial
-	Gui, 4:Add, GroupBox, x0 y-7 w200 h63,       
+	Gui, 4:Add, Text, x35 y8 w160 h25, %monthname% %day%, %year%
 	if ((dateX == 0) && (dateY == 0))
-		Gui, 4:Show, x%winX% y%winY% h55 w200, Date
+		Gui, 4:Show, x%winX% y%winY% h40 w200, Date
 	else
-		Gui, 4:Show, x%dateX% y%dateY% h55 w200, Date
+		Gui, 4:Show, x%dateX% y%dateY% h40 w200, Date
 	
 	; Questionable Date GUI
-	if (questionabledate != "")
+	if (questionable != "")
 	{
 		; position below Date window
 		WinGetPos, winX, winY, winWidth, winHeight, Date
@@ -731,10 +678,8 @@ CreateMetaWindows:
 		Gui, 7:+AlwaysOnTop
 		Gui, 7:+ToolWindow
 		Gui, 7:Font, cRed s15 bold, Arial
-		Gui, 7:Add, Text, x35 y15 w160 h25, %monthnameQ% %dayQ%, %yearQ%
-		Gui, 7:Font, cRed s10 bold, Arial
-		Gui, 7:Add, GroupBox, x0 y-7 w200 h63,       
-		Gui, 7:Show, x%winX% y%winY% h55 w200, Questionable
+		Gui, 7:Add, Text, x35 y8 w160 h25, %monthnameQ% %dayQ%, %yearQ%
+		Gui, 7:Show, x%winX% y%winY% h40 w200, Questionable
 	}
 
 	; Edition Label GUI
@@ -747,71 +692,14 @@ CreateMetaWindows:
 		Gui, 9:+AlwaysOnTop
 		Gui, 9:+ToolWindow
 		Gui, 9:Font, cRed s15 bold, Arial
-		Gui, 9:Add, Text, x15 y15 w380 h25, %editionlabel%
-		Gui, 9:Font, cRed s10 bold, Arial
-		Gui, 9:Add, GroupBox, x0 y-7 w400 h63,       
-		Gui, 9:Show, x%winX% y%winY% h55 w400, Edition
+		Gui, 9:Add, Text, x15 y8 w380 h25, %editionlabel%
+		Gui, 9:Show, x%winX% y%winY% h40 w400, Edition
 	}				
-	
-	; redraw the Metadata window (if necessary)
-	WinGetPos, winX, winY, winWidth, winHeight, Metadata
-	if (((lengthvol > 9) || (lengthiss > 9)) && (winWidth == 206))
-	{
-		Gui, 2:Destroy
-		Gui, 2:Font, s8, Arial
-		Gui, 2:Add, Text, x40 y55  w100 h20, Volume:
-		Gui, 2:Add, Text, x49 y80  w100 h20, Issue:
-		Gui, 2:Add, Text, x44 y105 w100 h20, ? Date:
-		Gui, 2:Add, Text, x45 y130 w100 h20, Pages:
-		Gui, 2:Font, cRed s12 bold, Arial
-		Gui, 2:Add, Text, x55 y20  w90  h20,
-		Gui, 2:Add, Text, x90 y55  w150 h20,
-		Gui, 2:Add, Text, x90 y80  w150 h20,
-		Gui, 2:Add, Text, x90 y105 w100 h20,
-		Gui, 2:Add, Text, x90 y130 w100 h20,
-		Gui, 2:Add, GroupBox, x0 y-8 w250 h169,       
-		Gui, 2:Add, GroupBox, x40 y5 w120 h40,       
-		Gui, 2:Add, GroupBox, x38 y3 w124 h44,       
-		Gui, 2:+AlwaysOnTop
-		Gui, 2:+ToolWindow
-		Gui, 2:Show, x%winX% y%winY% h160 w250, Metadata
-		ControlSetText, Static5, %date%, Metadata
-		ControlSetText, Static6, %volume%, Metadata
-		ControlSetText, Static7, %issue%, Metadata		
-		ControlSetText, Static8, %questionable%, Metadata		
-		ControlSetText, Static9, %numpages%, Metadata	
-	}
-	else if (((lengthvol < 10) || (lengthiss < 10)) && (winWidth == 256))
-	{
-		Gui, 2:Destroy
-		Gui, 2:Font, s8, Arial
-		Gui, 2:Add, Text, x40 y55  w100 h20, Volume:
-		Gui, 2:Add, Text, x49 y80  w100 h20, Issue:
-		Gui, 2:Add, Text, x44 y105 w100 h20, ? Date:
-		Gui, 2:Add, Text, x45 y130 w100 h20, Pages:
-		Gui, 2:Font, cRed s12 bold, Arial
-		Gui, 2:Add, Text, x55 y20  w90  h20,
-		Gui, 2:Add, Text, x90 y55  w105 h20,
-		Gui, 2:Add, Text, x90 y80  w105 h20,
-		Gui, 2:Add, Text, x90 y105 w100 h20,
-		Gui, 2:Add, Text, x90 y130 w100 h20,
-		Gui, 2:Add, GroupBox, x0 y-8 w200 h169,       
-		Gui, 2:Add, GroupBox, x40 y5 w120 h40,       
-		Gui, 2:Add, GroupBox, x38 y3 w124 h44,       
-		Gui, 2:+AlwaysOnTop
-		Gui, 2:+ToolWindow
-		Gui, 2:Show, x%winX% y%winY% h160 w200, Metadata
-		ControlSetText, Static5, %date%, Metadata
-		ControlSetText, Static6, %volume%, Metadata
-		ControlSetText, Static7, %issue%, Metadata		
-		ControlSetText, Static8, %questionable%, Metadata		
-		ControlSetText, Static9, %numpages%, Metadata			
-	}
-	
+		
 	; pause first instance of Reel Report and Metadata Viewer
 	if (loopcount == 1)
 	{
-		MsgBox, 0, Loop Paused, Position the metadata windows as desired.`n`nClick OK and the loop will continue in %delay% seconds.
+		MsgBox, 0, %metaloopname% Paused, Position the metadata windows as desired.`n`nClick OK and the loop will continue in %delay% seconds.
 	}
 Return
 ; ======================CREATE METADATA WINDOWS
