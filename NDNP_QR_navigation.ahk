@@ -161,7 +161,10 @@ Return
 ; ======================GO TO ISSUE
 GoToIssue:
 	; create input box to enter the folder name
-	InputBox, input, GoTo Issue, Issue Folder Name:,, 150, 125,,,,,%issuefolder%
+	SetTitleMatchMode 1
+	WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
+	winY+=%winHeight%
+	InputBox, input, GoTo Issue, Issue Folder Name:,, 150, 125, %winX%, %winY%,,,%issuefolder%
 	if ErrorLevel
 		Return
 	else
@@ -214,7 +217,7 @@ GoToIssue:
 			else
 			{
 				MsgBox, 0, GoTo Issue, Please enter a folder name in the format: YYYYMMDDEE`n`nExample: 1942061901
-				InputBox, input, GoTo Issue, Issue Folder Name:,, 150, 125,,,,,
+				InputBox, input, GoTo Issue, Issue Folder Name:,, 150, 125, %winX%, %winY%,,,
 					if ErrorLevel
 						Return
 			}
