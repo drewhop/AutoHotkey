@@ -129,7 +129,12 @@ NavSkip:
 	Gui, 12:Add, Button, w40 x10 y55 gNavSkipGo default, OK
 	; run NavSkipCancel if Cancel
 	Gui, 12:Add, Button, x65 y55 gNavSkipCancel, Cancel
-	Gui, 12:Show,, Folder Navigation
+	
+	; position below the NDNP_QR window
+	SetTitleMatchMode 1
+	WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
+	winY+=%winHeight%	
+	Gui, 12:Show, x%winX% y%winY%, Folder Navigation
 Return
 
 ; OK button function
@@ -299,7 +304,12 @@ DirectorySearch:
 	Gui, 10:Add, Button, x10 y100 gDirectoryGo default, Search
 	; run DirSearchCancel on Cancel button
 	Gui, 10:Add, Button, x65 y100 gDirSearchCancel, Cancel
-	Gui, 10:Show,, US Directory Search
+
+	; position below the NDNP_QR window
+	SetTitleMatchMode 1
+	WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
+	winY+=%winHeight%	
+	Gui, 10:Show, x%winX% y%winY%, US Directory Search
 Return
 
 ; Search button function
@@ -322,7 +332,10 @@ Return
 
 ; =======DIRECTORY LCCN
 DirectoryLCCN:
-	InputBox, LCCNstring, US Directory: LCCN,,, 200, 100,,,,,%LCCNstring%
+	SetTitleMatchMode 1
+	WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
+	winY+=%winHeight%
+	InputBox, LCCNstring, US Directory: LCCN,,, 200, 100, %winX%, %winY%,,,%LCCNstring%
 	if ErrorLevel
 		Return
 	else
@@ -348,7 +361,12 @@ ChronAmSearch:
 	Gui, 11:Add, Button, x10 y145 gChronAmGo default, Search
 	; run CASearchCancel on Cancel button
 	Gui, 11:Add, Button, x65 y145 gCASearchCancel, Cancel
-	Gui, 11:Show,, ChronAm Search
+
+	; position below the NDNP_QR window
+	SetTitleMatchMode 1
+	WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
+	winY+=%winHeight%	
+	Gui, 11:Show, x%winX% y%winY%, ChronAm Search
 Return
 
 ; Search button function
@@ -380,7 +398,12 @@ ChronAmBrowse:
 	Gui, 13:Add, Button, x10 y55 gChronAmBrowseGo default, Browse
 	; run CABrowseCancel on Cancel button
 	Gui, 13:Add, Button, x65 y55 gCABrowseCancel, Cancel
-	Gui, 13:Show,, ChronAm Browse
+
+	; position below the NDNP_QR window
+	SetTitleMatchMode 1
+	WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
+	winY+=%winHeight%	
+	Gui, 13:Show, x%winX% y%winY%, ChronAm Browse
 Return
 
 ; Search button function
@@ -419,7 +442,12 @@ ChronAmData:
 	Gui, 14:Add, Button, w40 x10 y100 gChronAmDataGo default, GO
 	; run CADataCancel on Cancel button
 	Gui, 14:Add, Button, x60 y100 gCADataCancel, Cancel
-	Gui, 14:Show,, ChronAm Data
+
+	; position below the NDNP_QR window
+	SetTitleMatchMode 1
+	WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
+	winY+=%winHeight%	
+	Gui, 14:Show, x%winX% y%winY%, ChronAm Data
 Return
 
 ; GO button function
