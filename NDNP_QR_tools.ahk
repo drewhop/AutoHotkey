@@ -1,5 +1,5 @@
 ; ********************************
-; NDNP_QR_reeltools.ahk
+; NDNP_QR_tools.ahk
 ; required file for NDNP_QR.ahk
 ; ********************************
 
