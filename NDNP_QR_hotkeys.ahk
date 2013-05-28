@@ -644,7 +644,7 @@ Return
 Return
 ; =============================METADATA
 
-; =============================REDRAW METADATA WINDOW
+; =============================RESTORE METADATA WINDOW
 ; restores/redraws the Metadata window
 ; Hotkey: Win + Alt + m
 #!m::
@@ -668,7 +668,7 @@ Return
 	
 	Gosub, RedrawMetaWindow
 Return
-; =============================REDRAW METADATA WINDOW
+; =============================RESTORE METADATA WINDOW
 
 ; =============================METADATA WINDOWS
 ; creates separate windows for the issue metadata
