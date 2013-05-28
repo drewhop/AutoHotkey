@@ -1,5 +1,5 @@
 ; ********************************
-; NDNP_QR_tools.ahk
+; NDNP_QR_reeltools.ahk
 ; required file for NDNP_QR.ahk
 ; ********************************
 
@@ -29,7 +29,11 @@ BatchReport:
 		Gui, 15:+ToolWindow
 		Gui, 15:Add, Text,, Processing:  %batchname%
 		Gui, 15:Add, Text,, This may take awhile . . .
-		Gui, 15:Show,, Batch Report
+
+		; position in upper left corner of the NDNP_QR window
+		SetTitleMatchMode 1
+		WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
+		Gui, 15:Show, x%winX% y%winY%, Batch Report
 	
 		; store the start time
 		start = %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec% 
@@ -81,7 +85,7 @@ BatchReport:
 			if A_LoopField =
 			{
 				; add the issue count to the report
-				FileAppend, `nBatch: %batchname%`n`nIssues: %issuecount%`n Pages: %totalpages%, %batchfolderpath%\%batchname%-report.txt
+				FileAppend, `nBatch: %batchname%`nIssues: %issuecount%`n Pages: %totalpages%, %batchfolderpath%\%batchname%-report.txt
 
 				; print the start and end times
 				FileAppend, `n`nSTART: %start%, %batchfolderpath%\%batchname%-report.txt
@@ -225,6 +229,8 @@ Return
 ; and creates a report for the issues in a reel folder
 ; text file will be created in the LCCN folder
 ReelReport:
+	metaloopname = Reel Report
+	
 	; update last hotkey & loop label
 	ControlSetText, Static3, REEL, NDNP_QR
 	ControlSetText, Static4, Reel Report, NDNP_QR
@@ -241,6 +247,8 @@ Return
 ; opens the first TIFF and displays the issue metadata
 ; for each issue in a reel folder
 MetaViewer:
+	metaloopname = Metadata Viewer
+	
 	; update last hotkey & loop label
 	ControlSetText, Static3, VIEWER, NDNP_QR
 	ControlSetText, Static4, Meta Viewer, NDNP_QR
@@ -249,79 +257,6 @@ MetaViewer:
 	Gosub, ReelLoopFunction
 Return
 ; ======METADATA VIEWER
-
-; ======DELAY TIMER
-; for Reel Loop Function
-
-; creates Delay Time dialog
-DelayDialog:
-	; create the Delay assignment dialog
-	Gui, 16:+ToolWindow
-	Gui, 16:Add, Text,, Seconds:
-	; delaychoice value (1-7) pre-selected, assigns delay (3-9 seconds)
-	Gui, 16:Add, DropDownList, Choose%delaychoice% R7 vdelay, 3|4|5|6|7|8|9
-	Gui, 16:Add, Button, w40 x10 y55 gDelayGo default, OK
-	Gui, 16:Add, Button, x65 y55 gDelayCancel, Cancel
-	Gui, 16:Show,, Delay Time
-Return
-
-; OK button function for delay assignment
-DelayGo:
-	; assign the delay variable value
-	Gui, 16:Submit
-		
-	; assign the delaychoice variable value
-	delaychoice := delay - 2
-	
-	; close the Folder Navigation GUI
-	Gui, 16:Destroy
-Return
-		
-; Cancel button function for delay assignment
-DelayCancel:
-	; close the Delay Time GUI
-	Gui, 16:Destroy
-		
-	; set the cancelbutton
-	cancelbutton = 1
-Return
-
-; delay timer window
-DelayTimer:
-	; assign the number of seconds
-	seconds = %delay%
-	
-	; create the timer GUI
-	WinGetPos, winX, winY, winWidth, winHeight, Metadata
-	winX+=%winWidth%
-	Gui, 8:+AlwaysOnTop
-	Gui, 8:+ToolWindow
-	Gui, 8:Font, cGreen s25 bold, Arial
-	Gui, 8:Add, GroupBox, x0 y-18 w50 h74,       
-	Gui, 8:Add, Text, x15 y8 w30 h35, %seconds%
-	Gui, 8:Show, x%winX% y%winY% h55 w50, Timer
-
-	; start the timer
-	Loop
-	{
-		; wait one second
-		Sleep, 1000
-		
-		; decrement the seconds
-		seconds--
-		
-		; update the display
-		ControlSetText, Static1, %seconds%, Timer
-		
-		; stop timer when it reaches 0
-		if (seconds == 0)
-		{
-			Gui, 8:Destroy
-			Break
-		}
-	}
-Return
-; ======DELAY TIMER
 
 ; ======REEL LOOP FUNCTION
 ; Reel Report & Metadata Viewer
@@ -587,7 +522,14 @@ ReelLoopFunction:
 			WinSet, Top,, Volume
 			WinSet, Top,, Issue
 			WinSet, Top,, Edition
-					
+
+			; get screen coordinates for Timer if first run
+			if (loopcount == 1)
+			{
+				WinGetPos, timerX, timerY, winWidth, winHeight, Metadata
+				timerX+=%winWidth%
+			}
+				
 			; create Delay Timer
 			Gosub, DelayTimer
 
@@ -620,7 +562,7 @@ ReelLoopFunction:
 					else
 					{
 						; add the note to the report
-						FileAppend, `tNote: %note%`n, %reportpath%\%reelnumber%-report.txt
+						FileAppend, `t%date%: %note%`n, %reportpath%\%reelnumber%-report.txt
 
 						; close the Questionable Date & Edition Label windows
 						Gui, 7:Destroy
@@ -803,202 +745,151 @@ ReelLoopFunction:
 Return
 ; ======REEL LOOP FUNCTION
 
-; ======DVV PAGES LOOP
-; loop to view individual pages in the DVV
-; Pause to pause/restart
-; hold down F1 to cancel
-DVVpages:
-	; delay time dialog
-	Gosub, DVVDelay
+; ======DELAY TIMER
+; Delay Time dialog
+DelayDialog:
+	Gui, 16:+ToolWindow
+	Gui, 16:Add, Text,, Seconds:
+	; delaychoice value (1-7) pre-selected, assigns delay (3-9 seconds)
+	Gui, 16:Add, DropDownList, Choose%delaychoice% R7 vdelay, 3|4|5|6|7|8|9
+	Gui, 16:Add, Button, w40 x10 y55 gDelayGo default, OK
+	Gui, 16:Add, Button, x65 y55 gDelayCancel, Cancel
 	
-	; wait for window to close
+	; position below the NDNP_QR window
 	SetTitleMatchMode 1
-	WinWaitActive, DVV Delay
-	WinWaitClose, DVV Delay
-	
-	if (cancelbutton == 1)
-	{
-		; reset cancelbutton
-		cancelbutton = 0
-		
-		; exit the script
-		Return
-	}
-	
-	; update last hotkey
-	ControlSetText, Static3, PAGES, NDNP_QR
-	ControlSetText, Static4, DVV Pages, NDNP_QR
-		
-	; initialize the page counter
-	pagecount = 0
-		
-	; initialize the mini-counter
-	; if the thumbs loop has been activated
-	if (thumbscount != 0)
-	{
-		count = 0
-		thumbscount = 0
-	}
-
-	; create the counter GUI
-	; this window may be closed without exiting the loop
-	Gui, 3:+AlwaysOnTop
-	Gui, 3:+ToolWindow
-	Gui, 3:Font, cGreen s25 bold, Arial
-	Gui, 3:Add, Text, x15 y3 w75 h35, 0
-	Gui, 3:Add, GroupBox, x0 y-19 w111 h65,
-	Gui, 3:Show, h45 w110, DVV_Pages
-
-	; set the loop to begin as paused
-	Pause, On
-
-	Loop
-	{
-		; open the next page
-		Send, {Down}
-		Send, {Enter}
-			
-		; update the scoreboard
-		count++
-		pagecount++
-		ControlSetText, Static1, %pagecount%, DVV_Pages
-		ControlSetText, Static15, %count%, NDNP_QR
-			
-		; delay for the specified time
-		Sleep, %dvvdelayms%
-			
-		; end the loop if F1 is held down
-		if getKeyState("F1")
-		break
-	}
-		
-	; close the counter window
-	Gui, 3:Destroy
-
-	; print exit message
-	MsgBox, 0, DVV Pages, The loop has ended.
-Return
-; ======DVV PAGES LOOP
-
-; ======DVV THUMBS LOOP
-; loop to view the issue thumbs in the DVV
-; Pause to pause/restart
-; hold down F1 to cancel
-DVVthumbs:
-	; delay time dialog
-	Gosub, DVVDelay
-	
-	; wait for window to close
-	SetTitleMatchMode 1
-	WinWaitActive, DVV Delay
-	WinWaitClose, DVV Delay
-	
-	if (cancelbutton == 1)
-	{
-		; reset cancelbutton
-		cancelbutton = 0
-		
-		; exit the script
-		Return
-	}
-
-	; update last hotkey
-	ControlSetText, Static3, THUMBS, NDNP_QR
-	ControlSetText, Static4, DVV Thumbs, NDNP_QR
-		
-	; initialize the thumbs counter
-	thumbscount = 0
-		
-	; initialize the mini-counter
-	; if the pages loop has been activated
-	if pagecount != 0
-	{
-		count = 0
-		pagecount = 0
-	}
-		
-	; create the counter GUI
-	; this window may be closed without exiting the loop
-	Gui, 3:+AlwaysOnTop
-	Gui, 3:+ToolWindow
-	Gui, 3:Font, cGreen s25 bold, Arial
-	Gui, 3:Add, Text, x15 y3 w75 h35, 0
-	Gui, 3:Add, GroupBox, x0 y-19 w111 h65,
-	Gui, 3:Show, h45 w110, DVV_Thumbs
-		
-	; start the loop as paused
-	Pause, On
-
-	Loop
-	{
-		; move to next issue
-		Send, {Down}
-		Sleep,100
-			
-		; close the issue tree
-		Send, {Left}
-		Sleep, 100
-			
-		; open the issue thumbs
-		Send, {AltDown}s{AltUp}
-			
-		; update scoreboard
-		count++
-		thumbscount++
-		ControlSetText, Static1, %thumbscount%, DVV_Thumbs
-		ControlSetText, Static15, %count%, NDNP_QR
-
-		; delay for the specified time
-		Sleep, %dvvdelayms%
-			
-		; end the loop if F1 is held down
-		if getKeyState("F1")
-		break
-	}
-		
-	; close the counter window
-	Gui, 3:Destroy
-	
-	; print exit message
-	MsgBox, 0, DVV Thumbs, The loop has ended.
-Return
-; ======DVV THUMBS LOOP
-
-; ======DVV DELAY DIALOG
-; create the GUI
-DVVDelay:
-	Gui, 17:+ToolWindow
-	Gui, 17:Add, Text,, Number seconds:
-	; navchoice value (1-11) pre-selected, assigns value (2-12) to dvvdelay
-	Gui, 17:Add, DropDownList, Choose%dvvdelaychoice% R11 vdvvdelay, 2|3|4|5|6|7|8|9|10|11|12
-	; run DVVDelayGo if OK
-	Gui, 17:Add, Button, w40 x10 y55 gDVVDelayGo default, OK
-	; run DVVDelayCancel if Cancel
-	Gui, 17:Add, Button, x65 y55 gDVVDelayCancel, Cancel
-	Gui, 17:Show,, DVV Delay
+	WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
+	winY+=%winHeight%
+	Gui, 16:Show, x%winX% y%winY%, Delay Time
 Return
 
-; OK button function
-DVVDelayGo:
-	; assign the dvvdelay variable value
-	Gui, 17:Submit
+; OK button function for delay assignment
+DelayGo:
+	; assign the delay variable value
+	Gui, 16:Submit
+		
+	; assign the delaychoice variable value
+	delaychoice := delay - 2
 	
-	; assign the dvvdelaychoice variable value
-	dvvdelaychoice := dvvdelay - 1
-	
-	; set the delay in milliseconds
-	dvvdelayms := dvvdelay * 1000
-	
-	; close the DVV Delay GUI
-	Gui, 17:Destroy
+	; close the Folder Navigation GUI
+	Gui, 16:Destroy
 Return
-
-; Cancel button function
-DVVDelayCancel:
-	; close the DVV Delay GUI
-	Gui, 17:Destroy
-	
-	; set the CancelButton
+		
+; Cancel button function for delay assignment
+DelayCancel:
+	; close the Delay Time GUI
+	Gui, 16:Destroy
+		
+	; set the cancelbutton
 	cancelbutton = 1
 Return
-; ======DVV DELAY DIALOG
+
+; delay timer window
+DelayTimer:
+	; assign the number of seconds
+	seconds = %delay%
+	
+	; create the timer GUI
+	Gui, 8:+AlwaysOnTop
+	Gui, 8:+ToolWindow
+	Gui, 8:Font, cGreen s25 bold, Arial
+	Gui, 8:Add, Text, x15 y8 w30 h35, %seconds%
+	Gui, 8:Font, cBlack s8 norm, Arial
+	Gui, 8:Add, Button, x5 y55 w40 gReelPause default, Pause
+	Gui, 8:Add, Button, x5 y85 w18 gDelayMinus, -
+	Gui, 8:Add, Button, x26 y85 gDelayPlus, +
+	Gui, 8:Show, x%timerX% y%timerY% h115 w50, Timer
+
+	; hide plus or minus if max or min delay time
+	if (seconds == 9)
+		GuiControl, 8:Hide, +
+	if (seconds == 3)
+		GuiControl, 8:Hide, -
+	
+	; start the timer
+	Loop
+	{
+		; pause button loop
+		if (ispaused == 1)
+		{
+			Loop
+			{
+				; check for unpause every half second
+				Sleep, 500
+				if (ispaused == 0)
+					break
+				}
+		}
+
+		; wait one second
+		Sleep, 1000
+		
+		; pause button loop
+		if (ispaused == 1)
+		{
+			Loop
+			{
+				; check for unpause every half second
+				Sleep, 500
+				if (ispaused == 0)
+					break
+			}
+		}
+
+		; decrement the seconds
+		seconds--
+		
+		; update the display
+		ControlSetText, Static1, %seconds%, Timer
+		
+		; stop timer when it reaches 0
+		if (seconds == 0)
+		{
+			; get window position for next run
+			WinGetPos, timerX, timerY,,, Timer
+			; close the window
+			Gui, 8:Destroy
+			Break
+		}
+	}
+Return
+
+; pause button function toggles Pause/Start
+ReelPause:
+	if (ispaused == 0)
+	{
+		GuiControl,, Pause, Start
+		ispaused = 1
+	}
+	else
+	{
+		GuiControl,, Start, Pause
+		ispaused = 0
+	}
+Return
+
+; increase the delay time
+DelayPlus:
+	; increment the delay value
+	delay++
+	
+	; ensure maximum of 9
+	if (delay > 9)
+		delay = 9
+		
+	; set the delaychoice value
+	delaychoice := delay - 2
+Return
+
+; decrease the delay time
+DelayMinus:
+	; decrement the delay value
+	delay--
+	
+	; ensure minimum of 3
+	if (delay < 3)
+		delay = 3
+		
+	; set the delaychoice value
+	delaychoice := delay - 2
+Return
+; ======DELAY TIMER
