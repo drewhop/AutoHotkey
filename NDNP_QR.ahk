@@ -83,8 +83,11 @@ delay = %delaydefault%
 delaychoice := delay - 2
 dvvdelay =
 dvvdelayms =
-dvvdelaychoice =
+dvvdelaychoice = 6
 cancelbutton = 0
+ispaused = 0
+metaloopname =
+dvvloopname =
 count = 0
 pagecount = 0
 thumbscount = 0
@@ -102,6 +105,8 @@ year =
 monthnameQ =
 dayQ =
 yearQ =
+timerX =
+timerY =
 issuefolderpath =
 issuefoldername =
 
@@ -160,7 +165,7 @@ Menu, FileMenu, Add, E&xit, Exit
 Menu, EditMenu, Add, &Folder Navigation, NavSkip
 Menu, EditMenu, Add
 Menu, ReelMenu, Add, &Set Path, EditReelFolder
-Menu, ReelMenu, Add, &Display Current, DisplayReelFolder
+Menu, ReelMenu, Add, &Display Current Reel, DisplayReelFolder
 Menu, EditMenu, Add, &Reel Folder, :ReelMenu
 Menu, EditMenu, Add
 Menu, DirMenu, Add, &Batch Drive, EditBatchDrive
@@ -194,7 +199,7 @@ Menu, SearchMenu, Add, ChronAm &Data, ChronAmData
 ; Help
 Menu, HelpMenu, Add, Online &Documentation, Documentation
 Menu, HelpMenu, Add, &NDNP Awardee Wiki, NDNPwiki
-Menu, HelpMenu, Add, &About, About
+Menu, HelpMenu, Add, &About NDNP_QR, About
 
 ; create menus
 Menu, MenuBar, Add, &File, :FileMenu
@@ -233,10 +238,11 @@ Gui, 1:Add, Text, x255 y130 w70 h20, EditXML ( w )
 
 ; Metadata window font and size
 Gui, 2:Font, s8, Arial
-Gui, 2:Add, Text, x40 y55  w100 h20, Volume:
-Gui, 2:Add, Text, x49 y80  w100 h20, Issue:
-Gui, 2:Add, Text, x44 y105 w100 h20, ? Date:
-Gui, 2:Add, Text, x45 y130 w100 h20, Pages:
+Gui, 2:Add, Text, x26 y20  w100 h20, Date:
+Gui, 2:Add, Text, x13 y45  w100 h20, Volume:
+Gui, 2:Add, Text, x22 y70  w100 h20, Issue:
+Gui, 2:Add, Text, x17 y95  w100 h20, ? Date:
+Gui, 2:Add, Text, x18 y120 w100 h20, Pages:
 ; =========================================LABELS
 
 ; =========================================DATA
@@ -261,12 +267,12 @@ Gui, 1:Add, Text, x265 y150 w45 h25, 0
 ; Metadata window data font
 Gui, 2:Font, cRed s12 bold, Arial
 
-; Metadata: Static 5-9
-Gui, 2:Add, Text, x55 y20  w90  h20,
-Gui, 2:Add, Text, x90 y55  w105 h20,
-Gui, 2:Add, Text, x90 y80  w105 h20,
-Gui, 2:Add, Text, x90 y105 w100 h20,
-Gui, 2:Add, Text, x90 y130 w100 h20,
+; Metadata: Static 6-10
+Gui, 2:Add, Text, x65 y20  w100 h20,
+Gui, 2:Add, Text, x65 y45  w130 h20,
+Gui, 2:Add, Text, x65 y70  w130 h20,
+Gui, 2:Add, Text, x65 y95  w100 h20,
+Gui, 2:Add, Text, x65 y120 w100 h20,
 ; =========================================DATA
 
 ; =========================================BOXES
@@ -290,13 +296,6 @@ Gui, 1:Add, GroupBox, x15  y135 w75 h45,
 Gui, 1:Add, GroupBox, x95  y135 w75 h45,           
 Gui, 1:Add, GroupBox, x175 y135 w75 h45,           
 Gui, 1:Add, GroupBox, x255 y135 w75 h45,           
-
-; Metadata decorative
-Gui, 2:Add, GroupBox, x0 y-8 w200 h169,       
-
-; Metadata date
-Gui, 2:Add, GroupBox, x40 y5 w120 h40,       
-Gui, 2:Add, GroupBox, x38 y3 w124 h44,       
 ; =========================================BOXES
 
 ; create main GUI
@@ -359,19 +358,19 @@ Pause::Pause
 ; =========================================MENU FUNCTIONS
 ; ======================TOOLS MENU
 ; REQUIRED FILE
-#Include NDNP_QR_tools.ahk
+#Include NDNP_QR_reeltools.ahk
 ;  BatchReport: creates a .TXT report of all issues in a batch
 ;  ReelReport: creates a .TXT report of all issues in a reel
 ;              while displaying images and metadata
 ;  MetaViewer: displays images and metadata for issues in a reel
 ;              provides option to record notes
-;  DelayDialog: Delay Time dialog
-;  DelayGo & Delay Cancel: button functions
-;  DelayTimer: timer window
 ;  ReelLoopFunction: primary function for ReelReport & MetaViewer
+;  DELAY TIMER: timer window functions
+
+#Include NDNP_QR_dvvtools.ahk
 ;  DVVpages & DVVthumbs: viewing loops for the DVV
-;  DVVDelay: delay dialog for DVV Loops
-;  DVVDelayGo & DVVDelayCancel: button functions
+;  DVV COUNTER BUTTONS: counter button functions
+;  DVV DELAY DIALOG: delay dialog functions
 ; ======================TOOLS MENU
 
 ; REQUIRED FILE ****************************************
@@ -422,7 +421,7 @@ Return
 
 ; display version info
 About:
-	MsgBox, 0, About, NDNP_QR.ahk`nVersion 1.9`nAndrew.Weidner@unt.edu
+	MsgBox, 0, About NDNP_QR, Quality Review utility for NDNP data.`n____________`nVersion 1.9`n(NDNP Listserv Pre-Release)`nAndrew.Weidner@unt.edu
 Return
 ; ======================HELP MENU
 ; =========================================MENU FUNCTIONS
