@@ -95,12 +95,12 @@ IssueFolderPath:
 	
 	; copy name of selected folder
 	Send, {F2}
-	Sleep, 100
+	Sleep, 200
 	Send, {CtrlDown}c{CtrlUp}
-	Sleep, 100
+	Sleep, 200
+	issuefoldername = %clipboard%
 	Send, {Enter}
 	Sleep, 100
-	issuefoldername = %clipboard%
 
 	; case for opened issue folder
 	SetTitleMatchMode RegEx
