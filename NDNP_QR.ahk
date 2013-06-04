@@ -64,8 +64,29 @@ DVVpathdefault = C:\dvv
 ; must be an integer in the range 3-9
 delaydefault = 6
 
+; EDIT THIS VARIABLE
+; for the language code report default
+languagecodedefault = spa
+
 ; documentation
 docURL = https://github.com/drewhop/AutoHotkey/wiki/NDNP_QR
+
+; STANDARD notes
+Ctrl1 = Date printed on front page: .
+Ctrl2 = Volume number printed on front page: .
+Ctrl3 = Issue number printed on front page: .
+Ctrl4 = Odd number of pages.
+Ctrl5 = Front page lists  pages.
+Ctrl6 = Check page order in DVV.
+Ctrl7 = Add edition label: .
+
+; USER-DEFINED notes
+Ctrl8 =
+Ctrl9 =
+Ctrl0 =
+value8 =
+value9 =
+value0 =
 
 ; system
 notepadpath = %notepadpathdefault%
@@ -110,6 +131,8 @@ timerX =
 timerY =
 issuefolderpath =
 issuefoldername =
+languagecode = %languagecodedefault%
+ocrterm =
 
 ; search
 LCCNstring = Enter an LCCN
@@ -165,6 +188,14 @@ Menu, FileMenu, Add, E&xit, Exit
 ; Edit
 Menu, EditMenu, Add, &Folder Navigation, NavSkip
 Menu, EditMenu, Add
+Menu, NoteMenu, Add, Ctrl + &8, Note8
+Menu, NoteMenu, Add, Ctrl + &9, Note9
+Menu, NoteMenu, Add, Ctrl + &0, Note0
+Menu, NoteMenu, Add
+Menu, NoteMenu, Add, Display &Standard Notes, DisplayStandardNotes
+Menu, NoteMenu, Add, Display &User-Defined Notes, DisplayUserNotes
+Menu, EditMenu, Add, &Note Hotkeys, :NoteMenu
+Menu, EditMenu, Add
 Menu, ReelMenu, Add, &Set Path, EditReelFolder
 Menu, ReelMenu, Add, &Display Current Reel, DisplayReelFolder
 Menu, EditMenu, Add, &Reel Folder, :ReelMenu
@@ -187,7 +218,11 @@ Menu, DVVMenu, Add, DVV &Pages, DVVpages
 Menu, DVVMenu, Add, DVV &Thumbs, DVVthumbs
 Menu, DVVMenu, Add
 Menu, DVVMenu, Add, Set &Delay, DVVDelay
-Menu, ToolsMenu, Add, DVV Loops, :DVVMenu
+Menu, ToolsMenu, Add, DVV &Loops, :DVVMenu
+Menu, ToolsMenu, Add
+Menu, OCRMenu, Add, &Language Codes, LanguageCodeReport
+Menu, OCRMenu, Add, OCR &Search, OCRSearch
+Menu, ToolsMenu, Add, &OCR Reports, :OCRMenu
 
 ; Search
 Menu, SearchMenu, Add, &US Directory Search, DirectorySearch
@@ -370,6 +405,7 @@ Pause::Pause
 
 #Include NDNP_QR_dvvloops.ahk
 ;  DVVpages & DVVthumbs: viewing loops for the DVV
+;  DVVnotes: notes function for the viewing loops
 ;  DVV COUNTER BUTTONS: counter button functions
 ;  DVV DELAY DIALOG: delay dialog functions
 ; ======================TOOLS MENU
