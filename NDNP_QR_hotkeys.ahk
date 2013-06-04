@@ -926,3 +926,65 @@ Return
 	ControlSetText, Static14, %hotkeys%, NDNP_QR
 Return
 ; =============================BACK
+
+; =============================TOGGLE TIMER
+; toggles between Timer and First Impression windows
+
+; =============================TOGGLE TIMER
+
+; =============================REEL NOTES
+; date (Ctrl + 1)
+^1::
+	Send, %Ctrl1%
+	Send, {Left}
+Return
+
+; volume number (Ctrl + 2)
+^2::
+	Send, %Ctrl2%
+	Send, {Left}
+Return
+
+; issue number (Ctrl + 3)
+^3::
+	Send, %Ctrl3%
+	Send, {Left}
+Return
+
+; odd number of pages (Ctrl + 4)
+^4::
+	Send, %Ctrl4%
+Return
+
+; front page lists X pages (Ctrl + 5)
+^5::
+	Send, %Ctrl5%
+	Send, {Left 7}
+Return
+
+; check page order (Ctrl + 6)
+^6::
+	Send, %Ctrl6%
+Return
+
+; add edition label (Ctrl + 7)
+^7::
+	Send, %Ctrl7%
+	Send, {Left}
+Return
+
+; user-defined (Ctrl + 8)
+^8::
+	Send, %Ctrl8%
+Return
+
+; user-defined (Ctrl + 9)
+^9::
+	Send, %Ctrl9%
+Return
+
+; user-defined (Ctrl + 0)
+^0::
+	Send, %Ctrl0%
+Return
+; =============================REEL NOTES
