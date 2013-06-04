@@ -83,8 +83,8 @@ ResetReel:
 
 	; activate current reel folder if it exists
 	SetTitleMatchMode 1
-	IfWinExist, %reelfoldername%
-		WinActivate, %reelfoldername%
+	IfWinExist, %reelfoldername%,,report
+		WinActivate, %reelfoldername%,,,report
 
 	; otherwise open the reel folder
 	else
@@ -92,7 +92,7 @@ ResetReel:
 		Run, %reelfolderpath%
 		
 		; wait for the folder to load
-		WinWaitActive, %reelfoldername%
+		WinWaitActive, %reelfoldername%,,,report
 		
 		; select first issue
 		Send, {Down}
@@ -190,12 +190,12 @@ GoToIssue:
 					
 				; activate reel folder
 				SetTitleMatchMode 1
-				WinActivate, %reelfoldername%, , , ,
-				WinWaitActive, %reelfoldername%, , 5, ,
+				WinActivate, %reelfoldername%, , , report,
+				WinWaitActive, %reelfoldername%, , 5, report,
 				if ErrorLevel
 				{
 					; print error message after 5 seconds
-					MsgBox, 0, Error, GoToIssue`nNDNP_QR_navigation.ahk`n`nCannot find folder %reelfoldername%`n`nNew Folder:`n`n`t"File > Open Reel Folder"`n`nExisting Folder:`n`n`t"Edit > Reel Folder > Select"
+					MsgBox, 0, Error, GoToIssue`nNDNP_QR_navigation.ahk`n`nCannot find window: %reelfoldername%`n`nNew Window:`n`n`t"File > Open Reel Folder"`n`nExisting Window:`n`n`t"Edit > Reel Folder > Set Path"
 						
 					; exit the script
 					Exit
@@ -249,7 +249,7 @@ IssueToReel:
   
 	; wait for the reel folder
 	SetTitleMatchMode 1
-	WinWaitActive, %reelfoldername%, , , ,
+	WinWaitActive, %reelfoldername%, , , report,
 	Sleep, 100
 Return
 ; ======================ISSUE TO REEL
