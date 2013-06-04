@@ -341,10 +341,19 @@ ReelLoopFunction:
 		foldernamepos++
 		StringTrimLeft, reelnumber, reelfolderpath, foldernamepos
 
+		; create report divider
+		divider =
+		StringLen, length, reelfolderpath
+		length++
+		Loop, %length%
+		{
+			divider .= "-"
+		}
+		
 		if (reelreportflag == 1)
 		{
 			; create the report file
-			FileAppend, --------------------------------------`n%reelfolderpath%`n`nPages`tDate`t`tVolume`tIssue`n`n, %reportpath%\%reelnumber%-report.txt
+			FileAppend, %divider%`n%reelfolderpath%`n`nPages`tDate`t`tVolume`tIssue`n`n, %reportpath%\%reelnumber%-report.txt
 		}
 			
 		; create a variable for the batch folder path
@@ -402,11 +411,11 @@ ReelLoopFunction:
 				Gui, 9:Destroy
 
 				; clear the Metadata window
-				ControlSetText, Static5,, Metadata
 				ControlSetText, Static6,, Metadata
 				ControlSetText, Static7,, Metadata		
 				ControlSetText, Static8,, Metadata		
 				ControlSetText, Static9,, Metadata
+				ControlSetText, Static10,, Metadata
 				
 				; Reel Report
 				if (reelreportflag == 1)
@@ -565,7 +574,7 @@ ReelLoopFunction:
 						if (note != "")
 						{
 							; add the note to the report
-							FileAppend, `t%date%: %note%`n, %reportpath%\%reelnumber%-report.txt
+							FileAppend, %date%: %note%`n, %reportpath%\%reelnumber%-report.txt
 						}
 						
 						; close the Questionable Date & Edition Label windows
@@ -905,3 +914,511 @@ DelayMinus:
 	delaychoice := delay - 2
 Return
 ; ======DELAY TIMER
+
+; ======LANGUAGE CODE REPORT
+EditLanguageCode:
+	; determine the language setting
+	if (languagecode == "eng")
+		languagechoice = 1
+	else if (languagecode == "fre")
+		languagechoice = 2
+	else if (languagecode == "ger")
+		languagechoice = 3
+	else if (languagecode == "ita")
+		languagechoice = 4
+	else if (languagecode == "spa")
+		languagechoice = 5
+
+	Gui, 18:+ToolWindow
+	Gui, 18:Add, Text,, Choose a code:
+	Gui, 18:Add, DropDownList, Choose%languagechoice% R5 vlanguagecode, eng|fre|ger|ita|spa
+	Gui, 18:Add, Button, w40 x10 y55 gLanguageGo default, OK
+	Gui, 18:Add, Button, x65 y55 gLanguageCancel, Cancel
+	
+	; position below the NDNP_QR window
+	SetTitleMatchMode 1
+	WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
+	winY+=%winHeight%
+	Gui, 18:Show, x%winX% y%winY%, Language Code
+Return
+
+; OK button function
+LanguageGo:
+	; assign the language code
+	Gui, 18:Submit
+			
+	; close the GUI
+	Gui, 18:Destroy
+Return
+		
+; Cancel button function
+LanguageCancel:
+	; close the GUI
+	Gui, 18:Destroy
+		
+	; set the cancelbutton
+	cancelbutton = 1
+Return
+
+LanguageCodeReport:
+	; update last hotkey
+	ControlSetText, Static3, LANGUAGE, NDNP_QR
+ 
+	Gosub, EditLanguageCode
+	
+	; wait until Language Code window is closed
+	SetTitleMatchMode 1
+	WinWaitActive, Language Code
+	WinWaitClose, Language Code
+
+	if (cancelbutton == 1)
+	{
+		; reset cancelbutton
+		cancelbutton = 0
+			
+		; exit the script
+		Return
+	}
+	
+	; create dialog to select a reel folder
+	FileSelectFolder, reelfolderpath, %batchdrive%, 2, `nSelect a REEL folder:
+	if ErrorLevel
+		Return
+	else
+	{
+		; loop to check for a valid reel folder
+		Loop
+		{
+			; create display variables for reel folder path
+			StringGetPos, reelfolderpos, reelfolderpath, \, R2
+			StringLeft, reelfolder1, reelfolderpath, reelfolderpos
+			StringTrimLeft, reelfolder2, reelfolderpath, reelfolderpos
+
+			; assign the new reel folder name
+			StringGetPos, foldernamepos, reelfolderpath, \, R1
+			foldernamepos++
+			StringTrimLeft, reelfoldername, reelfolderpath, foldernamepos
+			
+			; check to see if it is a reel folder
+			StringLen, length, reelfoldername
+			if (length != 11)
+			{		
+				; print error message
+				MsgBox, 0, Language Code Report, %reelfoldername% does not appear to be a REEL folder.`n`n`tClick OK to continue.
+
+				; reset the variables
+				reelfolderpath = _
+				reelfoldername = _
+
+				; create dialog to select a reel folder
+				FileSelectFolder, reelfolderpath, %batchdrive%, 2, `nSelect a REEL folder:
+				if ErrorLevel
+					Return
+				else Continue
+			}
+				
+			else Break
+		}
+	
+		; create notification window
+		Gui, 19:+ToolWindow
+		Gui, 19:Add, Text,, Processing:  %reelfoldername%-%languagecode%-report.txt
+		Gui, 19:Add, Text,, Please wait . . .
+
+		; position in upper left corner of the NDNP_QR window
+		SetTitleMatchMode 1
+		WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
+		Gui, 19:Show, x%winX% y%winY%, Language Code Report
+	
+		; store the start time
+		start = %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec% 
+
+		; create a variable for the report path (LCCN folder)
+		StringGetPos, foldernamepos, reelfolderpath, \, R1
+		StringLeft, reportpath, reelfolderpath, foldernamepos
+
+		; extract reel number from path
+		foldernamepos++
+		StringTrimLeft, reelnumber, reelfolderpath, foldernamepos
+
+		; create report divider
+		divider =
+		StringLen, length, reelfolderpath
+		length++
+		Loop, %length%
+		{
+			divider .= "-"
+		}
+
+		; create the report file
+		FileAppend, %divider%`n%reelfolderpath%`n`n, %reportpath%\%reelnumber%-%languagecode%-report.txt
+			
+		; create a variable for the batch folder path
+		StringGetPos, batchpathpos, reelfolderpath, \, R2
+		StringLeft, batchfolderpath, reelfolderpath, batchpathpos
+			
+		; read in the batch.xml file to the batchxml variable
+		FileRead, batchxml, %batchfolderpath%\batch.xml
+
+		; loop to parse the batchxml and store issue paths for the reel
+		Loop, parse, batchxml, `n, `r%A_Space%%A_Tab%
+		{
+			; if the line contains the reel number
+			IfInString, A_LoopField, %reelnumber%
+			{
+				; trim the <issue> line before the file path
+				StringTrimLeft, rawissuefolderpath, A_LoopField, 66
+				
+				; remove the </issue> tag and issue.xml file name
+				StringTrimRight, issuefolderpath, rawissuefolderpath, 23
+
+				; check to see that it was an <issue> line
+				StringLen, length, issuefolderpath
+				if (length > 20)
+				{
+					; append issue folder path to issuefile
+					issuefile .= issuefolderpath
+					
+					; append new line to issuefile
+					issuefile .= "`n"
+				}
+			}
+		}
+			
+		; sort the issuefile variable
+		Sort, issuefile
+
+		; initialize the total codes counters
+		totalcodes = 0
+		issuecodes = 0
+		
+		; *******************************
+		; loop through sorted issuefile
+		; *******************************
+		Loop, parse, issuefile, `n
+		{
+			; *************************************************
+			; AUTO EXIT if issuefile is empty
+			if A_LoopField =
+			{
+				; add the issue count to the report
+				FileAppend, `n___________________________`n`n, %reportpath%\%reelnumber%-%languagecode%-report.txt
+				FileAppend, Reel: %reelnumber%`nCode: %languagecode%`n`nIssues: %issuecount%`nBlocks: %totalcodes%, %reportpath%\%reelnumber%-%languagecode%-report.txt
+
+				; print the start and end times
+				FileAppend, `n`nSTART: %start%, %reportpath%\%reelnumber%-%languagecode%-report.txt
+				FileAppend, `n  END: %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`n, %reportpath%\%reelnumber%-%languagecode%-report.txt
+
+				; close the notification window
+				Gui, 19:Destroy
+				
+				; create a message box to indicate that the script ended
+				MsgBox, 4, Language Code Report, Reel: %reelnumber%`nCode: %languagecode%`n`nIssues: %issuecount%`nCodes: %totalcodes%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`nThe report is complete. Would you like to open it?
+				IfMsgBox, Yes
+					; open the report if Yes
+					Run, %reportpath%\%reelnumber%-%languagecode%-report.txt
+
+				;exit the script
+				return
+			}
+			; *************************************************
+
+			; get the issue date
+			StringRight, issuedate, A_LoopField, 10
+			Sleep, 100	
+
+			; create issue folder path variable for page count
+			issuefolderpath = %batchfolderpath%\%A_LoopField%
+
+			; initialize the ALTOxml and issueresults variable and page code counters
+			ALTOxml =
+			issueresults =
+			codecount = 0
+			issuecodes = 0
+			
+			; loop to find and parse the ALTO XML files
+			Loop, %issuefolderpath%\*.xml
+			{
+				; initialize the code counter
+				codecount = 0
+				
+				; check to see that the file is an ALTOxml
+				StringLen, length, A_LoopFileName
+				if (length < 11)
+				{
+					; read in the file to the ALTOxml variable
+					FileRead, ALTOxml, %issuefolderpath%\%A_LoopFileName%
+					
+					; loop to parse the textblocks
+					Loop, parse, ALTOxml, >, %A_Space%%A_Tab%
+					{
+						; if the substring contains the language code
+						IfInString, A_LoopField, language="%languagecode%"
+						{
+							codecount++
+						}
+					}				
+
+					; add line to issueresults if code found
+					if (codecount > 0)
+					{
+						issueresults .= A_LoopFileName
+						issueresults .= "`t"
+						issueresults .= codecount
+						issueresults .= "`n"
+					}
+
+					; add the code count to the totals
+					issuecodes += codecount
+					totalcodes += codecount
+				}
+			}
+
+			; create issue entry in report if results found
+			if (issuecodes > 0)
+			{
+				; add the issue date to the report
+				FileAppend, ____________________`n`n, %reportpath%\%reelnumber%-%languagecode%-report.txt			
+				FileAppend, %issuedate%`n`n, %reportpath%\%reelnumber%-%languagecode%-report.txt			
+
+				; add the results to the report
+				FileAppend, %issueresults%, %reportpath%\%reelnumber%-%languagecode%-report.txt
+				
+				; add the issue total to the report
+				FileAppend, `n`t Total: %issuecodes%`n, %reportpath%\%reelnumber%-%languagecode%-report.txt				
+							
+				; update the issue count
+				issuecount++
+			}
+		}
+	}
+Return
+; ======LANGUAGE CODE REPORT
+
+; ======OCR SEARCH
+OCRSearch:
+	; update last hotkey
+	ControlSetText, Static3, OCR, NDNP_QR
+ 
+	WinGetPos, winX, winY, winWidth, winHeight, Metadata
+	winX+=%winWidth%
+	InputBox, ocrterm, OCR Search, Enter a search term:,, 250, 120, %winX%, %winY%,,, %ocrterm%
+	if ErrorLevel
+		Return
+	else
+	{
+		; create dialog to select a reel folder
+		FileSelectFolder, reelfolderpath, %batchdrive%, 2, `nSelect a REEL folder:
+		if ErrorLevel
+			Return
+		else
+		{
+			; loop to check for a valid reel folder
+			Loop
+			{
+				; create display variables for reel folder path
+				StringGetPos, reelfolderpos, reelfolderpath, \, R2
+				StringLeft, reelfolder1, reelfolderpath, reelfolderpos
+				StringTrimLeft, reelfolder2, reelfolderpath, reelfolderpos
+
+				; assign the new reel folder name
+				StringGetPos, foldernamepos, reelfolderpath, \, R1
+				foldernamepos++
+				StringTrimLeft, reelfoldername, reelfolderpath, foldernamepos
+				
+				; check to see if it is a reel folder
+				StringLen, length, reelfoldername
+				if (length != 11)
+				{		
+					; print error message
+					MsgBox, 0, Language Code Report, %reelfoldername% does not appear to be a REEL folder.`n`n`tClick OK to continue.
+
+					; reset the variables
+					reelfolderpath = _
+					reelfoldername = _
+
+					; create dialog to select a reel folder
+					FileSelectFolder, reelfolderpath, %batchdrive%, 2, `nSelect a REEL folder:
+					if ErrorLevel
+						Return
+					else Continue
+				}
+					
+				else Break
+			}
+		
+			; create notification window
+			Gui, 20:+ToolWindow
+			Gui, 20:Add, Text,, Processing:  %reelfoldername%-%ocrterm%-report.txt
+			Gui, 20:Add, Text,, Please wait . . .
+
+			; position in upper left corner of the NDNP_QR window
+			SetTitleMatchMode 1
+			WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
+			Gui, 20:Show, x%winX% y%winY%, OCR Search
+		
+			; store the start time
+			start = %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec% 
+
+			; create a variable for the report path (LCCN folder)
+			StringGetPos, foldernamepos, reelfolderpath, \, R1
+			StringLeft, reportpath, reelfolderpath, foldernamepos
+
+			; extract reel number from path
+			foldernamepos++
+			StringTrimLeft, reelnumber, reelfolderpath, foldernamepos
+
+			; create report divider
+			divider =
+			StringLen, length, reelfolderpath
+			length++
+			Loop, %length%
+			{
+				divider .= "-"
+			}
+
+			; create the report file
+			FileAppend, %divider%`n%reelfolderpath%`n`n, %reportpath%\%reelnumber%-%ocrterm%-report.txt
+				
+			; create a variable for the batch folder path
+			StringGetPos, batchpathpos, reelfolderpath, \, R2
+			StringLeft, batchfolderpath, reelfolderpath, batchpathpos
+				
+			; read in the batch.xml file to the batchxml variable
+			FileRead, batchxml, %batchfolderpath%\batch.xml
+
+			; loop to parse the batchxml and store issue paths for the reel
+			Loop, parse, batchxml, `n, `r%A_Space%%A_Tab%
+			{
+				; if the line contains the reel number
+				IfInString, A_LoopField, %reelnumber%
+				{
+					; trim the <issue> line before the file path
+					StringTrimLeft, rawissuefolderpath, A_LoopField, 66
+					
+					; remove the </issue> tag and issue.xml file name
+					StringTrimRight, issuefolderpath, rawissuefolderpath, 23
+
+					; check to see that it was an <issue> line
+					StringLen, length, issuefolderpath
+					if (length > 20)
+					{
+						; append issue folder path to issuefile
+						issuefile .= issuefolderpath
+						
+						; append new line to issuefile
+						issuefile .= "`n"
+					}
+				}
+			}
+				
+			; sort the issuefile variable
+			Sort, issuefile
+
+			; initialize the total codes counters
+			totalterms = 0
+			issueterms = 0
+			
+			; *******************************
+			; loop through sorted issuefile
+			; *******************************
+			Loop, parse, issuefile, `n
+			{
+				; *************************************************
+				; AUTO EXIT if issuefile is empty
+				if A_LoopField =
+				{
+					; add the issue count to the report
+					FileAppend, `n___________________________`n`n, %reportpath%\%reelnumber%-%ocrterm%-report.txt
+					FileAppend, Reel: %reelnumber%`nTerm: %ocrterm%`n`nIssues: %issuecount%`n  Hits: %totalterms%, %reportpath%\%reelnumber%-%ocrterm%-report.txt
+
+					; print the start and end times
+					FileAppend, `n`nSTART: %start%, %reportpath%\%reelnumber%-%ocrterm%-report.txt
+					FileAppend, `n  END: %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`n, %reportpath%\%reelnumber%-%ocrterm%-report.txt
+
+					; close the notification window
+					Gui, 20:Destroy
+					
+					; create a message box to indicate that the script ended
+					MsgBox, 4, OCR Search, Reel: %reelnumber%`Term: %ocrterm%`n`nIssues: %issuecount%`nHits: %totalterms%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`nThe report is complete. Would you like to open it?
+					IfMsgBox, Yes
+						; open the report if Yes
+						Run, %reportpath%\%reelnumber%-%ocrterm%-report.txt
+
+					;exit the script
+					return
+				}
+				; *************************************************
+
+				; get the issue date
+				StringRight, issuedate, A_LoopField, 10
+				Sleep, 100	
+
+				; create issue folder path variable for page count
+				issuefolderpath = %batchfolderpath%\%A_LoopField%
+
+				; initialize the ALTOxml and issueresults variable and page code counters
+				ALTOxml =
+				issueresults =
+				termcount = 0
+				issueterms = 0
+				
+				; loop to find and parse the ALTO XML files
+				Loop, %issuefolderpath%\*.xml
+				{
+					; initialize the code counter
+					termcount = 0
+					
+					; check to see that the file is an ALTOxml
+					StringLen, length, A_LoopFileName
+					if (length < 11)
+					{
+						; read in the file to the ALTOxml variable
+						FileRead, ALTOxml, %issuefolderpath%\%A_LoopFileName%
+						
+						; loop to parse the textblocks
+						Loop, parse, ALTOxml, >, %A_Space%%A_Tab%
+						{
+							; if the substring contains the language code
+							IfInString, A_LoopField, %ocrterm%
+							{
+								termcount++
+							}
+						}				
+
+						; add line to issueresults if code found
+						if (termcount > 0)
+						{
+							issueresults .= A_LoopFileName
+							issueresults .= "`t"
+							issueresults .= termcount
+							issueresults .= "`n"
+						}
+
+						; add the code count to the totals
+						issueterms += termcount
+						totalterms += termcount
+					}
+				}
+
+				; create issue entry in report if results found
+				if (issueterms > 0)
+				{
+					; add the issue date to the report
+					FileAppend, ____________________`n`n, %reportpath%\%reelnumber%-%ocrterm%-report.txt			
+					FileAppend, %issuedate%`n`n, %reportpath%\%reelnumber%-%ocrterm%-report.txt			
+
+					; add the results to the report
+					FileAppend, %issueresults%, %reportpath%\%reelnumber%-%ocrterm%-report.txt
+					
+					; add the issue total to the report
+					FileAppend, `n`t Total: %issueterms%`n, %reportpath%\%reelnumber%-%ocrterm%-report.txt				
+								
+					; update the issue count
+					issuecount++
+				}
+			}
+		}
+	}
+Return
+; ======OCR SEARCH
