@@ -13,7 +13,7 @@ IssueFolderPath:
 
 	; activate reel folder
 	SetTitleMatchMode 1
-	WinActivate, %reelfoldername%, , , ,
+	WinActivate, %reelfoldername%, , , report,
 	WinWaitActive, %reelfoldername%, , 5, ,
 	if ErrorLevel
 	{
