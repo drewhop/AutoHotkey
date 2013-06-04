@@ -18,8 +18,8 @@ OpenReel:
 	
 	; close the current reel folder
 	SetTitleMatchMode 1
-	IfWinExist, %reelfoldername%
-		WinClose, %reelfoldername%
+	IfWinExist, %reelfoldername%,, %reelfoldername%-
+		WinClose, %reelfoldername%,,, %reelfoldername%-
 		
 	; create display variables for reel folder path
 	StringGetPos, reelfolderpos, reelfolderpath, \, R2
@@ -73,7 +73,7 @@ OpenReel:
 		
 	; wait for the window to load
 	SetTitleMatchMode 1
-	WinWaitActive, %reelfoldername%
+	WinWaitActive, %reelfoldername%,,, %reelfoldername%-
 	Sleep, 100
 		
 	; select the first issue
@@ -167,6 +167,69 @@ NavSkipCancel:
 	Gui, 12:Destroy
 Return
 ; =======FOLDER NAVIGATION
+
+; =======NOTE HOTKEYS
+; Ctrl8 input
+Note8:
+InputBox, input, Ctrl 8, Enter the value for Ctrl + 8,, 250, 125,,,,,%Ctrl8%
+	if ErrorLevel
+		Return
+	else
+		Ctrl8 = %input%
+Return
+
+; Ctrl9 input
+Note9:
+InputBox, input, Ctrl 9, Enter the value for Ctrl + 9,, 250, 125,,,,,%Ctrl9%
+	if ErrorLevel
+		Return
+	else
+		Ctrl9 = %input%
+Return
+
+; Ctrl0 input
+Note0:
+InputBox, input, Ctrl 0, Enter the value for Ctrl + 0,, 250, 125,,,,,%Ctrl0%
+	if ErrorLevel
+		Return
+	else
+		Ctrl0 = %input%
+Return
+
+DisplayStandardNotes:
+MsgBox,
+(
+STANDARD NOTES
+
+Ctrl + 1 = %Ctrl1%
+
+Ctrl + 2 = %Ctrl2%
+
+Ctrl + 3 = %Ctrl3%
+
+Ctrl + 4 = %Ctrl4%
+
+Ctrl + 5 = %Ctrl5%
+
+Ctrl + 6 = %Ctrl6%
+
+Ctrl + 7 = %Ctrl7%
+)
+Return
+
+DisplayUserNotes:
+MsgBox,
+(
+USER-DEFINED NOTES
+
+Ctrl + 8 = %Ctrl8%
+
+Ctrl + 9 = %Ctrl9%
+
+Ctrl + 0 = %Ctrl0%
+)
+Return
+; =======NOTE HOTKEYS
 
 ; =======REEL FOLDER
 EditReelFolder:
