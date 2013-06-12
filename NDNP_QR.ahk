@@ -77,7 +77,7 @@ Ctrl2 = Volume number printed on front page: .
 Ctrl3 = Issue number printed on front page: .
 Ctrl4 = Odd number of pages.
 Ctrl5 = Front page lists  pages.
-Ctrl6 = Check page order in DVV.
+Ctrl6 = Add section label: .
 Ctrl7 = Add edition label: .
 
 ; USER-DEFINED notes
