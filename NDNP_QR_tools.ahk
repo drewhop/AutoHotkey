@@ -1056,6 +1056,9 @@ LanguageCodeReport:
 		; initialize the issuefile variable
 		issuefile =
 			
+		; initialize the issuecount variable
+		issuecount =
+			
 		; create a variable for the batch folder path
 		StringGetPos, batchpathpos, reelfolderpath, \, R2
 		StringLeft, batchfolderpath, reelfolderpath, batchpathpos
@@ -1286,6 +1289,9 @@ OCRSearch:
 			; initialize the issuefile variable
 			issuefile =
 			
+			; initialize the issuecount variable
+			issuecount =
+				
 			; create a variable for the batch folder path
 			StringGetPos, batchpathpos, reelfolderpath, \, R2
 			StringLeft, batchfolderpath, reelfolderpath, batchpathpos
