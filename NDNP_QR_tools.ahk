@@ -1280,6 +1280,9 @@ OCRSearch:
 			; create the report file
 			FileAppend, %divider%`n%reelfolderpath%`n`n, %reportpath%\%reelnumber%-%ocrterm%-report.txt
 				
+			; initialize the issuefile variable
+			issuefile =
+			
 			; create a variable for the batch folder path
 			StringGetPos, batchpathpos, reelfolderpath, \, R2
 			StringLeft, batchfolderpath, reelfolderpath, batchpathpos
