@@ -962,9 +962,10 @@ Return
 	Send, {Left 7}
 Return
 
-; check page order (Ctrl + 6)
+; add section label (Ctrl + 6)
 ^6::
 	Send, %Ctrl6%
+	Send, {Left}
 Return
 
 ; add edition label (Ctrl + 7)
