@@ -1416,6 +1416,9 @@ OCRSearch:
 								
 					; update the issue count
 					issuecount++
+					
+					; reset the issueterms variable
+					issueterms = 0
 				}
 			}
 		}
