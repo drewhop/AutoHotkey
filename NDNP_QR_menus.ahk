@@ -402,7 +402,7 @@ DirectoryLCCN:
 	if ErrorLevel
 		Return
 	else
-		Run, http://chroniclingamerica.loc.gov/search/titles/results/?state=&county=&city=&year1=1690&year2=2013&terms=&frequency=&language=&ethnicity=&labor=&material_type=&lccn=%LCCNstring%&rows=20
+		Run, http://chroniclingamerica.loc.gov/lccn/%LCCNstring%
 Return
 ; =======DIRECTORY LCCN
 
