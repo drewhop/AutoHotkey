@@ -458,7 +458,7 @@ Return
 
 ; display version info
 About:
-	MsgBox, 0, About NDNP_QR, Quality Review utility for NDNP data.`n____________`nVersion 1.9`n(NDNP Listserv Pre-Release)`nAndrew.Weidner@unt.edu
+	MsgBox, 0, About NDNP_QR, Quality Review utility for NDNP data.`n_____________________________`nVersion 2.0   (June 2013)`nAndrew.Weidner@unt.edu
 Return
 ; ======================HELP MENU
 ; =========================================MENU FUNCTIONS
