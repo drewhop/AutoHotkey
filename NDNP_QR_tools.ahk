@@ -1412,7 +1412,7 @@ OCRSearch:
 						; loop to parse the textblocks
 						Loop, parse, ALTOxml, >, %A_Space%%A_Tab%
 						{
-							; if the substring contains the language code
+							; if the substring contains the search term
 							IfInString, A_LoopField, %ocrterm%
 							{
 								termcount++
