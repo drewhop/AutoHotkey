@@ -360,7 +360,7 @@ ReelLoopFunction:
 		if (reelreportflag == 1)
 		{
 			; create the report file
-			FileAppend, %divider%`n%reelfolderpath%`n`nPages`tDate`t`tVolume`tIssue`n`n, %reportpath%\%reelnumber%-report.txt
+			FileAppend, %divider%`n%reelfolderpath%`n`nPages`tDate`t`tVolume`tIssue`n`n, %reportpath%\%lccn%-%reelnumber%-report.txt
 		}
 			
 		; create a variable for the batch folder path
@@ -434,17 +434,17 @@ ReelLoopFunction:
 				if (reelreportflag == 1)
 				{
 					; add the issue count to the report
-					FileAppend, `nIssues: %loopcount%`n Pages: %totalpages%, %reportpath%\%reelnumber%-report.txt
+					FileAppend, `nIssues: %loopcount%`n Pages: %totalpages%, %reportpath%\%lccn%-%reelnumber%-report.txt
 
 					; print the start and end times
-					FileAppend, `n`nSTART: %start%, %reportpath%\%reelnumber%-report.txt
-					FileAppend, `n  END: %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`n, %reportpath%\%reelnumber%-report.txt
+					FileAppend, `n`nSTART: %start%, %reportpath%\%lccn%-%reelnumber%-report.txt
+					FileAppend, `n  END: %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`n, %reportpath%\%lccn%-%reelnumber%-report.txt
 
 					; create a message box to indicate that the script ended
-					MsgBox, 4, Reel Report, Reel: %reelnumber%`n`nIssues: %loopcount%`nPages: %totalpages%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`nThe report is complete. Would you like to open it?
+					MsgBox, 4, Reel Report, LCCN: %lccn%`nReel: %reelnumber%`n`nIssues: %loopcount%`nPages: %totalpages%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`nThe report is complete. Would you like to open it?
 					IfMsgBox, Yes
 						; open the report if Yes
-						Run, %reportpath%\%reelnumber%-report.txt
+						Run, %reportpath%\%lccn%-%reelnumber%-report.txt
 
 					; reset the report flag
 					reelreportflag = 0
@@ -457,14 +457,14 @@ ReelLoopFunction:
 				else if (notecount > 0)
 				{
 					; print the start and end times
-					FileAppend, `nSTART: %start%, %reportpath%\%reelnumber%-notes.txt
-					FileAppend, `n  END: %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`n, %reportpath%\%reelnumber%-notes.txt
+					FileAppend, `nSTART: %start%, %reportpath%\%lccn%-%reelnumber%-notes.txt
+					FileAppend, `n  END: %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`n, %reportpath%\%lccn%-%reelnumber%-notes.txt
 
 					; create a message box to indicate that the script ended
-					MsgBox, 4, Metadata Viewer, Reel: %reelnumber%`n`nIssues: %loopcount%`nPages: %totalpages%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`nYou added %notecount% notes. Would you like to open the Notes file?
+					MsgBox, 4, Metadata Viewer, LCCN: %lccn%`nReel: %reelnumber%`n`nIssues: %loopcount%`nPages: %totalpages%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`nYou added %notecount% notes. Would you like to open the Notes file?
 					IfMsgBox, Yes
 						; open the notes file if Yes
-						Run, %reportpath%\%reelnumber%-notes.txt
+						Run, %reportpath%\%lccn%-%reelnumber%-notes.txt
 
 					;exit the script
 					return						
@@ -474,7 +474,7 @@ ReelLoopFunction:
 				else
 				{
 					; create a message box to indicate that the script ended
-					MsgBox, 0, Metadata Viewer, Reel: %reelnumber%`n`nIssues: %loopcount%`nPages: %totalpages%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%
+					MsgBox, 0, Metadata Viewer, LCCN: %lccn%`nReel: %reelnumber%`n`nIssues: %loopcount%`nPages: %totalpages%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%
 
 					;exit the script
 					return
@@ -530,7 +530,7 @@ ReelLoopFunction:
 			if (reelreportflag == 1)
 			{
 				; add the issue data to the report
-				FileAppend, %numpages%`t%date%`t%volume%`t%issue%`t%editionlabel%`t%questionabledisplay%`n, %reportpath%\%reelnumber%-report.txt
+				FileAppend, %numpages%`t%date%`t%volume%`t%issue%`t%editionlabel%`t%questionabledisplay%`n, %reportpath%\%lccn%-%reelnumber%-report.txt
 				Sleep, 100
 			}
 		
@@ -587,7 +587,7 @@ ReelLoopFunction:
 						if (note != "")
 						{
 							; add the note to the report
-							FileAppend, %date%: %note%`n, %reportpath%\%reelnumber%-report.txt
+							FileAppend, %date%: %note%`n, %reportpath%\%lccn%-%reelnumber%-report.txt
 						}
 						
 						; close the Questionable Date & Edition Label windows
@@ -638,10 +638,10 @@ ReelLoopFunction:
 									notecount++
 									
 									; format the notes file
-									FileAppend, ----------------------------`nNotes for Reel: %reelnumber%`n`nDate`t`tNote`n`n, %reportpath%\%reelnumber%-notes.txt									
+									FileAppend, ----------------------------`nNotes for Reel: %reelnumber%`n`nDate`t`tNote`n`n, %reportpath%\%lccn%-%reelnumber%-notes.txt									
 										
 									; add the note to the notes file
-									FileAppend, %date%`t%note%`n, %reportpath%\%reelnumber%-notes.txt
+									FileAppend, %date%`t%note%`n, %reportpath%\%lccn%-%reelnumber%-notes.txt
 								}
 								
 								; close the Questionable Date & Edition Label windows
@@ -683,7 +683,7 @@ ReelLoopFunction:
 							notecount++
 									
 							; add the note to the report
-							FileAppend, %date%`t%note%`n, %reportpath%\%reelnumber%-notes.txt
+							FileAppend, %date%`t%note%`n, %reportpath%\%lccn%-%reelnumber%-notes.txt
 						}
 
 						; close the Questionable Date & Edition Label windows
@@ -720,18 +720,18 @@ ReelLoopFunction:
 				if (reelreportflag == 1)
 				{
 					; add the issue count to the report
-					FileAppend, `nReport for reel %reelnumber% was cancelled.`n`nIssues: %loopcount%`n Pages: %totalpages%, %reportpath%\%reelnumber%-report.txt
+					FileAppend, `nReport for reel %reelnumber% was cancelled.`n`nIssues: %loopcount%`n Pages: %totalpages%, %reportpath%\%lccn%-%reelnumber%-report.txt
 
 					; print the start and end times
-					FileAppend, `n`nSTART: %start%, %reportpath%\%reelnumber%-report.txt
-					FileAppend, `n  END: %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`n, %reportpath%\%reelnumber%-report.txt
+					FileAppend, `n`nSTART: %start%, %reportpath%\%lccn%-%reelnumber%-report.txt
+					FileAppend, `n  END: %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`n, %reportpath%\%lccn%-%reelnumber%-report.txt
 						
 					; create a message box to indicate the script was cancelled
 					MsgBox, 4, Reel Report, The report for reel %reelnumber% was cancelled.`n`nIssues: %loopcount%`nPages: %totalpages%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`nWould you like to open the report file?
 					; open the report if Yes
 					IfMsgBox, Yes
 						; open the report if Yes
-						Run, %reportpath%\%reelnumber%-report.txt
+						Run, %reportpath%\%lccn%-%reelnumber%-report.txt
 						
 					; reset the report flag
 					reelreportflag = 0
@@ -744,14 +744,14 @@ ReelLoopFunction:
 				else if (notecount > 0)
 				{
 					; print the start and end times
-					FileAppend, `nSTART: %start%, %reportpath%\%reelnumber%-notes.txt
-					FileAppend, `n  END: %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`n, %reportpath%\%reelnumber%-notes.txt
+					FileAppend, `nSTART: %start%, %reportpath%\%lccn%-%reelnumber%-notes.txt
+					FileAppend, `n  END: %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`n, %reportpath%\%lccn%-%reelnumber%-notes.txt
 
 					; create a message box to indicate that the script was cancelled
 					MsgBox, 4, Metadata Viewer, The metadata viewer for reel %reelnumber% was cancelled.`n`nIssues: %loopcount%`nPages: %totalpages%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`nYou added %notecount% notes. Would you like to open the notes file?
 					IfMsgBox, Yes
 						; open the notes file if Yes
-						Run, %reportpath%\%reelnumber%-notes.txt
+						Run, %reportpath%\%lccn%-%reelnumber%-notes.txt
 
 					;exit the script
 					return						
@@ -1035,7 +1035,7 @@ LanguageCodeReport:
 	
 		; create notification window
 		Gui, 19:+ToolWindow
-		Gui, 19:Add, Text,, Processing:  %reelfoldername%-%languagecode%-report.txt
+		Gui, 19:Add, Text,, Processing:  %lccn%-%reelfoldername%-%languagecode%-report.txt
 		Gui, 19:Add, Text,, Please wait . . .
 
 		; position in upper left corner of the NDNP_QR window
@@ -1064,7 +1064,7 @@ LanguageCodeReport:
 		}
 
 		; create the report file
-		FileAppend, %divider%`n%reelfolderpath%`n`n, %reportpath%\%reelnumber%-%languagecode%-report.txt
+		FileAppend, %divider%`n%reelfolderpath%`n`n, %reportpath%\%lccn%-%reelnumber%-%languagecode%-report.txt
 			
 		; initialize the issuefile variable
 		issuefile =
@@ -1121,21 +1121,21 @@ LanguageCodeReport:
 			if A_LoopField =
 			{
 				; add the issue count to the report
-				FileAppend, `n___________________________`n`n, %reportpath%\%reelnumber%-%languagecode%-report.txt
-				FileAppend, Reel: %reelnumber%`nCode: %languagecode%`n`nIssues: %issuecount%`nBlocks: %totalcodes%, %reportpath%\%reelnumber%-%languagecode%-report.txt
+				FileAppend, `n___________________________`n`n, %reportpath%\%lccn%-%reelnumber%-%languagecode%-report.txt
+				FileAppend, LCCN: %lccn%`nReel: %reelnumber%`nCode: %languagecode%`n`nIssues: %issuecount%`nBlocks: %totalcodes%, %reportpath%\%lccn%-%reelnumber%-%languagecode%-report.txt
 
 				; print the start and end times
-				FileAppend, `n`nSTART: %start%, %reportpath%\%reelnumber%-%languagecode%-report.txt
-				FileAppend, `n  END: %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`n, %reportpath%\%reelnumber%-%languagecode%-report.txt
+				FileAppend, `n`nSTART: %start%, %reportpath%\%lccn%-%reelnumber%-%languagecode%-report.txt
+				FileAppend, `n  END: %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`n, %reportpath%\%lccn%-%reelnumber%-%languagecode%-report.txt
 
 				; close the notification window
 				Gui, 19:Destroy
 				
 				; create a message box to indicate that the script ended
-				MsgBox, 4, Language Code Report, Reel: %reelnumber%`nCode: %languagecode%`n`nIssues: %issuecount%`nCodes: %totalcodes%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`nThe report is complete. Would you like to open it?
+				MsgBox, 4, Language Code Report, LCCN: %lccn%`nReel: %reelnumber%`nCode: %languagecode%`n`nIssues: %issuecount%`nCodes: %totalcodes%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`nThe report is complete. Would you like to open it?
 				IfMsgBox, Yes
 					; open the report if Yes
-					Run, %reportpath%\%reelnumber%-%languagecode%-report.txt
+					Run, %reportpath%\%lccn%-%reelnumber%-%languagecode%-report.txt
 
 				;exit the script
 				return
@@ -1197,14 +1197,14 @@ LanguageCodeReport:
 			if (issuecodes > 0)
 			{
 				; add the issue date to the report
-				FileAppend, ____________________`n`n, %reportpath%\%reelnumber%-%languagecode%-report.txt			
-				FileAppend, %issuedate%`n`n, %reportpath%\%reelnumber%-%languagecode%-report.txt			
+				FileAppend, ____________________`n`n, %reportpath%\%lccn%-%reelnumber%-%languagecode%-report.txt			
+				FileAppend, %issuedate%`n`n, %reportpath%\%lccn%-%reelnumber%-%languagecode%-report.txt			
 
 				; add the results to the report
-				FileAppend, %issueresults%, %reportpath%\%reelnumber%-%languagecode%-report.txt
+				FileAppend, %issueresults%, %reportpath%\%lccn%-%reelnumber%-%languagecode%-report.txt
 				
 				; add the issue total to the report
-				FileAppend, `n`t Total: %issuecodes%`n, %reportpath%\%reelnumber%-%languagecode%-report.txt				
+				FileAppend, `n`t Total: %issuecodes%`n, %reportpath%\%lccn%-%reelnumber%-%languagecode%-report.txt				
 							
 				; update the issue count
 				issuecount++
@@ -1268,7 +1268,7 @@ OCRSearch:
 		
 			; create notification window
 			Gui, 20:+ToolWindow
-			Gui, 20:Add, Text,, Processing:  %reelfoldername%-%ocrterm%-report.txt
+			Gui, 20:Add, Text,, Processing:  %lccn%-%reelfoldername%-%ocrterm%-report.txt
 			Gui, 20:Add, Text,, Please wait . . .
 
 			; position in upper left corner of the NDNP_QR window
@@ -1297,7 +1297,7 @@ OCRSearch:
 			}
 
 			; create the report file
-			FileAppend, %divider%`n%reelfolderpath%`n`n, %reportpath%\%reelnumber%-%ocrterm%-report.txt
+			FileAppend, %divider%`n%reelfolderpath%`n`n, %reportpath%\%lccn%-%reelnumber%-%ocrterm%-report.txt
 				
 			; initialize the issuefile variable
 			issuefile =
@@ -1354,21 +1354,21 @@ OCRSearch:
 				if A_LoopField =
 				{
 					; add the issue count to the report
-					FileAppend, `n___________________________`n`n, %reportpath%\%reelnumber%-%ocrterm%-report.txt
-					FileAppend, Reel: %reelnumber%`nTerm: %ocrterm%`n`nIssues: %issuecount%`n  Hits: %totalterms%, %reportpath%\%reelnumber%-%ocrterm%-report.txt
+					FileAppend, `n___________________________`n`n, %reportpath%\%lccn%-%reelnumber%-%ocrterm%-report.txt
+					FileAppend, LCCN: %lccn%`nReel: %reelnumber%`nTerm: %ocrterm%`n`nIssues: %issuecount%`n  Hits: %totalterms%, %reportpath%\%lccn%-%reelnumber%-%ocrterm%-report.txt
 
 					; print the start and end times
-					FileAppend, `n`nSTART: %start%, %reportpath%\%reelnumber%-%ocrterm%-report.txt
-					FileAppend, `n  END: %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`n, %reportpath%\%reelnumber%-%ocrterm%-report.txt
+					FileAppend, `n`nSTART: %start%, %reportpath%\%lccn%-%reelnumber%-%ocrterm%-report.txt
+					FileAppend, `n  END: %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`n, %reportpath%\%lccn%-%reelnumber%-%ocrterm%-report.txt
 
 					; close the notification window
 					Gui, 20:Destroy
 					
 					; create a message box to indicate that the script ended
-					MsgBox, 4, OCR Search, Reel: %reelnumber%`Term: %ocrterm%`n`nIssues: %issuecount%`nHits: %totalterms%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`nThe report is complete. Would you like to open it?
+					MsgBox, 4, OCR Search, LCCN: %lccn%`nReel: %reelnumber%`Term: %ocrterm%`n`nIssues: %issuecount%`nHits: %totalterms%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`nThe report is complete. Would you like to open it?
 					IfMsgBox, Yes
 						; open the report if Yes
-						Run, %reportpath%\%reelnumber%-%ocrterm%-report.txt
+						Run, %reportpath%\%lccn%-%reelnumber%-%ocrterm%-report.txt
 
 					;exit the script
 					return
@@ -1404,7 +1404,7 @@ OCRSearch:
 						; loop to parse the textblocks
 						Loop, parse, ALTOxml, >, %A_Space%%A_Tab%
 						{
-							; if the substring contains the language code
+							; if the substring contains the search term
 							IfInString, A_LoopField, %ocrterm%
 							{
 								termcount++
@@ -1430,14 +1430,14 @@ OCRSearch:
 				if (issueterms > 0)
 				{
 					; add the issue date to the report
-					FileAppend, ____________________`n`n, %reportpath%\%reelnumber%-%ocrterm%-report.txt			
-					FileAppend, %issuedate%`n`n, %reportpath%\%reelnumber%-%ocrterm%-report.txt			
+					FileAppend, ____________________`n`n, %reportpath%\%lccn%-%reelnumber%-%ocrterm%-report.txt			
+					FileAppend, %issuedate%`n`n, %reportpath%\%lccn%-%reelnumber%-%ocrterm%-report.txt			
 
 					; add the results to the report
-					FileAppend, %issueresults%, %reportpath%\%reelnumber%-%ocrterm%-report.txt
+					FileAppend, %issueresults%, %reportpath%\%lccn%-%reelnumber%-%ocrterm%-report.txt
 					
 					; add the issue total to the report
-					FileAppend, `n`t Total: %issueterms%`n, %reportpath%\%reelnumber%-%ocrterm%-report.txt				
+					FileAppend, `n`t Total: %issueterms%`n, %reportpath%\%lccn%-%reelnumber%-%ocrterm%-report.txt				
 								
 					; update the issue count
 					issuecount++
