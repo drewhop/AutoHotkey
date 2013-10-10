@@ -38,8 +38,17 @@ BatchReport:
 		; store the start time
 		start = %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec% 
 			
+		; create report divider
+		divider =
+		StringLen, length, batchfolderpath
+		length++
+		Loop, %length%
+		{
+			divider .= "-"
+		}
+
 		; create the report file in the batch folder
-		FileAppend, --------------------------------------------------------------`n%batchfolderpath%`n`nIdentifier`t`tPages`tDate`t`tVolume`tIssue`n`n, %batchfolderpath%\%batchname%-report.txt
+		FileAppend, %divider%`n%batchfolderpath%`n`nIdentifier`t`tPages`tDate`t`tVolume`tIssue`n`n, %batchfolderpath%\%batchname%-report.txt
 
 		; read in the batch.xml file to the batchxml variable
 		FileRead, batchxml, %batchfolderpath%\batch.xml
@@ -638,7 +647,7 @@ ReelLoopFunction:
 									notecount++
 									
 									; format the notes file
-									FileAppend, ---------------------------------------`nNotes for Reel: %reelnumber%`nLCCN: %lccn%`n`nDate`t`tNote`n`n, %reportpath%\%lccn%-%reelnumber%-notes.txt									
+									FileAppend, -----------------------------------------`nNotes for Reel: %lccn%\%reelnumber%`n`nDate`t`tNote`n`n, %reportpath%\%lccn%-%reelnumber%-notes.txt									
 										
 									; add the note to the notes file
 									FileAppend, %date%`t%note%`n, %reportpath%\%lccn%-%reelnumber%-notes.txt
@@ -1033,16 +1042,6 @@ LanguageCodeReport:
 			else Break
 		}
 	
-		; create notification window
-		Gui, 19:+ToolWindow
-		Gui, 19:Add, Text,, Processing:  %lccn%-%reelfoldername%-%languagecode%-report.txt
-		Gui, 19:Add, Text,, Please wait . . .
-
-		; position in upper left corner of the NDNP_QR window
-		SetTitleMatchMode 1
-		WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
-		Gui, 19:Show, x%winX% y%winY%, Language Code Report
-	
 		; store the start time
 		start = %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec% 
 
@@ -1054,6 +1053,21 @@ LanguageCodeReport:
 		foldernamepos++
 		StringTrimLeft, reelnumber, reelfolderpath, foldernamepos
 
+		; extract lccn from report path
+		StringGetPos, lccnpos, reportpath, \, R1
+		lccnpos++
+		StringTrimLeft, lccn, reportpath, lccnpos
+
+		; create notification window
+		Gui, 19:+ToolWindow
+		Gui, 19:Add, Text,, Processing:  %lccn%-%reelfoldername%-%languagecode%-report.txt
+		Gui, 19:Add, Text,, Please wait . . .
+
+		; position in upper left corner of the NDNP_QR window
+		SetTitleMatchMode 1
+		WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
+		Gui, 19:Show, x%winX% y%winY%, Language Code Report
+	
 		; create report divider
 		divider =
 		StringLen, length, reelfolderpath
@@ -1085,21 +1099,27 @@ LanguageCodeReport:
 			; if the line contains the reel number
 			IfInString, A_LoopField, %reelnumber%
 			{
-				; trim the <issue> line before the file path
-				StringTrimLeft, rawissuefolderpath, A_LoopField, 66
-				
-				; remove the </issue> tag and issue.xml file name
-				StringTrimRight, issuefolderpath, rawissuefolderpath, 23
+				; if the line contains the lccn
+				IfInString, A_LoopField, %lccn%
+				{			
+					; remove </issue> tag after the folder path
+					StringTrimRight, rawissuefolderpath, A_LoopField, 23
 
-				; check to see that it was an <issue> line
-				StringLen, length, issuefolderpath
-				if (length > 20)
-				{
-					; append issue folder path to issuefile
-					issuefile .= issuefolderpath
-					
-					; append new line to issuefile
-					issuefile .= "`n"
+					; remove <issue> tag before the folder path
+					StringGetPos, pos, rawissuefolderpath, >
+					pos++
+					StringTrimLeft, issuefolderpath, rawissuefolderpath, %pos%
+
+					; check to see that it was an <issue> line
+					StringLen, length, issuefolderpath
+					if (length > 30)
+					{
+						; append issue folder path to issuefile
+						issuefile .= issuefolderpath
+						
+						; append new line to issuefile
+						issuefile .= "`n"
+					}
 				}
 			}
 		}
@@ -1266,16 +1286,6 @@ OCRSearch:
 				else Break
 			}
 		
-			; create notification window
-			Gui, 20:+ToolWindow
-			Gui, 20:Add, Text,, Processing:  %lccn%-%reelfoldername%-%ocrterm%-report.txt
-			Gui, 20:Add, Text,, Please wait . . .
-
-			; position in upper left corner of the NDNP_QR window
-			SetTitleMatchMode 1
-			WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
-			Gui, 20:Show, x%winX% y%winY%, OCR Search
-		
 			; store the start time
 			start = %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec% 
 
@@ -1287,6 +1297,21 @@ OCRSearch:
 			foldernamepos++
 			StringTrimLeft, reelnumber, reelfolderpath, foldernamepos
 
+			; extract lccn from report path
+			StringGetPos, lccnpos, reportpath, \, R1
+			lccnpos++
+			StringTrimLeft, lccn, reportpath, lccnpos
+
+			; create notification window
+			Gui, 20:+ToolWindow
+			Gui, 20:Add, Text,, Processing:  %lccn%-%reelnumber%-%ocrterm%-report.txt
+			Gui, 20:Add, Text,, Please wait . . .
+
+			; position in upper left corner of the NDNP_QR window
+			SetTitleMatchMode 1
+			WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
+			Gui, 20:Show, x%winX% y%winY%, OCR Search
+		
 			; create report divider
 			divider =
 			StringLen, length, reelfolderpath
@@ -1318,21 +1343,27 @@ OCRSearch:
 				; if the line contains the reel number
 				IfInString, A_LoopField, %reelnumber%
 				{
-					; trim the <issue> line before the file path
-					StringTrimLeft, rawissuefolderpath, A_LoopField, 66
-					
-					; remove the </issue> tag and issue.xml file name
-					StringTrimRight, issuefolderpath, rawissuefolderpath, 23
+					; if the line contains the lccn
+					IfInString, A_LoopField, %lccn%
+					{			
+						; remove </issue> tag after the folder path
+						StringTrimRight, rawissuefolderpath, A_LoopField, 23
 
-					; check to see that it was an <issue> line
-					StringLen, length, issuefolderpath
-					if (length > 20)
-					{
-						; append issue folder path to issuefile
-						issuefile .= issuefolderpath
-						
-						; append new line to issuefile
-						issuefile .= "`n"
+						; remove <issue> tag before the folder path
+						StringGetPos, pos, rawissuefolderpath, >
+						pos++
+						StringTrimLeft, issuefolderpath, rawissuefolderpath, %pos%
+
+						; check to see that it was an <issue> line
+						StringLen, length, issuefolderpath
+						if (length > 30)
+						{
+							; append issue folder path to issuefile
+							issuefile .= issuefolderpath
+							
+							; append new line to issuefile
+							issuefile .= "`n"
+						}
 					}
 				}
 			}
