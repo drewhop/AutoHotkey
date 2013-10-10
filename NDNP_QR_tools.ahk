@@ -638,7 +638,7 @@ ReelLoopFunction:
 									notecount++
 									
 									; format the notes file
-									FileAppend, ----------------------------`nNotes for Reel: %reelnumber%`n`nDate`t`tNote`n`n, %reportpath%\%lccn%-%reelnumber%-notes.txt									
+									FileAppend, ---------------------------------------`nNotes for Reel: %reelnumber%`nLCCN: %lccn%`n`nDate`t`tNote`n`n, %reportpath%\%lccn%-%reelnumber%-notes.txt									
 										
 									; add the note to the notes file
 									FileAppend, %date%`t%note%`n, %reportpath%\%lccn%-%reelnumber%-notes.txt
@@ -1365,7 +1365,7 @@ OCRSearch:
 					Gui, 20:Destroy
 					
 					; create a message box to indicate that the script ended
-					MsgBox, 4, OCR Search, LCCN: %lccn%`nReel: %reelnumber%`Term: %ocrterm%`n`nIssues: %issuecount%`nHits: %totalterms%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`nThe report is complete. Would you like to open it?
+					MsgBox, 4, OCR Search, LCCN: %lccn%`nReel: %reelnumber%`nTerm: %ocrterm%`n`nIssues: %issuecount%`nHits: %totalterms%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`nThe report is complete. Would you like to open it?
 					IfMsgBox, Yes
 						; open the report if Yes
 						Run, %reportpath%\%lccn%-%reelnumber%-%ocrterm%-report.txt
