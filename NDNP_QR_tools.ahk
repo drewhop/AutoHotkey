@@ -20,7 +20,7 @@ BatchReport:
 		Return
 	else
 	{
-		; extract batch name from path
+		; batch name
 		StringGetPos, foldernamepos, batchfolderpath, \, R1
 		foldernamepos++
 		StringTrimLeft, batchname, batchfolderpath, foldernamepos
