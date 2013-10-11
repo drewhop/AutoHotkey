@@ -35,7 +35,7 @@ BatchReport:
 		WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
 		Gui, 15:Show, x%winX% y%winY%, Batch Report
 	
-		; store the start time
+		; start time
 		start = %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec% 
 			
 		; create report divider
