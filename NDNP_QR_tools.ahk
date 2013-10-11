@@ -25,12 +25,10 @@ BatchReport:
 		foldernamepos++
 		StringTrimLeft, batchname, batchfolderpath, foldernamepos
 
-		; create notification window
+		; notification window
 		Gui, 15:+ToolWindow
 		Gui, 15:Add, Text,, Processing:  %batchname%
 		Gui, 15:Add, Text,, This may take awhile . . .
-
-		; position in upper left corner of the NDNP_QR window
 		SetTitleMatchMode 1
 		WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
 		Gui, 15:Show, x%winX% y%winY%, Batch Report
