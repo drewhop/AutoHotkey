@@ -1,7 +1,11 @@
 /*
- * TDNP_Metadata.ahk
- *
- * Description: tool for digital newspaper creation and quality control
+ **************************************************************
+ * TDNP_Metadata.ahk                                          *
+ *                                                            *
+ * Description: tool for digital newspaper quality control    *
+ *                                                            *
+ * Contact: Andrew.Weidner@unt.edu                            *
+ **************************************************************
  */
 
 #NoEnv
@@ -13,9 +17,11 @@ scannedpath = Q:\scanned_for_tdnp
 collationpath = Q:\TDNP\Collation Sheets
 
 ; help
-docURL = https://github.com/drewhop/AutoHotkey/wiki/TDNP_Metadata
+docURL = http://digitalprojects.library.unt.edu/projects/index.php/TDNP_Metadata2.ahk
 
 ; edit
+navskip = 1
+navchoice = 1
 titlefolderpath = _
 titlefoldername = _
 
@@ -72,13 +78,9 @@ Menu, FileMenu, Add, E&xit, Exit
 ; Edit menu
 Menu, EditMenu, Add, Title Folder &Path, TitleFolderPath
 Menu, EditMenu, Add
+Menu, EditMenu, Add, &Folder Navigation, NavSkip
+Menu, EditMenu, Add
 Menu, EditMenu, Add, &Display Current Folder, DisplayValues
-
-; Issue Separation menu
-Menu, IssuesMenu, Add, &Enter Folder Names, EnterFolderNames
-Menu, IssuesMenu, Add, &Create Issue Folders, CreateIssueFolders
-Menu, IssuesMenu, Add
-Menu, IssuesMenu, Add, &Paste Images, PasteImages
 
 ; Search menu
 Menu, SearchMenu, Add, US Directory: &Texas, DirectoryTitleTexas
@@ -96,7 +98,6 @@ Menu, HelpMenu, Add, &About, About
 ; create menus
 Menu, MenuBar, Add, &File, :FileMenu
 Menu, MenuBar, Add, &Edit, :EditMenu
-Menu, MenuBar, Add, &Issue Separation, :IssuesMenu
 Menu, MenuBar, Add, &Search, :SearchMenu
 Menu, MenuBar, Add, &Help, :HelpMenu
 
@@ -253,20 +254,55 @@ Return
 ; opens selected issue folder and first TIFF file
 ; Hotkey: Alt + i
 !i::
-	; open selected directory
-	Send, {Enter}
+	; if the titlefolderpath variable is empty
+	if titlefolderpath = _
+	{
+		; create dialog to select the title folder
+		FileSelectFolder, titlefolderpath, %scannedpath%, 0, Next Issue`n`nSelect the TITLE folder:
+		if ErrorLevel
+			Return
 
-	; wait for the TDNP issue folder to load
-	SetTitleMatchMode RegEx
-	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+		; extract title folder name from path
+		StringGetPos, foldernamepos, titlefolderpath, \, R1
+		foldernamepos++
+		StringTrimLeft, titlefoldername, titlefolderpath, foldernamepos
+	}
+
+	; store the clipboard contents
+	temp = %clipboard%
+
+	; activate the title folder
+	SetTitleMatchMode 1
+	WinActivate, %titlefoldername%, , , ,
+	WinWaitActive, %titlefoldername%, , , ,
 	Sleep, 100
-  
-	; open the first TIFF file
-	Send, {Down}
+
+	; grab the selected folder name & path
+	Send, {F2}
 	Sleep, 100
-	Send, {Up}
+	Send, {CtrlDown}c{CtrlUp}
 	Sleep, 100
 	Send, {Enter}
+	Sleep, 100
+
+	; if clipboard is valid issue folder (10 digit number)
+	if RegExMatch(clipboard, "\d\d\d\d\d\d\d\d\d\d")
+	{
+		issuefoldername = %clipboard%
+		issuefolderpath = %titlefolderpath%\%issuefoldername%
+		
+		; find and open the first TIF file
+		Loop, %issuefolderpath%\*.tif
+		{
+			Run, %issuefolderpath%\%A_LoopFileName%
+			Break
+		}
+	}	
+	
+	else MsgBox, The selected item is not a valid issue folder.
+
+	; restore the clipboard contents
+	clipboard = %temp%
 
 	; update the scoreboard
 	hotkeys++
@@ -283,21 +319,55 @@ Return
 ; and displays issue metadata in moveable windows
 ; Hotkey: Win + Alt + i
 #!i::
-	; open selected directory
-	Send, {Enter}
+	; if the titlefolderpath variable is empty
+	if titlefolderpath = _
+	{
+		; create dialog to select the title folder
+		FileSelectFolder, titlefolderpath, %scannedpath%, 0, Next Issue`n`nSelect the TITLE folder:
+		if ErrorLevel
+			Return
 
-	; wait for the TDNP issue folder to load
-	SetTitleMatchMode RegEx
-	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
+		; extract title folder name from path
+		StringGetPos, foldernamepos, titlefolderpath, \, R1
+		foldernamepos++
+		StringTrimLeft, titlefoldername, titlefolderpath, foldernamepos
+	}
+
+	; store the clipboard contents
+	temp = %clipboard%
+
+	; activate the title folder
+	SetTitleMatchMode 1
+	WinActivate, %titlefoldername%, , , ,
+	WinWaitActive, %titlefoldername%, , , ,
 	Sleep, 100
-  
-	; open the first TIFF file
-	Send, {Down}
+
+	; grab the selected folder name & path
+	Send, {F2}
 	Sleep, 100
-	Send, {Up}
+	Send, {CtrlDown}c{CtrlUp}
 	Sleep, 100
 	Send, {Enter}
-	Sleep, 500
+	Sleep, 100
+
+	; if clipboard is valid issue folder (10 digit number)
+	if RegExMatch(clipboard, "\d\d\d\d\d\d\d\d\d\d")
+	{
+		issuefoldername = %clipboard%
+		issuefolderpath = %titlefolderpath%\%issuefoldername%
+		
+		; find and open the first TIF file
+		Loop, %issuefolderpath%\*.tif
+		{
+			Run, %issuefolderpath%\%A_LoopFileName%
+			Break
+		}
+	}	
+	
+	else MsgBox, The selected item is not a valid issue folder.
+
+	; restore the clipboard contents
+	clipboard = %temp%
 
 	; update the scoreboard
 	hotkeys++
@@ -432,6 +502,11 @@ Return
 ; display the issue metadata
 ; Hotkey: Alt + 0
 !0::
+	; get the selected folder path
+	Gosub, IssueFolderPath
+
+	Sleep, 500
+
 	; metadata harvest subroutine
 	Gosub, MetaHarvest
 
@@ -447,6 +522,8 @@ Return
 !m::
 	; harvest the issue folder path
 	Gosub, IssueFolderPath
+
+	Sleep, 500
 	
 	; if there is a metadata.txt file in the folder
 	IfExist, %issuefolderpath%\metadata.txt
@@ -553,92 +630,56 @@ Return
 ; ===========================================SUBROUTINES
 ; =================METADATA
 IssueFolderPath:
-	; save clipboard contents
-	temp = %clipboard%
-	
-	; activate the current TDNP issue folder
-	SetTitleMatchMode RegEx
-	WinWait, ^[1-2][0-9]{9}$, , , ,
-	IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-	WinActivate, ^[1-2][0-9]{9}$, , , ,
-	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-	Sleep, 100
-	Send, {Tab 5}
-
-	; copy issue folder path to clipboard
-	Send, {F4}
-	Sleep, 100
-	Send, {CtrlDown}a{CtrlUp}
-	Sleep, 100
-	Send, {CtrlDown}c{CtrlUp}
-	Sleep, 100
-	Send, {Enter}
-	Sleep, 100
-
-	; grab the issue date from the folder path
-	StringRight, date, clipboard, 10
-	
-	; loop checks for correctly copied folder path
-	; up to 5 times, aborts script if unsuccessful
-	Loop 5
+	; if the titlefolderpath variable is empty
+	if titlefolderpath = _
 	{
-		; continue the script if the path copied to clipboard
-		if RegExMatch(date, "\d\d\d\d\d\d\d\d\d\d")
-			Break
-			
-		; or reattempt to copy folder path
-		else
-		{
-			; wait one second
-			Sleep, 1000
-			
-			; reactivate the issue folder
-			SetTitleMatchMode RegEx
-			WinWait, ^[1-2][0-9]{9}$, , , ,
-			IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-			WinActivate, ^[1-2][0-9]{9}$, , , ,
-			WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-			Sleep, 100
-			Send, {Tab 5}
+		; create dialog to select the title folder
+		FileSelectFolder, titlefolderpath, %scannedpath%, 0, Next Issue`n`nSelect the TITLE folder:
+		if ErrorLevel
+			Return
 
-			; copy issue folder path to clipboard
-			Send, {F4}
-			Sleep, 100
-			Send, {CtrlDown}a{CtrlUp}
-			Sleep, 100
-			Send, {CtrlDown}c{CtrlUp}
-			Sleep, 100
+		; extract title folder name from path
+		StringGetPos, foldernamepos, titlefolderpath, \, R1
+		foldernamepos++
+		StringTrimLeft, titlefoldername, titlefolderpath, foldernamepos
+	}
+
+	; store the clipboard contents
+	temp = %clipboard%
+
+	; activate the title folder
+	SetTitleMatchMode 1
+	IfWinNotActive, %titlefoldername%
+	{
+		WinActivate, %titlefoldername%, , , ,
+		WinWaitActive, %titlefoldername%, , , ,
+	}
+	Sleep, 200
+
+	; grab the folder name & path
+	Loop {
+		Send, {F2}
+		Sleep, 200
+		Send, {CtrlDown}c{CtrlUp}
+		Sleep, 100
+		
+		if RegExMatch(clipboard, "\d\d\d\d\d\d\d\d\d\d")
+		{
 			Send, {Enter}
 			Sleep, 100
-			
-			; grab the issue date from the folder path
-			StringRight, date, clipboard, 10
-			
-			; next loop iteration
-			Continue
+			issuefoldername = %clipboard%
+			issuefolderpath = %titlefolderpath%\%issuefoldername%
+			Break
 		}
-		
-		; restore clipboard contents
-		clipboard = %temp%		
-
-		; abort script if unable to copy path after 5 attempts
-		MsgBox, 0, Error, Unable to copy file path.`n`nScript aborted.
-		Exit
 	}
-	
-	; assign the folder path
-	issuefolderpath = %clipboard%
-	
-	; restore clipboard contents
-	clipboard = %temp%		
+
+	; restore the clipboard contents
+	clipboard = %temp%	
 Return
 
 MetaHarvest:
-	; harvest the issue folder path
-	Gosub, IssueFolderPath
-	
 	; create display date variables
-	month := SubStr(date, 5, 2)
+	month := SubStr(issuefoldername, 5, 2)
 	if (month == 01) {
 		monthname = Jan.
 	}
@@ -675,12 +716,12 @@ MetaHarvest:
 	else if (month == 12) {
 		monthname = Dec.
 	}
-	day := SubStr(date, 7, 2)
+	day := SubStr(issuefoldername, 7, 2)
 	if (SubStr(day, 1, 1) == 0)
 	{
 		day := SubStr(day, 2)
 	}
-	year := SubStr(date, 1, 4)
+	year := SubStr(issuefoldername, 1, 4)
 
 	; initialize the loop counter
 	metacount = 0
@@ -764,53 +805,53 @@ MetaHarvest:
 			}
 		}
 
-		; create display windows if first metadata display run
-		if (displaymetascore == 0)
-		{
-			WinGetPos, winX, winY, winWidth, winHeight, Metadata
-			winY+=%winHeight%
+		WinGetPos, winX, winY, winWidth, winHeight, TDNP_Metadata
+		winY+=%winHeight%
 
+		; create display windows if necessary
+		IfWinNotExist, Volume
+		{
 			; create VolumeNum GUI
 			Gui, 2:+AlwaysOnTop
 			Gui, 2:+ToolWindow
 			Gui, 2:Font, cRed s15 bold, Arial
 			Gui, 2:Font, cRed s25 bold, Arial
-			Gui, 2:Add, GroupBox, x0 y-18 w100 h74,       
 			Gui, 2:Add, Text, x15 y8 w70 h40, %volumenum%
 			Gui, 2:Show, x%winX% y%winY% h55 w100, Volume
-
+		}
+		IfWinNotExist, Issue
+		{		
 			; create IssueNum GUI
 			Gui, 3:+AlwaysOnTop
 			Gui, 3:+ToolWindow
 			Gui, 3:Font, cRed s25 bold, Arial
-			Gui, 3:Add, GroupBox, x0 y-18 w100 h74,       
-			Gui, 3:Add, Text, x15 y8 w70 h40, %issuenum%
+			Gui, 3:Add, Text, x15 y8 w75 h40, %issuenum%
 			Gui, 3:Show, x%winX% y%winY% h55 w100, Issue
-
+		}
+		IfWinNotExist, Note
+		{		
 			; create Note GUI
 			Gui, 4:+AlwaysOnTop
 			Gui, 4:+ToolWindow
 			Gui, 4:Add, Text, x15 y15 w380 h115, %displaynote%
 			Gui, 4:Show, x%winX% y%winY% h125 w400, Note
-			
+		}
+		IfWinNotExist, Date
+		{		
 			; create Date GUI
 			Gui, 5:+AlwaysOnTop
 			Gui, 5:+ToolWindow
 			Gui, 5:Font, cRed s15 bold, Arial
 			Gui, 5:Add, Text, x35 y15 w160 h25, %monthname% %day%, %year%
 			Gui, 5:Font, cRed s10 bold, Arial
-			Gui, 5:Add, GroupBox, x0 y-7 w200 h63,       
 			Gui, 5:Show, x%winX% y%winY% h55 w200, Date
 		}
 
 		; update the metadata display windows
-		else
-		{
-			ControlSetText, Static1, %volumenum%, Volume
-			ControlSetText, Static1, %issuenum%, Issue
-			ControlSetText, Static1, %displaynote%, Note
-			ControlSetText, Static1, %monthname% %day%`, %year%, Date
-		}
+		ControlSetText, Static1, %volumenum%, Volume
+		ControlSetText, Static1, %issuenum%, Issue
+		ControlSetText, Static1, %displaynote%, Note
+		ControlSetText, Static1, %monthname% %day%`, %year%, Date
 
 		; update the scoreboard
 		hotkeys++
@@ -860,51 +901,43 @@ NextIssue:
 		StringTrimLeft, titlefoldername, titlefolderpath, foldernamepos
 	}
 
-	; activate the current TDNP issue folder
-	SetTitleMatchMode RegEx
-	WinWait, ^[1-2][0-9]{9}$, , , ,
-	IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-	WinActivate, ^[1-2][0-9]{9}$, , , ,
-	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-	Sleep, 100
-	Send, {Tab 5}
-
-	; up one directory
-	Send, {AltDown}v{AltUp}
-	Sleep, 100
-	Send, g
-	Sleep, 100
-	Send, u
-	Sleep, 100
+	; store the clipboard contents
+	temp = %clipboard%
 
 	; activate the title folder
 	SetTitleMatchMode 1
-	WinWait, %titlefoldername%, , , ,
-	IfWinNotActive, %titlefoldername%, , , ,
 	WinActivate, %titlefoldername%, , , ,
 	WinWaitActive, %titlefoldername%, , , ,
 	Sleep, 100
 
-	; open the next folder
-	Send, {Down}
+	; grab the next folder name & path
+	Send, {Down %navskip%}
+	Sleep, 100
+	Send, {F2}
+	Sleep, 100
+	Send, {CtrlDown}c{CtrlUp}
 	Sleep, 100
 	Send, {Enter}
+	Sleep, 100
 
-	; reactivate the issue folder
-	SetTitleMatchMode RegEx
-	WinWait, ^[1-2][0-9]{9}$, , , ,
-	IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-	WinActivate, ^[1-2][0-9]{9}$, , , ,
-	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-	Sleep, 100
-  
-	; open the first TIFF file
-	Send, {Down}
-	Sleep, 100
-	Send, {Up}
-	Sleep, 100
-	Send, {Enter}
-	Sleep, 500
+	; if clipboard is valid issue folder (10 digit number)
+	if RegExMatch(clipboard, "\d\d\d\d\d\d\d\d\d\d")
+	{
+		issuefoldername = %clipboard%
+		issuefolderpath = %titlefolderpath%\%issuefoldername%
+		
+		; find and open the first TIF file
+		Loop, %issuefolderpath%\*.tif
+		{
+			Run, %issuefolderpath%\%A_LoopFileName%
+			Break
+		}
+	}	
+	
+	else MsgBox, The selected item is not a valid issue folder.
+
+	; restore the clipboard contents
+	clipboard = %temp%
 Return
 
 PreviousIssue:
@@ -922,49 +955,43 @@ PreviousIssue:
 		StringTrimLeft, titlefoldername, titlefolderpath, foldernamepos
 	}
 
-	; activate the current TDNP issue folder
-	SetTitleMatchMode RegEx
-	WinWait, ^[1-2][0-9]{9}$, , , ,
-	IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-	WinActivate, ^[1-2][0-9]{9}$, , , ,
-	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-	Sleep, 100
-
-	; up one directory
-	Send, {AltDown}v{AltUp}
-	Sleep, 100
-	Send, g
-	Sleep, 100
-	Send, u
-	Sleep, 100
+	; store the clipboard contents
+	temp = %clipboard%
 
 	; activate the title folder
 	SetTitleMatchMode 1
-	WinWait, %titlefoldername%, , , ,
-	IfWinNotActive, %titlefoldername%, , , ,
 	WinActivate, %titlefoldername%, , , ,
 	WinWaitActive, %titlefoldername%, , , ,
 	Sleep, 100
-  
-	; open the previous folder
-	Send, {Up}
+
+	; grab the previous folder name & path
+	Send, {Up %navskip%}
+	Sleep, 100
+	Send, {F2}
+	Sleep, 100
+	Send, {CtrlDown}c{CtrlUp}
 	Sleep, 100
 	Send, {Enter}
+	Sleep, 100
+	
+	; if clipboard is valid issue folder (10 digit number)
+	if RegExMatch(clipboard, "\d\d\d\d\d\d\d\d\d\d")
+	{
+		issuefoldername = %clipboard%
+		issuefolderpath = %titlefolderpath%\%issuefoldername%
+		
+		; find and open the first TIF file
+		Loop, %issuefolderpath%\*.tif
+		{
+			Run, %issuefolderpath%\%A_LoopFileName%
+			Break
+		}
+	}	
+	
+	else MsgBox, The selected item is not a valid issue folder.
 
-	; activate the next issue folder
-	SetTitleMatchMode RegEx
-	WinWait, ^[1-2][0-9]{9}$, , , ,
-	IfWinNotActive, ^[1-2][0-9]{9}$, , , ,
-	WinActivate, ^[1-2][0-9]{9}$, , , ,
-	WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-	Sleep, 100
-
-	; open the first TIFF file
-	Send, {Down}
-	Sleep, 100
-	Send, {Up}
-	Sleep, 100
-	Send, {Enter}
+	; restore the clipboard contents
+	clipboard = %temp%
 Return
 
 GoToIssue:
@@ -991,86 +1018,51 @@ GoToIssue:
 			; loop checks for valid title folder name
 			Loop
 			{
+				; store the clipboard contents
+				temp = %clipboard%
+
 				; if title folder name is valid (10 digit number)
 				if RegExMatch(input, "\d\d\d\d\d\d\d\d\d\d")
 				{
 					; accept the input
 					issue = %input%
 
-					; case for active issue folder
-					SetTitleMatchMode RegEx
-					IfWinExist, ^[1-2][0-9]{9}$
-					{
-						; loop to close any issue folders
-						SetTitleMatchMode RegEx
-						Loop
-						{
-							IfWinExist, ^[1-2][0-9]{9}$, , , ,
-							{
-								WinClose, ^[1-2][0-9]{9}$, , , ,
-								Sleep, 200
-							}
-							else Break
-						}
+					IfWinNotExist, %titlefoldername%
+						Run, %titlefolderpath%
 
-						; open the issue folder
-						Run, %titlefolderpath%\%issue%
-						
-						; wait for issue folder to load
-						WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-						; if the folder does not exist
-						IfWinActive, , Windows can't find, , , ,
-						{
-							; exit the script
-							Return
-						}
-						Sleep, 100
+					; activate title folder
+					WinActivate, %titlefoldername%, , , ,
+					WinWaitActive, %titlefoldername%, , , ,
+					Sleep, 100
 
-						; open the first TIFF file
-						Send, {Down}
-						Sleep, 100
-						Send, {Up}
-						Sleep, 100
-						Send, {Enter}
+					; move to the issue
+					SetKeyDelay, 150
+					Send, %issue%
+					SetKeyDelay, 10
+					Sleep, 100
 
-						; end the title folder name check loop
-						Break
-					}
+					; grab the issue folder name & path
+					Send, {F2}
+					Sleep, 100
+					Send, {CtrlDown}c{CtrlUp}
+					Sleep, 100
+					Send, {Enter}
+					Sleep, 100
+					issuefoldername = %clipboard%
+					issuefolderpath = %titlefolderpath%\%issuefoldername%
 					
-					; case for active title folder
-					IfWinNotExist, ^[1-2][0-9]{9}$
-					SetTitleMatchMode 2
-					IfWinExist, %titlefoldername%
+					; find and open the first TIF file
+					Loop, %issuefolderpath%\*.tif
 					{
-						; activate title folder
-						WinWait, %titlefoldername%, , , ,
-						IfWinNotActive, %titlefoldername%, , , ,
-						WinActivate, %titlefoldername%, , , ,
-						WinWaitActive, %titlefoldername%, , , ,
-						Sleep, 100
-
-						; open the issue
-						SetKeyDelay, 150
-						Send, %issue%
-						SetKeyDelay, 10
-						Sleep, 100
-						Send, {Enter}
-						
-						; wait for issue folder to load
-						SetTitleMatchMode RegEx
-						WinWaitActive, ^[1-2][0-9]{9}$, , , ,
-						Sleep, 100
-
-						; open the first TIFF file
-						Send, {Down}
-						Sleep, 100
-						Send, {Up}
-						Sleep, 100
-						Send, {Enter}
-
-						; end the title folder name check loop
+						Run, %issuefolderpath%\%A_LoopFileName%
 						Break
 					}
+
+					; restore the clipboard contents
+					clipboard = %temp%
+
+					; end the title folder name check loop
+					Break
 				}
 				
 				; if the issue folder name entered is not valid
@@ -1080,7 +1072,11 @@ GoToIssue:
 					MsgBox, 0, GoTo Issue, Please enter a folder name in the format: YYYYMMDDEE`n`nExample: 1942061901
 					InputBox, input, GoTo Issue, Issue Folder Name:,, 150, 125,,,,,
 						if ErrorLevel
+						{
+							; restore the clipboard contents
+							clipboard = %temp%
 							Return
+						}
 				}
 			}
 		}
@@ -1109,7 +1105,7 @@ IssueCheckPY:
 	ControlSetText, Static7, REPORT, TDNP_Metadata
 	
 	; create dialog to select the title folder
-	FileSelectFolder, titlefolderpath, %scannedpath%, 0, Create Report`n`nSelect the TITLE folder:
+	FileSelectFolder, titlefolderpath, Q:\, 2, Create Report`n`nSelect the TITLE folder:
 		if ErrorLevel
 			Return
 		else
@@ -1128,12 +1124,30 @@ IssueCheckPY:
 					{
 						today = %input%
 						
-						; run the issueCheck.py script in the standard Windows terminal
-						Run, C:\Windows\System32\cmd.exe /k C:\Python27\python.exe C:\Python27\issueCheck.py "%titlefolderpath%" > "%titlefolderpath%\report-%today%.txt"
-						Sleep, 1000
+						IfExist, C:\Python27\issueCheck.py ; Python 2.7
+						{
+							Run, C:\Windows\System32\cmd.exe /k C:\Python27\python.exe C:\Python27\issueCheck.py "%titlefolderpath%" > "%titlefolderpath%\report-%today%.txt"
+							Sleep, 1000
+							Break
+						}
 						
-						; end the loop
-						Break
+						IfExist, C:\Python25\issueCheck.py ; Python 2.5
+						{
+							Run, C:\Windows\System32\cmd.exe /k C:\Python25\python.exe C:\Python25\issueCheck.py "%titlefolderpath%" > "%titlefolderpath%\report-%today%.txt"
+							Sleep, 1000
+							Break
+						}
+
+						IfExist, C:\Python33\issueCheck.py ; Python 3.3
+						{
+							Run, C:\Windows\System32\cmd.exe /k C:\Python33\python.exe C:\Python33\issueCheck.py "%titlefolderpath%" > "%titlefolderpath%\report-%today%.txt"
+							Sleep, 1000
+							Break
+						}
+
+						; print error message
+						MsgBox, 0, Create Report, ERROR: Cannot Locate issueCheck.py
+						Return
 					}
 					
 					; case for invalid report name
@@ -1174,9 +1188,59 @@ ExitApp
 ; =================FILE
 
 ; =================EDIT
+; =======FOLDER NAVIGATION
+; create the GUI
+NavSkip:
+	Gui, 6:+ToolWindow
+	Gui, 6:Add, Text,, Number of folders:
+	; navchoice value (1-7) pre-selected, assigns value (1,2,3,5,10,15,20) to navskip
+	Gui, 6:Add, DropDownList, Choose%navchoice% R7 vnavskip, 1|2|3|5|10|15|20
+	; run NavSkipGo if OK
+	Gui, 6:Add, Button, w40 x10 y55 gNavSkipGo default, OK
+	; run NavSkipCancel if Cancel
+	Gui, 6:Add, Button, x65 y55 gNavSkipCancel, Cancel
+	
+	; position below the TDNP_Metadata window
+	SetTitleMatchMode 1
+	WinGetPos, winX, winY, winWidth, winHeight, TDNP_Metadata
+	winY+=%winHeight%	
+	Gui, 6:Show, x%winX% y%winY%, Folder Navigation
+Return
+
+; OK button function
+NavSkipGo:
+	; assign the navskip variable value
+	Gui, 6:Submit
+	
+	; assign the navchoice variable value
+	if (navskip == 1)
+		navchoice = %navskip%
+	else if (navskip == 2)
+		navchoice = %navskip%
+	else if (navskip == 3)
+		navchoice = %navskip%
+	else if (navskip == 5)
+		navchoice = 4
+	else if (navskip == 10)
+		navchoice = 5
+	else if (navskip == 15)
+		navchoice = 6
+	else navchoice = 7
+		
+	; close the Folder Navigation GUI
+	Gui, 6:Destroy
+Return
+
+; Cancel button function
+NavSkipCancel:
+	; close the Folder Navigation GUI
+	Gui, 6:Destroy
+Return
+; =======FOLDER NAVIGATION
+
 ; titlefolderpath variable input
 TitleFolderPath:
-FileSelectFolder, titlefolderpath, %scannedpath%, 0, Edit Folder Path`n`nSelect the TITLE folder:
+FileSelectFolder, titlefolderpath, %scannedpath%, 2, Edit Folder Path`n`nSelect the TITLE folder:
 	if ErrorLevel
 		Return
 
@@ -1202,231 +1266,6 @@ else
 }
 Return
 ; =================EDIT
-
-; =================ISSUE SEPARATION
-EnterFolderNames:
-	; initialize variables
-	issuefile =
-	previous =
-	input =
-	count = 1
-	currentissuenum = 0
-	ControlSetText, Static7, ISSUES, TDNP_Metadata
-	ControlSetText, Static2, %currentissuenum%, TDNP_Metadata
-	currentimagescore = 0
-	ControlSetText, Static4, %currentimagescore%, TDNP_Metadata
-
-	; loop to accept issue folder names
-	; and store in the issuefile variable
-	; Cancel button exits data entry
-	Loop
-	{
-		; set the input box display variable
-		previous := input
-		InputBox, input, Folder Names, Enter Issue %count%,, 150, 125,,,,,%previous%
-		if ErrorLevel
-			Return
-		else
-		{
-			; loop to validate issue folder names
-			Loop
-			{
-				; case for valid issue folder name
-				if RegExMatch(input, "^\d\d\d\d\d\d\d\d\d\d$")
-				{
-					; append folder name to issuefile
-					issuefile .= input
-					
-					; append new line to issuefile
-					issuefile .= "`n"
-					
-					; update the counters
-					count++
-					currentissuenum++
-
-					; update the scoreboard
-					ControlSetText, Static2, %currentissuenum%, TDNP_Metadata
-					
-					; end the loop
-					Break
-				}
-				
-				; case for invalid issue folder name
-				else
-				{
-					; print an error message
-					MsgBox, 0, Enter Folder Names, Please enter the folder name in the format: YYYYMMDDEE`n`nExample: 1885013101
-					
-					; create another issue folder name input box and re-enter loop
-					InputBox, input, Folder Names, Enter issue number %count%,, 150, 125,,,,,%previous%
-					if ErrorLevel
-						Return
-				}
-			}
-		}
-	}
-Return
-
-CreateIssueFolders:
-	; abort script if issuefile is empty
-	if issuefile =
-	{
-		MsgBox, 0, Create Folders, There are no issues entered.`n`nSelect "File > Enter Folder Names" to enter issues. 
-		Return
-	}
-	else
-	{
-		; select title folder
-		FileSelectFolder, titlefolderpath, %scannedpath%, 1, CREATE FOLDERS`n`nSelect the TITLE folder:
-		if ErrorLevel
-			Return
-
-		; make the title folder the working directory
-		SetWorkingDir %titlefolderpath%
-		
-		; create display variables for title folder path
-		StringGetPos, titlefolderpos, titlefolderpath, \, R2
-		StringLeft, titlefolder1, titlefolderpath, titlefolderpos
-		StringTrimLeft, titlefolder2, titlefolderpath, titlefolderpos		
-		
-		; parse the issue file for first and last folders
-		createfoldercount = 0
-		Loop, parse, issuefile, `n
-		{
-			createfoldercount++
-			if (createfoldercount == 1)
-				firstfolder := A_LoopField
-			else if (createfoldercount == currentissuenum)
-				lastfolder := A_LoopField				
-		}
-		
-		; confirm directory and folders to create
-		MsgBox, 4, Create Issue Folders, %titlefolder1%`n%titlefolder2%`n`n`tFirst:`t%firstfolder%`n`n`tLast:`t%lastfolder%`n`n`t`tCreate %currentissuenum% folders?`n`nYes to Continue`nNo to Exit
-		IfMsgBox, No, Return
-		
-		; loop creates issue folders stored in issuefile
-		Loop, parse, issuefile, `n
-		{
-			FileCreateDir, %A_LoopField%
-		}
-		
-		; update the scoreboard
-		issuescore += %currentissuenum%
-		ControlSetText, Static16, %issuescore%, TDNP_Metadata
-	}
-
-	; update scoreboard last hotkey
-	ControlSetText, Static7, CREATE, TDNP_Metadata
-Return
-
-PasteImages:
-	; abort script if issuefile is empty
-	if issuefile =
-	{
-		MsgBox, 0, Paste Images, There are no issues entered.`n`nSelect "File > Enter Folder Names" to enter issues. 
-		Return
-	}
-	else
-	{
-		; set last hotkey value
-		ControlSetText, Static7, IMAGES, TDNP_Metadata
-
-		; initialize micro-counter
-		currentimagescore = 0
-		ControlSetText, Static4, %currentimagescore%, TDNP_Metadata
-
-		; select title folder
-		FileSelectFolder, titlefolderpath, %scannedpath%, 0, PASTE IMAGES`n`nSelect the TITLE folder:
-		if ErrorLevel
-			Return
-		else
-		{
-			; create display variables for title folder path
-			StringGetPos, titlefolderpos, titlefolderpath, \, R2
-			StringLeft, titlefolder1, titlefolderpath, titlefolderpos
-			StringTrimLeft, titlefolder2, titlefolderpath, titlefolderpos
-		
-			; loop pastes clipboard contents to folders stored in issuefile
-			Loop, parse, issuefile, `n
-			{
-				; exit script if no more issues
-				if A_LoopField =
-				{
-					Return
-				}
-				else
-				{
-					; create display date variables
-					month := SubStr(A_LoopField, 5, 2)
-					if (month == 01) {
-						monthname = Jan.
-					}
-					else if (month == 02) {
-						monthname = Feb.
-					}
-					else if (month == 03) {
-						monthname = Mar.
-					}
-					else if (month == 04) {
-						monthname = Apr.
-					}
-					else if (month == 05) {
-						monthname = May
-					}
-					else if (month == 06) {
-						monthname = June
-					}
-					else if (month == 07) {
-						monthname = July
-					}
-					else if (month == 08) {
-						monthname = Aug.
-					}
-					else if (month == 09) {
-						monthname = Sept.
-					}
-					else if (month == 10) {
-						monthname = Oct.
-					}
-					else if (month == 11) {
-						monthname = Nov.
-					}
-					else if (month == 12) {
-						monthname = Dec.
-					}
-					day := SubStr(A_LoopField, 7, 2)
-					if (SubStr(day, 1, 1) == 0)
-					{
-						day := SubStr(day, 2)
-					}
-					year := SubStr(A_LoopField, 1, 4)
-
-					; create a confirm dialog for each paste operation, No cancels the script
-					MsgBox, 4, Paste Images, %titlefolder1%`n%titlefolder2%`n`n`t`t%A_LoopField%`n`n`t`t%monthname% %day%`, %year%`n`nYes to Continue`nNo to Exit
-					IfMsgBox, No, Return
-					else
-					{
-						; set the path to paste the clipboard contents
-						pastepath = %titlefolderpath%\%A_LoopField%
-				
-						; loop to parse and paste the clipboard
-						Loop, parse, clipboard, `n, `r
-						{
-							FileMove, %A_LoopField%, %pastepath%
-						}
-
-						; update scoreboard
-						imagescore++
-						currentimagescore++
-						ControlSetText, Static4, %currentimagescore%, TDNP_Metadata
-						ControlSetText, Static17, %imagescore%, TDNP_Metadata
-					}
-				}
-			}
-		}
-	}
-Return
-; =================ISSUE SEPARATION
 
 ; =================SEARCH
 ; US Newspaper Directory Texas search
@@ -1488,7 +1327,7 @@ Return
 
 ; display version info
 About:
-MsgBox, 0, About, TDNP_Metadata.ahk`nVersion 2.6`nAndrew.Weidner@unt.edu
+MsgBox, 0, About, TDNP_Metadata.ahk`nVersion 2.7 (October 2013)`nAndrew.Weidner@unt.edu
 Return
 ; =================HELP
 ; ===========================================MENU FUNCTIONS

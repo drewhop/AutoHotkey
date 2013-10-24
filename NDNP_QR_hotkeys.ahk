@@ -3,12 +3,11 @@
 ; required file for NDNP_QR.ahk
 ; ********************************
 
-; =============================OPEN
-; opens first TIFF file for selected issue folder
-; HotKey = Alt + i
-!i::
-	; deactivate the NDNP_QR windows
+; =============================DEACTIVATE
+DeactivateWindows:
 	SetTitleMatchMode 1
+	IfWinActive, %reelfoldername%
+		WinActivate, ahk_class Shell_TrayWnd
 	IfWinActive, NDNP_QR
 		WinActivate, ahk_class Shell_TrayWnd
 	IfWinActive, Metadata
@@ -23,30 +22,29 @@
 		WinActivate, ahk_class Shell_TrayWnd
 	IfWinActive, Edition
 		WinActivate, ahk_class Shell_TrayWnd
+Return
+; =============================DEACTIVATE
+
+; =============================OPEN
+; opens first TIFF file for selected issue folder
+; HotKey = Alt + i
+!i::
+	Gosub, DeactivateWindows
 	Sleep, 200
 	
-	; set the script flag
 	openflag = 1
-
-	; check for reel folder variable
+	
+	; NDNP_QR_navigation.ahk
 	Gosub, ReelFolderCheck
-	
-	; close all First Impression windows
 	Gosub, CloseFirstImpressionWindows
-
-	; reset the reel folder
 	Gosub, ResetReel
-	
-	; open first TIFF in selected folder
 	Gosub, OpenFirstTIFF
 
 	; zoom out
 	Send, {Enter}
 
-	; reset the script flag
 	openflag = 0
 
-	; update the scoreboard
 	hotkeys++
 	openscore++
 	ControlSetText, Static3, OPEN, NDNP_QR
@@ -60,51 +58,33 @@ Return
 ; and displays the issue metadata
 ; HotKey = Ctrl + Alt + i
 ^!i::
-	; deactivate the NDNP_QR windows
-	SetTitleMatchMode 1
-	IfWinActive, NDNP_QR
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Metadata
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Date
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Volume
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Issue
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Questionable
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Edition
-		WinActivate, ahk_class Shell_TrayWnd
+	Gosub, DeactivateWindows
 	Sleep, 200
 	
-	; set the script flag
 	openplusflag = 1
 
-	; close the Edition Label window
-	Gui, 9:Destroy
-
-	; check for reel folder variable
+	IfWinNotExist, Metadata
+	{
+		Gosub, RedrawMetaWindow ; NDNP_QR_metadata.ahk
+	}
+	
+	Gui, 7:Destroy ; Questionable
+	Gui, 9:Destroy ; Edition Label
+	
+	; NDNP_QR_navigation.ahk
 	Gosub, ReelFolderCheck
-	
-	; close all First Impression windows
 	Gosub, CloseFirstImpressionWindows
-
-	; reset the reel folder
 	Gosub, ResetReel
-	
-	; open first TIFF in selected folder
 	Gosub, OpenFirstTIFF
 	
 	; zoom out
 	Send, {NumpadSub 20}
 
-	; send First Impression to bottom of stack
+	; send First Impression backward
 	WinSet, Bottom,, ahk_id %firstid%
 	Sleep, 300
 
-	; extract the metadata
-	GoSub, ExtractMeta
+	GoSub, ExtractMeta ; NDNP_QR_metadata.ahk
 		
 	; activate First Impression
 	WinActivate, ahk_id %firstid%
@@ -117,10 +97,8 @@ Return
 	WinSet, Top,, Issue
 	WinSet, Top,, Questionable
 
-	; reset the script flag
 	openplusflag = 0
 
-	; update the scoreboard
 	hotkeys+=2
 	openscore++
 	metadatascore++
@@ -135,31 +113,13 @@ Return
 ; opens the first TIFF file for the next issue folder
 ; Hotkey: Alt + o
 !o::
-	; deactivate the NDNP_QR windows
-	SetTitleMatchMode 1
-	IfWinActive, NDNP_QR
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Metadata
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Date
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Volume
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Issue
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Questionable
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Edition
-		WinActivate, ahk_class Shell_TrayWnd
+	Gosub, DeactivateWindows
 	Sleep, 200
 	
-	; set the script flag
 	nextflag = 1
 
-	; check for reel folder variable
+	; NDNP_QR_navigation.ahk
 	Gosub, ReelFolderCheck
-	
-	; close all First Impression windows
 	Gosub, CloseFirstImpressionWindows
 
 	; activate reel folder
@@ -170,8 +130,6 @@ Return
 	{
 		; print error message after 5 seconds
 		MsgBox, 0, Next, NDNP_QR_hotkeys.ahk`n`nCannot find folder %reelfoldername%`n`nOptions:`n`t"File > Open Reel Folder"`n`t"Edit > Reel Folder > Set Path"
-		
-		; exit the script
 		Return
 	}
 	Sleep, 100
@@ -182,16 +140,13 @@ Return
 	SetKeyDelay, 10
 	Sleep, 100
 
-	; open first TIFF in selected folder
-	Gosub, OpenFirstTIFF
+	Gosub, OpenFirstTIFF ; NDNP_QR_navigation.ahk
 
 	; zoom out
 	Send, {Enter}
 
-	; reset the script flag
 	nextflag = 0
 
-	; update the scoreboard
 	hotkeys++
 	nextscore++
 	ControlSetText, Static3, NEXT, NDNP_QR
@@ -205,34 +160,21 @@ Return
 ; and displays the issue metadata
 ; Hotkey: Ctrl + Alt + o
 ^!o::
-	; deactivate the NDNP_QR windows
-	SetTitleMatchMode 1
-	IfWinActive, NDNP_QR
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Metadata
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Date
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Volume
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Issue
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Questionable
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Edition
-		WinActivate, ahk_class Shell_TrayWnd
+	Gosub, DeactivateWindows
 	Sleep, 200
 	
-	; set the script flag
 	nextplusflag = 1
 
-	; close the Edition Label window
-	Gui, 9:Destroy
-
-	; check for reel folder variable
-	Gosub, ReelFolderCheck
+	IfWinNotExist, Metadata
+	{
+		Gosub, RedrawMetaWindow ; NDNP_QR_metadata.ahk
+	}
 	
-	; close all First Impression windows
+	Gui, 7:Destroy ; Questionable
+	Gui, 9:Destroy ; Edition Label
+	
+	; NDNP_QR_navigation.ahk
+	Gosub, ReelFolderCheck
 	Gosub, CloseFirstImpressionWindows
 
 	; activate reel folder
@@ -243,8 +185,6 @@ Return
 	{
 		; print error message after 5 seconds
 		MsgBox, 0, Next+, NDNP_QR_hotkeys.ahk`n`nCannot find folder %reelfoldername%`n`nOptions:`n`t"File > Open Reel Folder"`n`t"Edit > Reel Folder > Set Path"
-		
-		; exit the script
 		Return
 	}
 	Sleep, 100
@@ -255,18 +195,16 @@ Return
 	SetKeyDelay, 10
 	Sleep, 100
 
-	; open first TIFF in selected folder
-	Gosub, OpenFirstTIFF
+	Gosub, OpenFirstTIFF ; NDNP_QR_navigation.ahk
 
 	; zoom out
 	Send, {NumpadSub 20}
 
-	; send First Impression to bottom of stack
+	; send First Impression backward
 	WinSet, Bottom,, ahk_id %firstid%
 	Sleep, 300
 
-	; extract the metadata
-	GoSub, ExtractMeta
+	GoSub, ExtractMeta ; NDNP_QR_metadata.ahk
 
 	; activate First Impression
 	WinActivate, ahk_id %firstid%
@@ -279,10 +217,8 @@ Return
 	WinSet, Top,, Issue
 	WinSet, Top,, Questionable
 
-	; reset the script flag
 	nextplusflag = 0
 
-	; update the scoreboard
 	hotkeys+=2
 	nextscore++
 	metadatascore++
@@ -297,31 +233,13 @@ Return
 ; opens the first TIFF file for the previous issue folder
 ; Hotkey: Alt + p
 !p::
-	; deactivate the NDNP_QR windows
-	SetTitleMatchMode 1
-	IfWinActive, NDNP_QR
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Metadata
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Date
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Volume
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Issue
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Questionable
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Edition
-		WinActivate, ahk_class Shell_TrayWnd
+	Gosub, DeactivateWindows
 	Sleep, 200
 	
-	; set the script flag
 	previousflag = 1
 
-	; check for reel folder variable
+	; NDNP_QR_navigation.ahk
 	Gosub, ReelFolderCheck
-	
-	; close all First Impression windows
 	Gosub, CloseFirstImpressionWindows
 	
 	; activate reel folder
@@ -332,8 +250,6 @@ Return
 	{
 		; print error message after 5 seconds
 		MsgBox, 0, Previous, NDNP_QR_hotkeys.ahk`n`nCannot find folder %reelfoldername%`n`nOptions:`n`t"File > Open Reel Folder"`n`t"Edit > Reel Folder > Set Path"
-		
-		; exit the script
 		Return
 	}
 	Sleep, 100
@@ -344,16 +260,13 @@ Return
 	SetKeyDelay, 10
 	Sleep, 100
 
-	; open first TIFF in selected folder
-	Gosub, OpenFirstTIFF
+	Gosub, OpenFirstTIFF ; NDNP_QR_navigation.ahk
 
 	; zoom out
 	Send, {Enter}
 
-	; reset the script flag
 	previousflag = 0
 
-	; update the scoreboard
 	hotkeys++
 	revscore++
 	ControlSetText, Static3, PREV, NDNP_QR
@@ -367,34 +280,21 @@ Return
 ; and displays the issue metadata
 ; Hotkey: Ctrl + Alt + p
 ^!p::
-	; deactivate the NDNP_QR windows
-	SetTitleMatchMode 1
-	IfWinActive, NDNP_QR
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Metadata
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Date
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Volume
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Issue
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Questionable
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Edition
-		WinActivate, ahk_class Shell_TrayWnd
+	Gosub, DeactivateWindows
 	Sleep, 200
 	
-	; set the script flag
 	previousplusflag = 1
 
-	; close the Edition Label Window
-	Gui, 9:Destroy
-
-	; check for reel folder variable
-	Gosub, ReelFolderCheck
+	IfWinNotExist, Metadata
+	{
+		Gosub, RedrawMetaWindow ; NDNP_QR_metadata.ahk
+	}
 	
-	; close all First Impression windows
+	Gui, 7:Destroy ; Questionable
+	Gui, 9:Destroy ; Edition Label
+	
+	; NDNP_QR_navigation.ahk
+	Gosub, ReelFolderCheck
 	Gosub, CloseFirstImpressionWindows
 	
 	; activate reel folder
@@ -405,8 +305,6 @@ Return
 	{
 		; print error message after 5 seconds
 		MsgBox, 0, Previous+, NDNP_QR_hotkeys.ahk`n`nCannot find folder %reelfoldername%`n`nOptions:`n`t"File > Open Reel Folder"`n`t"Edit > Reel Folder > Set Path"
-		
-		; exit the script
 		Return
 	}
 	Sleep, 100
@@ -417,18 +315,16 @@ Return
 	SetKeyDelay, 10
 	Sleep, 100
 
-	; open first TIFF in selected folder
-	Gosub, OpenFirstTIFF
+	Gosub, OpenFirstTIFF ; NDNP_QR_navigation.ahk
 
 	; zoom out
 	Send, {NumpadSub 20}
 
-	; send First Impression to bottom of stack
+	; send First Impression backward
 	WinSet, Bottom,, ahk_id %firstid%
 	Sleep, 300
 
-	; extract the metadata
-	GoSub, ExtractMeta
+	GoSub, ExtractMeta ; NDNP_QR_metadata.ahk
 
 	; activate First Impression
 	WinActivate, ahk_id %firstid%
@@ -441,10 +337,8 @@ Return
 	WinSet, Top,, Issue
 	WinSet, Top,, Questionable
 
-	; reset the script flag
 	previousplusflag = 0
 
-	; update the scoreboard
 	hotkeys+=2
 	revscore++
 	metadatascore++
@@ -459,46 +353,22 @@ Return
 ; opens the first TIFF file for a specific issue folder
 ; Hotkey: Alt + g
 !g::
-	; deactivate the NDNP_QR windows
-	SetTitleMatchMode 1
-	IfWinActive, NDNP_QR
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Metadata
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Date
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Volume
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Issue
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Questionable
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Edition
-		WinActivate, ahk_class Shell_TrayWnd
+	Gosub, DeactivateWindows
 	Sleep, 200
 	
-	; set the script flag
 	gotoflag = 1
 
-	; check for reel folder variable
+	; NDNP_QR_navigation.ahk
 	Gosub, ReelFolderCheck
-	
-	; close all First Impression windows
 	Gosub, CloseFirstImpressionWindows
-	
-	; navigation subroutine
 	Gosub, GoToIssue
-
-	; open first TIFF in selected folder
 	Gosub, OpenFirstTIFF
 
 	; zoom out
 	Send, {Enter}
 
-	; reset the script flag
 	gotoflag = 0
 
-	; update the scoreboard
 	hotkeys++
 	gotoscore++
 	ControlSetText, Static3, GOTO, NDNP_QR
@@ -512,51 +382,33 @@ Return
 ; and displays the issue metadata
 ; Hotkey: Ctrl + Alt + g
 ^!g::
-	; deactivate the NDNP_QR windows
-	SetTitleMatchMode 1
-	IfWinActive, NDNP_QR
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Metadata
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Date
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Volume
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Issue
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Questionable
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Edition
-		WinActivate, ahk_class Shell_TrayWnd
+	Gosub, DeactivateWindows
 	Sleep, 200
 	
-	; set the script flag
 	gotoplusflag = 1
 
-	; close the Edition Label Window
-	Gui, 9:Destroy
-
-	; check for reel folder variable
+	IfWinNotExist, Metadata
+	{
+		Gosub, RedrawMetaWindow ; NDNP_QR_metadata.ahk
+	}
+	
+	Gui, 7:Destroy ; Questionable
+	Gui, 9:Destroy ; Edition Label
+	
+	; NDNP_QR_navigation.ahk
 	Gosub, ReelFolderCheck
-	
-	; close all First Impression windows
 	Gosub, CloseFirstImpressionWindows
-	
-	; navigation subroutine
 	Gosub, GoToIssue
-
-	; open first TIFF in selected folder
 	Gosub, OpenFirstTIFF
 	
 	; zoom out
 	Send, {NumpadSub 20}
 
-	; send First Impression to bottom of stack
+	; send First Impression backward
 	WinSet, Bottom,, ahk_id %firstid%
 	Sleep, 300
 
-	; extract the metadata
-	Gosub, ExtractMeta
+	Gosub, ExtractMeta ; NDNP_QR_metadata.ahk
 	
 	; activate First Impression
 	WinActivate, ahk_id %firstid%
@@ -569,10 +421,8 @@ Return
 	WinSet, Top,, Issue
 	WinSet, Top,, Questionable
 
-	; set the script flag
 	gotoplusflag = 0
 
-	; update the scoreboard
 	hotkeys+=2
 	gotoscore++
 	metadatascore++
@@ -587,39 +437,23 @@ Return
 ; displays the metadata for the selected issue folder
 ; Hotkey: Alt + m
 !m::
-	; deactivate the NDNP_QR windows
-	SetTitleMatchMode 1
-	IfWinActive, NDNP_QR
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Metadata
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Date
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Volume
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Issue
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Questionable
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Edition
-		WinActivate, ahk_class Shell_TrayWnd
+	Gosub, DeactivateWindows
 	Sleep, 200
 	
-	; set the script flag
 	metadataflag = 1
 
-	; close the Edition Label Window
-	Gui, 9:Destroy
-
-	; get the unique FI window id#
+	IfWinNotExist, Metadata
+	{
+		Gosub, RedrawMetaWindow ; NDNP_QR_metadata.ahk
+	}
+	
+	Gui, 7:Destroy ; Questionable
+	Gui, 9:Destroy ; Edition Label
 	SetTitleMatchMode 2
 	WinGet, firstid, ID, First Impression
-
-	; harvest the issuefolder path
-	Gosub, IssueFolderPath
-
-	; extract the metadata
-	GoSub, ExtractMeta
+	
+	Gosub, IssueFolderPath ; NDNP_QR_navigation.ahk
+	GoSub, ExtractMeta ; NDNP_QR_metadata.ahk
 
 	; activate First Impression
 	WinActivate, ahk_id %firstid%
@@ -632,10 +466,8 @@ Return
 	WinSet, Top,, Issue
 	WinSet, Top,, Questionable
 
-	; set the script flag
 	metadataflag = 0
 
-	; update the scoreboard
 	hotkeys++
 	metadatascore++
 	ControlSetText, Static3, METADATA, NDNP_QR
@@ -648,25 +480,10 @@ Return
 ; restores/redraws the Metadata window
 ; Hotkey: Win + Alt + m
 #!m::
-	; deactivate the NDNP_QR windows
-	SetTitleMatchMode 1
-	IfWinActive, NDNP_QR
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Metadata
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Date
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Volume
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Issue
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Questionable
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Edition
-		WinActivate, ahk_class Shell_TrayWnd
+	Gosub, DeactivateWindows
 	Sleep, 200
 	
-	Gosub, RedrawMetaWindow
+	Gosub, RedrawMetaWindow ; NDNP_QR_metadata.ahk
 Return
 ; =============================RESTORE METADATA WINDOW
 
@@ -674,25 +491,10 @@ Return
 ; creates separate windows for the issue metadata
 ; Hotkey: Ctrl + Alt + m
 ^!m::
-	; deactivate the NDNP_QR windows
-	SetTitleMatchMode 1
-	IfWinActive, NDNP_QR
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Metadata
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Date
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Volume
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Issue
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Questionable
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Edition
-		WinActivate, ahk_class Shell_TrayWnd
+	Gosub, DeactivateWindows
 	Sleep, 200
 	
-	Gosub, CreateMetaWindows
+	Gosub, CreateMetaWindows ; NDNP_QR_metadata.ahk
 Return
 ; =============================METADATA WINDOWS
 
@@ -700,25 +502,10 @@ Return
 ; First Impression masthead view
 ; HotKey = Alt + k
 !k::
-	; deactivate the NDNP_QR windows
-	SetTitleMatchMode 1
-	IfWinActive, NDNP_QR
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Metadata
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Date
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Volume
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Issue
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Questionable
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Edition
-		WinActivate, ahk_class Shell_TrayWnd
+	Gosub, DeactivateWindows
 	Sleep, 200
 	
-	; get the First Impression unique window id#
+	; get the First Impression window id#
 	SetTitleMatchMode 2
 	WinGet, firstid, ID, First Impression
 
@@ -730,7 +517,7 @@ Return
 	; zoom in
 	Send, {Enter}
 	Sleep, 100
-	Send, {NumpadSub 20}
+	Send, {NumpadSub %imagewidth%}
 	
 	; bring all metadata windows to front
 	WinSet, Top,, Metadata	
@@ -741,7 +528,6 @@ Return
 	WinSet, Top,, Edition
 	WinSet, Top,, Timer	
 	
-	; update the scoreboard
 	hotkeys++
 	zoominscore++
 	ControlSetText, Static3, ZOOM IN, NDNP_QR
@@ -754,25 +540,10 @@ Return
 ; First Impression full page view
 ; HotKey = Alt + l
 !l::
-	; deactivate the NDNP_QR windows
-	SetTitleMatchMode 1
-	IfWinActive, NDNP_QR
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Metadata
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Date
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Volume
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Issue
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Questionable
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Edition
-		WinActivate, ahk_class Shell_TrayWnd
+	Gosub, DeactivateWindows
 	Sleep, 200
 	
-	; get the First Impression unique window id#
+	; get the First Impression window id#
 	SetTitleMatchMode 2
 	WinGet, firstid, ID, First Impression
 
@@ -795,7 +566,6 @@ Return
 	WinSet, Top,, Edition
 	WinSet, Top,, Timer	
 		
-	; update the scoreboard
 	hotkeys++
 	zoomoutscore++
 	ControlSetText, Static3, ZOOM OUT, NDNP_QR
@@ -809,37 +579,18 @@ Return
 ; Web browsers work well for this
 ; Hotkey: Alt + q
 !q::
-	; deactivate the NDNP_QR windows
-	SetTitleMatchMode 1
-	IfWinActive, NDNP_QR
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Metadata
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Date
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Volume
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Issue
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Questionable
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Edition
-		WinActivate, ahk_class Shell_TrayWnd
+	Gosub, DeactivateWindows
 	Sleep, 200
 	
-	; set the script flag
 	viewissuexmlflag = 1
 
-	; harvest the issuefolder path
-	Gosub, IssueFolderPath
+	Gosub, IssueFolderPath ; NDNP_QR_navigation.ahk
 
 	; open the issue.xml file in default application
 	Run, "%issuefolderpath%\%issuefoldername%.xml"
 		
-	; reset the script flag
 	viewissuexmlflag = 0
 
-	; update the scoreboard
 	hotkeys++
 	viewissuexmlscore++
 	ControlSetText, Static3, ViewXML, NDNP_QR
@@ -852,37 +603,18 @@ Return
 ; opens issue.xml with Notepad++
 ; Hotkey: Alt + w
 !w::
-	; deactivate the NDNP_QR windows
-	SetTitleMatchMode 1
-	IfWinActive, NDNP_QR
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Metadata
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Date
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Volume
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Issue
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Questionable
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Edition
-		WinActivate, ahk_class Shell_TrayWnd
+	Gosub, DeactivateWindows
 	Sleep, 200
 	
-	; set the script flag
 	editissuexmlflag = 1
 
-	; harvest the issuefolder path
-	Gosub, IssueFolderPath
+	Gosub, IssueFolderPath ; NDNP_QR_navigation.ahk
 
 	; open the issue.xml file in Notepad++
 	Run, "%notepadpath%\notepad++.exe" "%issuefolderpath%\%issuefoldername%.xml"		
 		
-	; reset the script flag
 	editissuexmlflag = 0
 
-	; update the scoreboard
 	hotkeys++
 	editissuexmlscore++
 	ControlSetText, Static3, EditXML, NDNP_QR
@@ -895,42 +627,19 @@ Return
 ; resets desktop to the current reel folder
 ; Hotkey: Alt + b
 !b::
-	; deactivate the NDNP_QR windows
-	SetTitleMatchMode 1
-	IfWinActive, NDNP_QR
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Metadata
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Date
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Volume
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Issue
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Questionable
-		WinActivate, ahk_class Shell_TrayWnd
-	IfWinActive, Edition
-		WinActivate, ahk_class Shell_TrayWnd
+	Gosub, DeactivateWindows
 	Sleep, 200
 	
-	; check for reel folder variable
+	; NDNP_QR_navigation.ahk
 	Gosub, ReelFolderCheck
-
-	; reset the reel folder
 	Gosub, ResetReel
 	
-	; update scoreboard
 	hotkeys++
 	backscore++
 	ControlSetText, Static3, BACK %backscore%, NDNP_QR
 	ControlSetText, Static14, %hotkeys%, NDNP_QR
 Return
 ; =============================BACK
-
-; =============================TOGGLE TIMER
-; toggles between Timer and First Impression windows
-
-; =============================TOGGLE TIMER
 
 ; =============================REEL NOTES
 ; date (Ctrl + 1)

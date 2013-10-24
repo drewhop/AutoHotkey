@@ -160,7 +160,6 @@ Return
 
 ; ======================GO TO ISSUE
 GoToIssue:
-	; create input box to enter the folder name
 	SetTitleMatchMode 1
 	WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
 	winY+=%winHeight%
@@ -169,22 +168,15 @@ GoToIssue:
 		Return
 	else
 	{
-		; loop checks for valid title folder name
-		Loop
+		Loop ; valid title folder check
 		{
-			; if title folder name is valid (10 digit number)
 			if RegExMatch(input, "\d\d\d\d\d\d\d\d\d\d")
 			{
-				; accept the input
 				issuefolder = %input%
 
-				; exit script if folder does not exist
 				IfNotExist, %reelfolderpath%\%issuefolder%
 				{
-					; print an error message
 					MsgBox, 0, Error, GoToIssue`nNDNP_QR_navigation.ahk`n`n%issuefolder% does not exist in this directory:`n`n`t%reelfolder1%`n`t%reelfolder2%
-					
-					; exit the script
 					Return
 				}
 					
@@ -196,8 +188,6 @@ GoToIssue:
 				{
 					; print error message after 5 seconds
 					MsgBox, 0, Error, GoToIssue`nNDNP_QR_navigation.ahk`n`nCannot find window: %reelfoldername%`n`nNew Window:`n`n`t"File > Open Reel Folder"`n`nExisting Window:`n`n`t"Edit > Reel Folder > Set Path"
-						
-					; exit the script
 					Exit
 				}
 				Sleep, 100
@@ -208,7 +198,6 @@ GoToIssue:
 				SetKeyDelay, 10
 				Sleep, 100
 
-				; end title check loop
 				Break
 			}
 				

@@ -13,7 +13,8 @@
  *    NDNP_QR_menus.ahk
  *    NDNP_QR_metadata.ahk
  *    NDNP_QR_navigation.ahk
- *    NDNP_QR_tools.ahk
+ *    NDNP_QR_reelloops.ahk
+ *    NDNP_QR_reports.ahk
  *
  * *******************************************************
  *
@@ -68,6 +69,14 @@ delaydefault = 6
 ; for the language code report default
 languagecodedefault = spa
 
+; default image width values
+wide = 20
+medium = 25
+narrow = 30
+; EDIT THIS VARIABLE
+; for the default reel loop image display width (%wide%, %medium%, %narrow%)
+imagewidth = %wide%
+
 ; documentation
 docURL = https://github.com/drewhop/AutoHotkey/wiki/NDNP_QR
 
@@ -101,6 +110,10 @@ navskip = 1
 navchoice = 1
 
 ; tools
+lccnurl = http://chroniclingamerica.loc.gov/lccn/
+lccndivider := "============================================================================="
+reeldivider := "-----------------------------------------------------------------------------"
+reportheader = Identifier`t`t`tVolume`tIssue`tDate (Questionable)`tPages
 delay = %delaydefault%
 delaychoice := delay - 2
 dvvdelay =
@@ -186,8 +199,6 @@ Menu, FileMenu, Add, &Reload, Reload
 Menu, FileMenu, Add, E&xit, Exit
 
 ; Edit
-Menu, EditMenu, Add, &Folder Navigation, NavSkip
-Menu, EditMenu, Add
 Menu, NoteMenu, Add, Ctrl + &8, Note8
 Menu, NoteMenu, Add, Ctrl + &9, Note9
 Menu, NoteMenu, Add, Ctrl + &0, Note0
@@ -195,6 +206,10 @@ Menu, NoteMenu, Add
 Menu, NoteMenu, Add, Display &Standard Notes, DisplayStandardNotes
 Menu, NoteMenu, Add, Display &User-Defined Notes, DisplayUserNotes
 Menu, EditMenu, Add, &Note Hotkeys, :NoteMenu
+Menu, EditMenu, Add
+Menu, EditMenu, Add, &Image Display Width, ImageWidth
+Menu, EditMenu, Add
+Menu, EditMenu, Add, &Folder Navigation, NavSkip
 Menu, EditMenu, Add
 Menu, ReelMenu, Add, &Set Path, EditReelFolder
 Menu, ReelMenu, Add, &Display Current Reel, DisplayReelFolder
@@ -334,28 +349,27 @@ Gui, 1:Add, GroupBox, x175 y135 w75 h45,
 Gui, 1:Add, GroupBox, x255 y135 w75 h45,           
 ; =========================================BOXES
 
-; create main GUI
+; main GUI
 WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
 winX+=%winWidth%
 Gui, 1:Show, x%winX% y%winY% h190 w345, NDNP_QR
 WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
 
-; create Metadata GUI
-Gui, 2:+AlwaysOnTop
-Gui, 2:+ToolWindow
-winX+=%winWidth%
-Gui, 2:Show, x%winX% y%winY% h160 w200, Metadata
+; Metadata GUI
+; Gui, 2:+AlwaysOnTop
+; Gui, 2:+ToolWindow
+; winX+=%winWidth%
+; Gui, 2:Show, x%winX% y%winY% h160 w200, Metadata
 ; END GUI FORMATTING *********************************************
 
-; activate the NDNP_QR window
 WinActivate, NDNP_QR
 
 ; pause key pauses/restarts any active function
 Pause::Pause
 
 ; =========================================HOTKEYS
-; REQUIRED FILE
 #Include NDNP_QR_hotkeys.ahk
+;  DeactiveWindows: deactivates an active NDNP_QR window
 ;  OPEN: opens first TIFF for selected issue folder
 ;  OPEN+: also displays issue metadata
 ;  NEXT: opens first TIFF for next issue folder
@@ -374,7 +388,6 @@ Pause::Pause
 ; =========================================HOTKEYS
 
 ; =========================================SUBROUTINES
-; REQUIRED FILE
 #Include NDNP_QR_navigation.ahk
 ;  ReelFolderCheck: tests for stored "reelfolderpath" variable
 ;  ResetReel: opens or activates the current reel folder
@@ -383,7 +396,6 @@ Pause::Pause
 ;  GoToIssue: input dialog for GOTO hotkeys
 ;  IssueToReel: moves up one directory from any issue folder
 
-; REQUIRED FILE
 #Include NDNP_QR_metadata.ahk
 ;  IssueFolderPath: assigns the "issuefolderpath" variable
 ;  ExtractMeta: parses issue.xml file & displays metadata
@@ -393,13 +405,18 @@ Pause::Pause
 
 ; =========================================MENU FUNCTIONS
 ; ======================TOOLS MENU
-; REQUIRED FILE
-#Include NDNP_QR_tools.ahk
+#Include NDNP_QR_reports.ahk
 ;  BatchReport: creates a .TXT report of all issues in a batch
+;  BatchParseOCR: helper subroutine for parsing batch.xml in OCR reports
+;  LanguageCodeReport: creates a .TXT report of language codes in a reel's OCR
+;  OCRSearch: creates a .TXT report of search term hits in a reel's OCR
+
+#Include NDNP_QR_reelloops.ahk
 ;  ReelReport: creates a .TXT report of all issues in a reel
 ;              while displaying images and metadata
 ;  MetaViewer: displays images and metadata for issues in a reel
 ;              provides option to record notes
+;  GetReportInfo: variable assignment subroutine
 ;  ReelLoopFunction: primary function for ReelReport & MetaViewer
 ;  DELAY TIMER: timer window functions
 
@@ -410,18 +427,15 @@ Pause::Pause
 ;  DVV DELAY DIALOG: delay dialog functions
 ; ======================TOOLS MENU
 
-; REQUIRED FILE ****************************************
+; ******************************************************
 #Include NDNP_QR_menus.ahk
-
-; ======================FILE MENU
+; FILE MENU============================
 ;  OpenReel: opens reel folder & assigns variables
 ;  DVVvalidate: validates a batch with the command line
 ;  DVVverify: verifies a batch with the command line
 ;  Reload: reloads the application
 ;  Exit: exits the application
-; ======================FILE MENU
-
-; ======================EDIT MENU
+; EDIT MENU============================
 ;  NavSkip: dialog for Folder Navigation
 ;  NavSkipGo & NavSkipCancel: button functions
 ;  EditReelFolder: assigns the "reelfolderpath" variable
@@ -430,9 +444,7 @@ Pause::Pause
 ;  EditNotepadFolder: assigns the "notepadpath" variable
 ;  EditCMDFolder: assigns the "CMDpath" variable
 ;  EditDVVFolder: assigns the "DVVpath" variable
-; ======================EDIT MENU
-
-; ======================SEARCH MENU
+; SEARCH MENU============================
 ;  DirectorySearch: dialog for US Directory Search
 ;  DirectoryGo & DirSearchCancel: button functions
 ;  DirectoryLCCN: dialog for US Directory: LCCN
@@ -442,23 +454,19 @@ Pause::Pause
 ;  ChronAmBrowseGo & CABrowseCancel: button functions
 ;  ChronAmData: dialog for ChronAm Data
 ;  ChronAmDataGo & CADataCancel: button functions
-; ======================SEARCH MENU
 ; ******************************************************
 
 ; ======================HELP MENU
-; open NDNP_QR documentation
 Documentation:
   Run, %docURL%
 Return
 
-; open NDNP Awardee wiki
 NDNPwiki:
   Run, http://www.loc.gov/extranet/wiki/library_services/ndnp/index.php/AwardeePage
 Return
 
-; display version info
 About:
-	MsgBox, 0, About NDNP_QR, Quality Review utility for NDNP data.`n_____________________________`nVersion 2.0   (July 2013)`nAndrew.Weidner@unt.edu
+	MsgBox, 0, About NDNP_QR, Quality Review utility for NDNP data.`n_____________________________`nVersion 2.1   (October 2013)`nAndrew.Weidner@unt.edu
 Return
 ; ======================HELP MENU
 ; =========================================MENU FUNCTIONS

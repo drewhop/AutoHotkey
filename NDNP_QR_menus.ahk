@@ -3,14 +3,44 @@
 ; required file for NDNP_QR.ahk
 ; ********************************
 
+; ======================REEL CHECK
+ReelFolderCheckLoop:
+	MsgBox, 0, Reel Folder, %reelfoldername% does not appear to be a REEL folder.`n`n`tPlease try again.
+
+	reelfolderpath = _
+	reelfoldername = _
+
+	FileSelectFolder, reelfolderpath, %batchdrive%, 2, `nSelect the REEL folder:
+	if ErrorLevel
+	{
+		reelfolderpath = _
+		reelfoldername = _
+		Exit
+	}
+
+	Gosub, GetReelInfo
+Return
+; ======================REEL CHECK
+
+; ======================REEL INFO
+GetReelInfo:
+	; display variables for reel folder path
+	StringGetPos, reelfolderpos, reelfolderpath, \, R2
+	StringLeft, reelfolder1, reelfolderpath, reelfolderpos
+	StringTrimLeft, reelfolder2, reelfolderpath, reelfolderpos
+
+	; reel folder name
+	StringGetPos, foldernamepos, reelfolderpath, \, R1
+	foldernamepos++
+	StringTrimLeft, reelfoldername, reelfolderpath, foldernamepos
+Return
+; ======================REEL INFO
+
 ; ======================FILE MENU
-; open a reel folder
 OpenReel:
-	; create dialog to select the reel folder
 	FileSelectFolder, reelfolderpath, %batchdrive%, 2, `nSelect a REEL folder:
 	if ErrorLevel
 	{
-		; reset variables on Cancel
 		reelfolderpath = _
 		reelfoldername = _
 		Return
@@ -21,50 +51,16 @@ OpenReel:
 	IfWinExist, %reelfoldername%,, %reelfoldername%-
 		WinClose, %reelfoldername%,,, %reelfoldername%-
 		
-	; create display variables for reel folder path
-	StringGetPos, reelfolderpos, reelfolderpath, \, R2
-	StringLeft, reelfolder1, reelfolderpath, reelfolderpos
-	StringTrimLeft, reelfolder2, reelfolderpath, reelfolderpos
-
-	; assign the new reel folder name
-	StringGetPos, foldernamepos, reelfolderpath, \, R1
-	foldernamepos++
-	StringTrimLeft, reelfoldername, reelfolderpath, foldernamepos
-	
+	Gosub, GetReelInfo
+		
 	; loop checks to see if it is a reel folder
 	Loop
 	{
 		StringLen, length, reelfoldername
 		if (length != 11)
 		{		
-			; print error message
-			MsgBox, 0, Reel Folder, %reelfoldername% does not appear to be a REEL folder.`n`n`tPlease try again.
-
-			; reset the variables
-			reelfolderpath = _
-			reelfoldername = _
-
-			; create dialog to select the reel folder
-			FileSelectFolder, reelfolderpath, %batchdrive%, 2, `nSelect the REEL folder:
-			if ErrorLevel
-			{
-				; reset the variables on Cancel
-				reelfolderpath = _
-				reelfoldername = _
-				Exit
-			}
-
-			; create display variables for reel folder path
-			StringGetPos, reelfolderpos, reelfolderpath, \, R2
-			StringLeft, reelfolder1, reelfolderpath, reelfolderpos
-			StringTrimLeft, reelfolder2, reelfolderpath, reelfolderpos
-
-			; extract reel folder name from path
-			StringGetPos, foldernamepos, reelfolderpath, \, R1
-			foldernamepos++
-			StringTrimLeft, reelfoldername, reelfolderpath, foldernamepos
+			Gosub, ReelFolderCheckLoop
 		}
-				
 		else Break
 	}
 	
@@ -119,7 +115,6 @@ ExitApp
 
 ; ======================EDIT MENU
 ; =======FOLDER NAVIGATION
-; create the GUI
 NavSkip:
 	Gui, 12:+ToolWindow
 	Gui, 12:Add, Text,, Number of folders:
@@ -129,20 +124,15 @@ NavSkip:
 	Gui, 12:Add, Button, w40 x10 y55 gNavSkipGo default, OK
 	; run NavSkipCancel if Cancel
 	Gui, 12:Add, Button, x65 y55 gNavSkipCancel, Cancel
-	
-	; position below the NDNP_QR window
 	SetTitleMatchMode 1
 	WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
-	winY+=%winHeight%	
 	Gui, 12:Show, x%winX% y%winY%, Folder Navigation
 Return
 
-; OK button function
+; OK button
 NavSkipGo:
-	; assign the navskip variable value
 	Gui, 12:Submit
 	
-	; assign the navchoice variable value
 	if (navskip == 1)
 		navchoice = %navskip%
 	else if (navskip == 2)
@@ -157,16 +147,53 @@ NavSkipGo:
 		navchoice = 6
 	else navchoice = 7
 		
-	; close the Folder Navigation GUI
 	Gui, 12:Destroy
 Return
 
-; Cancel button function
+; Cancel button
 NavSkipCancel:
-	; close the Folder Navigation GUI
 	Gui, 12:Destroy
 Return
 ; =======FOLDER NAVIGATION
+
+; =======IMAGE WIDTH
+ImageWidth:
+	if (imagewidth == wide)
+		imageselect = 1
+	else if (imagewidth == medium)
+		imageselect = 2
+	else imageselect = 3
+	
+	Gui, 21:+ToolWindow
+	Gui, 21:Add, Text,, Select an image width:
+	Gui, 21:Add, DropDownList, AltSubmit Choose%imageselect% R3 vimagechoice, Wide|Medium|Narrow
+	; run ScreenWidthGo if OK
+	Gui, 21:Add, Button, w40 x10 y55 gImageWidthGo default, OK
+	; run ScreenWidthCancel if Cancel
+	Gui, 21:Add, Button, x65 y55 gImageWidthCancel, Cancel
+	SetTitleMatchMode 1
+	WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
+	Gui, 21:Show, x%winX% y%winY%, Image Width
+Return
+
+; OK button
+ImageWidthGo:
+	Gui, 21:Submit
+	
+	if (imagechoice == 1)
+		imagewidth = %wide%
+	else if (imagechoice == 2)
+		imagewidth = %medium%
+	else imagewidth = %narrow%
+		
+	Gui, 21:Destroy
+Return
+
+; Cancel button
+ImageWidthCancel:
+	Gui, 21:Destroy
+Return
+; =======SCREEN WIDTH
 
 ; =======NOTE HOTKEYS
 ; Ctrl8 input
@@ -233,58 +260,22 @@ Return
 
 ; =======REEL FOLDER
 EditReelFolder:
-	; create dialog to select the reel folder
 	FileSelectFolder, reelfolderpath, %batchdrive%, 2, `nSelect a REEL folder:
 	if ErrorLevel
 	{
-		; reset variables on Cancel
 		reelfolderpath = _
 		reelfoldername = _
 		Return
 	}
 
-	; create display variables for reel folder path
-	StringGetPos, reelfolderpos, reelfolderpath, \, R2
-	StringLeft, reelfolder1, reelfolderpath, reelfolderpos
-	StringTrimLeft, reelfolder2, reelfolderpath, reelfolderpos
+	Gosub, GetReelInfo
 
-	; extract reel folder name from path
-	StringGetPos, foldernamepos, reelfolderpath, \, R1
-	foldernamepos++
-	StringTrimLeft, reelfoldername, reelfolderpath, foldernamepos
-
-	; loop checks to see if it is a reel folder
-	Loop
+	Loop ; valid reel folder check
 	{
 		StringLen, length, reelfoldername
 		if (length != 11)
 		{		
-			; print error message
-			MsgBox, 0, Reel Folder, %reelfoldername% does not appear to be a REEL folder.`n`n`tPlease try again.
-
-			; reset the variables
-			reelfolderpath = _
-			reelfoldername = _
-
-			; create dialog to select the reel folder
-			FileSelectFolder, reelfolderpath, %batchdrive%, 2, `nSelect the REEL folder:
-			if ErrorLevel
-			{
-				; reset the variables on Cancel
-				reelfolderpath = _
-				reelfoldername = _
-				Exit
-			}
-
-			; create display variables for reel folder path
-			StringGetPos, reelfolderpos, reelfolderpath, \, R2
-			StringLeft, reelfolder1, reelfolderpath, reelfolderpos
-			StringTrimLeft, reelfolder2, reelfolderpath, reelfolderpos
-
-			; extract reel folder name from path
-			StringGetPos, foldernamepos, reelfolderpath, \, R1
-			foldernamepos++
-			StringTrimLeft, reelfoldername, reelfolderpath, foldernamepos
+			Gosub, ReelFolderCheckLoop
 		}
 				
 		else Break
@@ -310,7 +301,6 @@ EditBatchDrive:
 	FileSelectFolder, batchdrive,, 0, `nSelect the drive where your batches are stored:
 	if ErrorLevel
 	{
-		; reset to default on Cancel
 		batchdrive = %batchdrivedefault%
 		Return
 	}
@@ -320,7 +310,6 @@ EditNotepadFolder:
 	FileSelectFolder, notepadpath, C:\, 0, `nSelect the folder where Notepad++ is installed:
 	if ErrorLevel
 	{
-		; reset to default on Cancel
 		notepadpath = %notepadpathdefault%
 		Return
 	}
@@ -330,7 +319,6 @@ EditCMDFolder:
 	FileSelectFolder, CMDpath, C:\, 0, `nSelect the folder where CMD.exe is installed:
 	if ErrorLevel
 	{
-		; reset to default on Cancel
 		CMDpath = %CMDpathdefault%
 		Return
 	}
@@ -340,7 +328,6 @@ EditDVVFolder:
 	FileSelectFolder, DVVpath, C:\, 0, `nSelect the folder where the DVV is installed:
 	if ErrorLevel
 	{
-		; reset to default on Cancel
 		DVVpath = %DVVpathdefault%
 		Return
 	}
@@ -354,7 +341,6 @@ Return
 
 ; ======================SEARCH MENU
 ; =======DIRECTORY SEARCH
-; create the GUI
 DirectorySearch:
 	Gui, 10:+ToolWindow
 	; search box input field
@@ -368,26 +354,20 @@ DirectorySearch:
 	; run DirSearchCancel on Cancel button
 	Gui, 10:Add, Button, x65 y100 gDirSearchCancel, Cancel
 
-	; position below the NDNP_QR window
 	SetTitleMatchMode 1
 	WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
 	winY+=%winHeight%	
 	Gui, 10:Show, x%winX% y%winY%, US Directory Search
 Return
 
-; Search button function
+; Search button
 DirectoryGo:
-	; assign the search string
 	Gui, 10:Submit
-	
-	; close the search GUI
 	Gui, 10:Destroy
-	
-	; load the results in the default Web browser
 	Run, http://chroniclingamerica.loc.gov/search/titles/results/?state=%state%&county=&city=&year1=1690&year2=2013&terms=%directorysearchstring%&frequency=&language=&ethnicity=&labor=&material_type=&lccn=&rows=20
 Return
 
-; Cancel button function
+; Cancel button
 DirSearchCancel:
 	Gui, 10:Destroy
 Return
@@ -407,7 +387,6 @@ Return
 ; =======DIRECTORY LCCN
 
 ; =======CHRONAM SEARCH
-; create the GUI
 ChronAmSearch:
 	Gui, 11:+ToolWindow
 	; search box input field
@@ -425,33 +404,26 @@ ChronAmSearch:
 	; run CASearchCancel on Cancel button
 	Gui, 11:Add, Button, x65 y145 gCASearchCancel, Cancel
 
-	; position below the NDNP_QR window
 	SetTitleMatchMode 1
 	WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
 	winY+=%winHeight%	
 	Gui, 11:Show, x%winX% y%winY%, ChronAm Search
 Return
 
-; Search button function
+; Search button
 ChronAmGo:
-	; assign the search string
 	Gui, 11:Submit
-	
-	; close the search GUI
 	Gui, 11:Destroy
-	
-	; load the results in the default Web browser
 	Run, http://chroniclingamerica.loc.gov/search/pages/results/?state=%state%&date1=%date1%&date2=%date2%&proxtext=%chronamsearchstring%&x=0&y=0&dateFilterType=yearRange&rows=20&searchType=basic
 Return
 
-; Cancel button function
+; Cancel button
 CASearchCancel:
 	Gui, 11:Destroy
 Return
 ; =======CHRONAM SEARCH
 
 ; =======CHRONAM BROWSE
-; create the GUI
 ChronAmBrowse:
 	Gui, 13:+ToolWindow
 	; state dropdown menu
@@ -462,35 +434,27 @@ ChronAmBrowse:
 	; run CABrowseCancel on Cancel button
 	Gui, 13:Add, Button, x65 y55 gCABrowseCancel, Cancel
 
-	; position below the NDNP_QR window
 	SetTitleMatchMode 1
 	WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
 	winY+=%winHeight%	
 	Gui, 13:Show, x%winX% y%winY%, ChronAm Browse
 Return
 
-; Search button function
+; Search button
 ChronAmBrowseGo:
-	; assign the state
 	Gui, 13:Submit
-	
-	; close the GUI
 	Gui, 13:Destroy
-	
-	; load the results in the default Web browser
 	Run, http://chroniclingamerica.loc.gov/newspapers/%state%
 Return
 
-; Cancel button function
+; Cancel button
 CABrowseCancel:
 	Gui, 13:Destroy
 Return
 ; =======CHRONAM BROWSE
 
 ; =======CHRONAM DATA
-; create the GUI
 ChronAmData:
-	; initialize the search variables
 	statecode =
 	databatch =
 
@@ -506,28 +470,22 @@ ChronAmData:
 	; run CADataCancel on Cancel button
 	Gui, 14:Add, Button, x60 y100 gCADataCancel, Cancel
 
-	; position below the NDNP_QR window
 	SetTitleMatchMode 1
 	WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
 	winY+=%winHeight%	
 	Gui, 14:Show, x%winX% y%winY%, ChronAm Data
 Return
 
-; GO button function
+; GO button
 ChronAmDataGo:
-	; assign the variables (if any)
 	Gui, 14:Submit
-	
-	; close the GUI
 	Gui, 14:Destroy
 	
-	; load data/batches in the default Web browser
 	Run, http://chroniclingamerica.loc.gov/data/batches
 	
 	; if statecode or databatch are not empty
 	if ((statecode != "") || (databatch != ""))
 	{
-		; wait for page to load
 		SetTitleMatchMode 1
 		WinWaitActive, Index of /data/batches, , 10
 		Sleep, 200
@@ -550,7 +508,7 @@ ChronAmDataGo:
 	}
 Return
 
-; Cancel button function
+; Cancel button
 CADataCancel:
 	Gui, 14:Destroy
 Return

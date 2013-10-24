@@ -11,31 +11,21 @@ DVVpages:
 	dvvloopname = Pages
 	notecount = 0
 	
-	; delay time dialog
 	Gosub, DVVDelay
-	
-	; wait for window to close
 	SetTitleMatchMode 1
 	WinWaitActive, DVV %dvvloopname% Delay
 	WinWaitClose, DVV %dvvloopname% Delay
 	
 	if (cancelbutton == 1)
 	{
-		; reset cancelbutton
-		cancelbutton = 0
-		
-		; reset loopname
+		cancelbutton = 0 ; reset
 		dvvloopname =
-		
-		; exit the script
 		Return
 	}
 	
-	; update last hotkey
 	ControlSetText, Static3, PAGES, NDNP_QR
 	ControlSetText, Static4, DVV Pages, NDNP_QR
 		
-	; initialize the page counter
 	pagecount = 0
 		
 	; initialize the mini-counter
@@ -46,44 +36,35 @@ DVVpages:
 		thumbscount = 0
 	}
 
-	; create the counter GUI
+	; counter window
 	Gui, 3:+AlwaysOnTop
 	Gui, 3:+ToolWindow
 	Gui, 3:Add, Button, w45 gDVVpause default, Start
 	Gui, 3:Add, Button, gDVVcancel, Cancel
 	Gui, 3:Font, cGreen s25 bold, Arial
 	Gui, 3:Add, Text, x75 y13 w75 h35, 0
-	
-	; position in upper left corner of DVV window
 	SetTitleMatchMode 1
 	WinGetPos, winX, winY,,, LOC Digital Viewer
 	Gui, 3:Show, w170 x%winX% y%winY%, DVV_Pages
 
-	; start loop as paused
-	ispaused = 1
+	ispaused = 1 ; start loop as paused
 	
 	Loop
 	{
-		; pause loop
-		if (ispaused == 1)
+		if (ispaused == 1) ; paused
 		{
 			Loop
 			{
-				; check for unpause every half second
-				Sleep, 500
+				Sleep, 500 ; check for unpaused every half second
 				if (ispaused == 0)
 					break
 					
-				; end the Pages loop if Cancel button
-				if (cancelbutton == 1)
+				if (cancelbutton == 1) ; cancel button
 				{
 					cancelbutton = 0
-
-					; close the counter window
-					Gui, 3:Destroy
-
-					; print exit message
-					if (notecount > 0)
+					Gui, 3:Destroy ; counter
+					
+					if (notecount > 0) ; notes added
 					{
 						MsgBox, 4, DVV_%dvvloopname% Ended, You created %notecount% notes.`n`nWould you like to open the DVVnotes.txt file?
 						IfMsgBox, Yes
@@ -91,13 +72,10 @@ DVVpages:
 							Run, %DVVpath%\DVVnotes.txt
 						}
 					}
-					
 					else
 						MsgBox, 0, DVV_Pages, The loop has ended.
 
-					; reset loopname
 					dvvloopname =
-	
 					Return
 				}
 			}
@@ -142,11 +120,8 @@ DVVpages:
 		}
 	}
 		
-	; close the counter window
-	Gui, 3:Destroy
-
-	; print exit message
-	if (notecount > 0)
+	Gui, 3:Destroy ; counter
+	if (notecount > 0) ; notes added
 	{
 		MsgBox, 4, DVV_%dvvloopname% Ended, You created %notecount% notes.`n`nWould you like to open the DVVnotes.txt file?
 		IfMsgBox, Yes
@@ -154,11 +129,9 @@ DVVpages:
 			Run, %DVVpath%\DVVnotes.txt
 		}
 	}
-	
 	else
 		MsgBox, 0, DVV_Pages, The loop has ended.
 
-	; reset loopname
 	dvvloopname =
 Return
 ; ======DVV PAGES LOOP
@@ -169,31 +142,21 @@ DVVthumbs:
 	dvvloopname = Thumbs
 	notecount = 0
 
-	; delay time dialog
 	Gosub, DVVDelay
-	
-	; wait for window to close
 	SetTitleMatchMode 1
 	WinWaitActive, DVV %dvvloopname% Delay
 	WinWaitClose, DVV %dvvloopname% Delay
 	
 	if (cancelbutton == 1)
 	{
-		; reset cancelbutton
-		cancelbutton = 0
-		
-		; reset loopname
+		cancelbutton = 0 ; reset
 		dvvloopname =
-		
-		; exit the script
 		Return
 	}
 
-	; update last hotkey
 	ControlSetText, Static3, THUMBS, NDNP_QR
 	ControlSetText, Static4, DVV Thumbs, NDNP_QR
 		
-	; initialize the thumbs counter
 	thumbscount = 0
 		
 	; initialize the mini-counter
@@ -204,44 +167,35 @@ DVVthumbs:
 		pagecount = 0
 	}
 		
-	; create the counter GUI
+	; counter window
 	Gui, 3:+AlwaysOnTop
 	Gui, 3:+ToolWindow
 	Gui, 3:Add, Button, w45 gDVVpause default, Start
 	Gui, 3:Add, Button, gDVVcancel, Cancel
 	Gui, 3:Font, cGreen s25 bold, Arial
 	Gui, 3:Add, Text, x75 y13 w75 h35, 0
-	
-	; position in upper left corner of DVV window
 	SetTitleMatchMode 1
 	WinGetPos, winX, winY,,, LOC Digital Viewer	
 	Gui, 3:Show, x%winX% y%winY%, DVV_Thumbs
 		
-	; start the loop as paused
-	ispaused = 1
+	ispaused = 1 ; start loop as paused
 
 	Loop
 	{
-		; pause loop
-		if (ispaused == 1)
+		if (ispaused == 1) ; pause loop
 		{
 			Loop
 			{
-				; check for unpause every half second
-				Sleep, 500
+				Sleep, 500 ; check for unpaused every half second
 				if (ispaused == 0)
 					break
 					
-				; end the Pages loop if Cancel button
-				if (cancelbutton == 1)
+				if (cancelbutton == 1) ; cancel button
 				{
 					cancelbutton = 0
+					Gui, 3:Destroy ; counter
 
-					; close the counter window
-					Gui, 3:Destroy
-
-					; print exit message
-					if (notecount > 0)
+					if (notecount > 0) ; notes added
 					{
 						MsgBox, 4, DVV_%dvvloopname% Ended, You created %notecount% notes.`n`nWould you like to open the DVVnotes.txt file?
 						IfMsgBox, Yes
@@ -249,13 +203,10 @@ DVVthumbs:
 							Run, %DVVpath%\DVVnotes.txt
 						}
 					}
-					
 					else
 						MsgBox, 0, DVV_Thumbs, The loop has ended.
 
-					; reset loopname
 					dvvloopname =
-	
 					Return
 				}
 			}
@@ -307,11 +258,9 @@ DVVthumbs:
 		}
 	}
 	
-	; close the counter window
-	Gui, 3:Destroy
+	Gui, 3:Destroy ; counter
 	
-	; print exit message
-	if (notecount > 0)
+	if (notecount > 0) ; notes added
 	{
 		MsgBox, 4, DVV_%dvvloopname% Ended, You created %notecount% notes.`n`nWould you like to open the DVVnotes.txt file?
 		IfMsgBox, Yes
@@ -319,24 +268,20 @@ DVVthumbs:
 			Run, %DVVpath%\DVVnotes.txt
 		}
 	}
-	
 	else
 		MsgBox, 0, DVV_Thumbs, The loop has ended.
 
-	; reset loopname
 	dvvloopname =
 Return
 ; ======DVV THUMBS LOOP
 
 ; ======DVV NOTES
 DVVnotes:
-	; case for inactive notes function
-	if (notecount == 0)
+	if (notecount == 0) ; inactive notes
 	{
 		MsgBox, 4, DVV_%dvvloopname% Notes, Would you like to save a note?`n`nThe DVVnotes.txt file will be`ncreated if it does not already exist.
 		IfMsgBox, Yes
 		{
-			; activate notes function
 			IfWinExist, DVV_%dvvloopname%
 			{
 				WinGetPos, winX, winY, winWidth, winHeight, DVV_%dvvloopname%
@@ -344,8 +289,7 @@ DVVnotes:
 				InputBox, note, DVV_%dvvloopname% Notes, Enter a note:,, 450, 120, %winX%, %winY%,,,
 				if ErrorLevel
 					Return				
-			}
-			
+			}			
 			else
 			{
 				WinGetPos, winX, winY, winWidth, winHeight, LOC Digital Viewer
@@ -354,23 +298,16 @@ DVVnotes:
 					Return
 			}
 
-			; check if the note is blank
-			if (note != "")
+			if (note != "") ; check for blank note
 			{
-				; increment the notes counter
 				notecount++
-								
-				; format the notes file
 				FileAppend, -------------------------------------`nDVV_%dvvloopname% Notes: %A_YYYY%-%A_MM%-%A_DD% (%A_Hour%:%A_Min%)`n`n, %DVVpath%\DVVnotes.txt									
-										
-				; add the note to the DVVnotes.txt file
 				FileAppend, %note%`n`n, %DVVpath%\DVVnotes.txt
 			}		
 		}
 	}
 						
-	; add note to notes file
-	else
+	else ; add to Notes file
 	{
 		IfWinExist, DVV_%dvvloopname%
 		{
@@ -379,8 +316,7 @@ DVVnotes:
 			InputBox, note, DVV_%dvvloopname% Notes, Enter a note:,, 450, 120, %winX%, %winY%,,,
 			if ErrorLevel
 				Return				
-		}
-			
+		}			
 		else
 		{
 			WinGetPos, winX, winY, winWidth, winHeight, LOC Digital Viewer
@@ -389,13 +325,9 @@ DVVnotes:
 				Return
 		}
 
-		; check if the note is blank
-		if (note != "")
+		if (note != "") ; check for blank note
 		{
-			; increment the notes counter
 			notecount++
-									
-			; add the note to the DVVnotes.txt file
 			FileAppend, %note%`n`n, %DVVpath%\DVVnotes.txt
 		}
 	}
@@ -429,7 +361,6 @@ Return
 ; ======DVV COUNTER BUTTONS
 
 ; ======DVV DELAY DIALOG
-; create the GUI
 DVVDelay:
 	Gui, 17:+ToolWindow
 	Gui, 17:Add, Text,, Number of seconds:
@@ -440,34 +371,23 @@ DVVDelay:
 	; run DVVDelayCancel if Cancel
 	Gui, 17:Add, Button, x65 y55 gDVVDelayCancel, Cancel
 	
-	; position below the NDNP_QR window
 	SetTitleMatchMode 1
 	WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
 	winY += %winHeight%
 	Gui, 17:Show, x%winX% y%winY%, DVV %dvvloopname% Delay
 Return
 
-; OK button function
+; OK button
 DVVDelayGo:
-	; assign the dvvdelay variable value
 	Gui, 17:Submit
-	
-	; assign the dvvdelaychoice variable value
 	dvvdelaychoice := dvvdelay - 1
-	
-	; set the delay in milliseconds
-	dvvdelayms := dvvdelay * 1000
-	
-	; close the DVV Delay GUI
+	dvvdelayms := dvvdelay * 1000 ; milliseconds
 	Gui, 17:Destroy
 Return
 
-; Cancel button function
+; Cancel button
 DVVDelayCancel:
-	; close the DVV Delay GUI
 	Gui, 17:Destroy
-	
-	; set the CancelButton
 	cancelbutton = 1
 Return
 ; ======DVV DELAY DIALOG
