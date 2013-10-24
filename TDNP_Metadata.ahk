@@ -1138,13 +1138,6 @@ IssueCheckPY:
 							Break
 						}
 
-						IfExist, C:\Python33\issueCheck.py ; Python 3.3
-						{
-							Run, C:\Windows\System32\cmd.exe /k C:\Python33\python.exe C:\Python33\issueCheck.py "%titlefolderpath%" > "%titlefolderpath%\report-%today%.txt"
-							Sleep, 1000
-							Break
-						}
-
 						; print error message
 						MsgBox, 0, Create Report, ERROR: Cannot Locate issueCheck.py
 						Return
