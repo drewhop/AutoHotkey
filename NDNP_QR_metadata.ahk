@@ -379,6 +379,12 @@ IssueMetadata:
 			Gui, 7:Show, x%winX% y%winY% h40 w200, Questionable
 		}
 	}
+	
+	; if the line indicates a missing page
+	IfInString, A_LoopField, Not digitized`, published
+	{
+		missing++
+	}
 Return
 ; ======================ISSUE METADATA
 
@@ -400,6 +406,8 @@ ExtractMeta:
 	yearQ =
 	volumeflag = 0
 	issueflag = 0
+	missing = 0
+	missingdisplay =
 
 	; read in issue.xml file to issuexml variable
 	FileRead, issuexml, %issuefolderpath%\%issuefoldername%.xml

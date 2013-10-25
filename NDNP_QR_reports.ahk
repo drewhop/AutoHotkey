@@ -31,7 +31,7 @@ ReelFolderName(reelfolderpath)
 	return reelfoldername
 }
 
-Format_Issue_Data(identifier, volume, issue, date, questionable, questionabledisplay, numpages, editionlabel)
+Format_Issue_Data(identifier, volume, issue, date, questionable, questionabledisplay, numpages, missing, missingdisplay, editionlabel)
 {			
 	; tab insert after identifier
 	StringLen, length, identifier
@@ -105,7 +105,16 @@ Format_Issue_Data(identifier, volume, issue, date, questionable, questionabledis
 		datetab := "`t"
 	}
 
-	if Mod(numpages, 2)=0
+	if (missing > 0)
+	{
+		missingdisplay = (%missing%)
+	}
+	else
+	{
+		missingdisplay =
+	}
+	
+	if Mod((numpages+missing), 2)=0
 	{    
 		oddpages := ""
 	}
@@ -114,7 +123,7 @@ Format_Issue_Data(identifier, volume, issue, date, questionable, questionabledis
 		oddpages := " --"
 	}
 	
-	issuedata = %identifier%%identitab%%volume%%volumetab%%issue%%issuetab%%date% %questionabledisplay%%datetab%%numpages%%oddpages%`t%editionlabel%
+	issuedata = %identifier%%identitab%%volume%%volumetab%%issue%%issuetab%%date% %questionabledisplay%%datetab%%numpages% %missingdisplay%%oddpages%`t%editionlabel%
 	
 	return issuedata
 }
@@ -251,6 +260,8 @@ BatchReport:
 			questionabledisplay =
 			volumeflag = 0
 			issueflag = 0
+			missing = 0
+			missingdisplay =
 
 			; read in isue.xml file to issuexml variable
 			FileRead, issuexml, %batchfolderpath%\%A_LoopField%
@@ -282,7 +293,7 @@ BatchReport:
 				startidentifier = %identifier%
 			}
 
-			issuedata := Format_Issue_Data(identifier, volume, issue, date, questionable, questionabledisplay, numpages, editionlabel)
+			issuedata := Format_Issue_Data(identifier, volume, issue, date, questionable, questionabledisplay, numpages, missing, missingdisplay, editionlabel)
 
 			FileAppend, %issuedata%`n, %batchfolderpath%\%batchname%-report.txt
 			

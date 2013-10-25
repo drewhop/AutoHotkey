@@ -234,7 +234,7 @@ ReelLoopFunction:
 
 			if (reelreportflag == 1) ; Reel Report / Format_Issue_Data in NDNP_QR_reports.ahk
 			{	
-				issuedata := Format_Issue_Data(identifier, volume, issue, date, questionable, questionabledisplay, numpages, editionlabel)
+				issuedata := Format_Issue_Data(identifier, volume, issue, date, questionable, questionabledisplay, numpages, missing, missingdisplay, editionlabel)
 				FileAppend, %issuedata%`n, %reportpath%\%lccn%-%reelnumber%-report.txt
 				Sleep, 100
 			}

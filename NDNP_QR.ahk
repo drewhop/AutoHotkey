@@ -113,7 +113,7 @@ navchoice = 1
 lccnurl = http://chroniclingamerica.loc.gov/lccn/
 lccndivider := "============================================================================="
 reeldivider := "-----------------------------------------------------------------------------"
-reportheader = Identifier`t`t`tVolume`tIssue`tDate (Questionable)`tPages
+reportheader = Identifier`t`t`tVolume`tIssue`tDate (Questionable)`tPages (Missing)
 delay = %delaydefault%
 delaychoice := delay - 2
 dvvdelay =
