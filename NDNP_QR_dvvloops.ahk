@@ -373,7 +373,6 @@ DVVDelay:
 	
 	SetTitleMatchMode 1
 	WinGetPos, winX, winY, winWidth, winHeight, NDNP_QR
-	winY += %winHeight%
 	Gui, 17:Show, x%winX% y%winY%, DVV %dvvloopname% Delay
 Return
 

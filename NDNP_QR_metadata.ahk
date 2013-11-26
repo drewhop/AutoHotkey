@@ -22,7 +22,7 @@ IssueFolderPath:
 			errortitle = Error: Open
 			openflag = 0
 		}
-		else if (global openplusflag == 1)
+		else if (openplusflag == 1)
 		{
 			errortitle = Error: Open+
 			openplusflag = 0
@@ -251,10 +251,10 @@ IssueMetadata:
 		StringTrimLeft, editionlabel, A_LoopField, 14
 		StringTrimRight, editionlabel, editionlabel, 15
 
-		if (metaloopflag == 1) ; Reel Report or Metadata Viewer
+		; create Edition Label GUI
+		; except for Batch Report or first pass of Reel Report / Metadata Viewer
+		if (batchreportflag != 1)
 		{
-			; create Edition Label GUI
-			; except for first pass of Reel Report or Metadata Viewer
 			if ((loopcount == 0) || (loopcount > 1))
 			{
 				WinGetPos, winX, winY, winWidth, winHeight, Metadata
@@ -380,6 +380,31 @@ IssueMetadata:
 		}
 	}
 	
+	; if the line contains a section label tag
+	IfInString, A_LoopField, section label
+	{
+		sectionflag = 1
+		sectioncount++
+		Continue
+	}
+
+	; if the sectionflag has been set
+	if (sectionflag == 1)
+	{
+		StringTrimLeft, section, A_LoopField, 13
+		StringTrimRight, section, section, 14
+		if (sectioncount > 1)
+		{
+			sectionlabels := sectionlabels . " | " . section
+		}
+		else
+		{
+			sectionlabels := section		
+		}
+		sectionflag = 0
+		section := ""
+	}
+
 	; if the line indicates a missing page
 	IfInString, A_LoopField, Not digitized`, published
 	{
@@ -408,7 +433,10 @@ ExtractMeta:
 	issueflag = 0
 	missing = 0
 	missingdisplay =
-
+	sectionlabels =
+	sectioncount = 0
+	sectionflag = 0
+	
 	; read in issue.xml file to issuexml variable
 	FileRead, issuexml, %issuefolderpath%\%issuefoldername%.xml
 				

@@ -173,7 +173,8 @@ ReelLoopFunction:
 					IfMsgBox, Yes
 						Run, %reportpath%\%lccn%-%reelnumber%-report.txt
 
-					reelreportflag = 0					
+					reelreportflag = 0
+					loopcount = 0
 					return
 				}
 					
@@ -185,6 +186,7 @@ ReelLoopFunction:
 					MsgBox, 4, Metadata Viewer, LCCN: %lccn%`nReel: %reelnumber%`n`nIssues: %loopcount%`nPages: %totalpages%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`nYou added %notecount% notes. Would you like to open the Notes file?
 					IfMsgBox, Yes
 						Run, %reportpath%\%lccn%-%reelnumber%-notes.txt
+					loopcount = 0
 
 					return						
 				}
@@ -192,6 +194,7 @@ ReelLoopFunction:
 				else ; Metadata Viewer
 				{
 					MsgBox, 0, Metadata Viewer, LCCN: %lccn%`nReel: %reelnumber%`n`nIssues: %loopcount%`nPages: %totalpages%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%
+					loopcount = 0
 
 					return
 				}
@@ -234,7 +237,7 @@ ReelLoopFunction:
 
 			if (reelreportflag == 1) ; Reel Report / Format_Issue_Data in NDNP_QR_reports.ahk
 			{	
-				issuedata := Format_Issue_Data(identifier, volume, issue, date, questionable, questionabledisplay, numpages, missing, missingdisplay, editionlabel)
+				issuedata := Format_Issue_Data(identifier, volume, issue, date, questionable, questionabledisplay, numpages, missing, missingdisplay, editionlabel, sectionlabels)
 				FileAppend, %issuedata%`n, %reportpath%\%lccn%-%reelnumber%-report.txt
 				Sleep, 100
 			}
@@ -376,6 +379,7 @@ ReelLoopFunction:
 						Run, %reportpath%\%lccn%-%reelnumber%-report.txt
 						
 					reelreportflag = 0
+					loopcount = 0
 					return
 				}
 				else if (notecount > 0) ; Metadata Viewer with Notes
@@ -386,12 +390,14 @@ ReelLoopFunction:
 					MsgBox, 4, Metadata Viewer, The metadata viewer for reel %reelnumber% was cancelled.`n`nIssues: %loopcount%`nPages: %totalpages%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n`nYou added %notecount% notes. Would you like to open the notes file?
 					IfMsgBox, Yes
 						Run, %reportpath%\%lccn%-%reelnumber%-notes.txt
+					loopcount = 0
 
 					return						
 				}
 				else ; Metadata Viewer
 				{
 					MsgBox, 0, Metadata Viewer, The metadata viewer for reel %reelnumber% was cancelled.`n`nIssues: %loopcount%`nPages: %totalpages%`n`nSTART:`t%start%`nEND:`t%A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%						
+					loopcount = 0
 					return
 				}
 			}

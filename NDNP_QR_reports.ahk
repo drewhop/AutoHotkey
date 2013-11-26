@@ -31,7 +31,7 @@ ReelFolderName(reelfolderpath)
 	return reelfoldername
 }
 
-Format_Issue_Data(identifier, volume, issue, date, questionable, questionabledisplay, numpages, missing, missingdisplay, editionlabel)
+Format_Issue_Data(identifier, volume, issue, date, questionable, questionabledisplay, numpages, missing, missingdisplay, editionlabel, sectionlabels)
 {			
 	; tab insert after identifier
 	StringLen, length, identifier
@@ -123,7 +123,22 @@ Format_Issue_Data(identifier, volume, issue, date, questionable, questionabledis
 		oddpages := " --"
 	}
 	
-	issuedata = %identifier%%identitab%%volume%%volumetab%%issue%%issuetab%%date% %questionabledisplay%%datetab%%numpages% %missingdisplay%%oddpages%`t%editionlabel%
+	if ((editionlabel == "")&&(sectionlabels == ""))
+	{
+		issuedata = %identifier%%identitab%%volume%%volumetab%%issue%%issuetab%%date% %questionabledisplay%%datetab%%numpages% %missingdisplay%%oddpages%
+	}
+	else if (sectionlabels == "")
+	{
+		issuedata = %identifier%%identitab%%volume%%volumetab%%issue%%issuetab%%date% %questionabledisplay%%datetab%%numpages% %missingdisplay%%oddpages%`te: %editionlabel%
+	}
+	else if (editionlabel == "")
+	{
+		issuedata = %identifier%%identitab%%volume%%volumetab%%issue%%issuetab%%date% %questionabledisplay%%datetab%%numpages% %missingdisplay%%oddpages%`ts: %sectionlabels%
+	}
+	else
+	{
+		issuedata = %identifier%%identitab%%volume%%volumetab%%issue%%issuetab%%date% %questionabledisplay%%datetab%%numpages% %missingdisplay%%oddpages%`te: %editionlabel% s: %sectionlabels%
+	}
 	
 	return issuedata
 }
@@ -169,6 +184,7 @@ BatchReport:
 	issuefile =
 	batchxml =
 	metaloopflag = 0
+	batchreportflag = 1
 
 	FileSelectFolder, batchfolderpath, %batchdrive%, 2, BATCH REPORT`n`nSelect a BATCH folder:
 	if ErrorLevel
@@ -256,14 +272,17 @@ BatchReport:
 			issue =
 			date =
 			editionlabel =
+			sectionlabels := ""
 			questionable =
 			questionabledisplay =
 			volumeflag = 0
 			issueflag = 0
+			sectionflag = 0
+			sectioncount = 0
 			missing = 0
 			missingdisplay =
 
-			; read in isue.xml file to issuexml variable
+			; read in issue.xml file to issuexml variable
 			FileRead, issuexml, %batchfolderpath%\%A_LoopField%
 
 			Loop, parse, issuexml, `n, `r%A_Space%%A_Tab%
@@ -293,13 +312,14 @@ BatchReport:
 				startidentifier = %identifier%
 			}
 
-			issuedata := Format_Issue_Data(identifier, volume, issue, date, questionable, questionabledisplay, numpages, missing, missingdisplay, editionlabel)
+			issuedata := Format_Issue_Data(identifier, volume, issue, date, questionable, questionabledisplay, numpages, missing, missingdisplay, editionlabel, sectionlabels)
 
 			FileAppend, %issuedata%`n, %batchfolderpath%\%batchname%-report.txt
 			
 			runcount++
 		}
 	}
+	batchreportflag = 0
 Return
 ; ======BATCH REPORT
 
