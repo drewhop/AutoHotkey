@@ -203,37 +203,44 @@ ReelLoopFunction:
 
 			Gosub, IssueInfo ; NDNP_QR_reports.ahk
 			
-			; open first TIF file
-			Loop, %issuefolderpath%\*.tif
-			{
-				Run, %issuefolderpath%\%A_LoopFileName%
-				Break
-			}
-				
-			; First Impression window id#
-			SetTitleMatchMode 2
-			WinWaitActive, First Impression
-			Sleep, 100
-			WinGet, firstid, ID, First Impression
-
-			; activate First Impression
-			SetTitleMatchMode 1
-			WinActivate, ahk_id %firstid%
-			WinWaitActive, ahk_id %firstid%
-			Sleep, 100
-				
-			; zoom out
-			Send, {NumpadSub %imagewidth%}
-
-			; send First Impression backward
-			WinSet, Bottom,, ahk_id %firstid%
-			Sleep, 300
-				
-			loopcount++
-
 			Gosub, ExtractMeta ; NDNP_QR_metadata.ahk
 
-			totalpages += %numpages%
+			if (numpages > 0)
+			{
+				totalpages += %numpages%
+
+				; open first TIF file
+				Loop, %issuefolderpath%\*.tif
+				{
+					Run, %issuefolderpath%\%A_LoopFileName%
+					Break
+				}
+					
+				; First Impression window id#
+				SetTitleMatchMode 2
+				WinWaitActive, First Impression
+				Sleep, 100
+				WinGet, firstid, ID, First Impression
+
+				; activate First Impression
+				SetTitleMatchMode 1
+				WinActivate, ahk_id %firstid%
+				WinWaitActive, ahk_id %firstid%
+				Sleep, 100
+					
+				; zoom out
+				Send, {NumpadSub %imagewidth%}
+
+				; send First Impression backward
+				WinSet, Bottom,, ahk_id %firstid%
+				Sleep, 300
+			}
+			else
+			{
+				Msgbox, 0, This issue has no images.
+			}
+				
+			loopcount++
 
 			if (reelreportflag == 1) ; Reel Report / Format_Issue_Data in NDNP_QR_reports.ahk
 			{	

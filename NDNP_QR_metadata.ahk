@@ -509,7 +509,7 @@ ExtractMeta:
 	
 	; create GUIs for Date, Volume, Issue, Questionable, and Edition Label
 	; if first pass of Reel Report or Metadata Viewer
-	if (loopcount == 1)
+	if (loopcount == 0)
 	{
 		Gosub, CreateMetaWindows
 	}
@@ -669,9 +669,9 @@ CreateMetaWindows:
 		Gui, 9:Show, x%winX% y%winY% h40 w400, Edition
 	}				
 		
-	if (loopcount == 1) ; pause first pass
+	if (loopcount == 0) ; pause first pass
 	{
-		MsgBox, 0, %metaloopname% Paused, Position the metadata windows as desired.`n`nClick OK and the loop will continue in %delay% seconds.
+		MsgBox, 0, %metaloopname% Paused, Position the metadata windows as desired.`n`nClick OK and the first page will open.`n`nThe loop will continue in %delay% seconds.
 	}
 Return
 ; ======================CREATE METADATA WINDOWS
